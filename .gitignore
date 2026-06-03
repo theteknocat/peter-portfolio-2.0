@@ -1,0 +1,23 @@
+# Dependencies
+api/vendor/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+
+# Environment files
+api/.env
+api/.env.local
+
+# Content (managed separately via rsync)
+content/
+
+# ddev
+.ddev/.gitignore
+
+# Session scratchpad
+SESSION.md
+
+# OS
+.DS_Store
+Thumbs.db

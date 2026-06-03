@@ -1,0 +1,13 @@
+sections:
+  - type: hero
+    content: home-hero
+  - type: featured-portfolio
+    manifest: portfolio
+    limit: 3
+    filter: featured
+  - type: featured-articles
+    manifest: articles
+    limit: 3
+    filter: featured
+  - type: skills
+    source: skills
