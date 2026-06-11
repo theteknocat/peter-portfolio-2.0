@@ -6,10 +6,9 @@ use App\Handlers\ContentHandler;
 use App\Handlers\ManifestHandler;
 use App\Handlers\PageHandler;
 use App\Middleware\CorsMiddleware;
-use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 
-/** @var App $app */
+/** @var \Slim\App $app */
 
 $app->add(CorsMiddleware::class);
 
