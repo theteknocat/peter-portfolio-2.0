@@ -1,0 +1,233 @@
+# peter-portfolio-2.0
+
+Headless portfolio site. Vue 3 SPA frontend consuming a Slim 4 PHP API.
+Flat-file content (YAML/Markdown) — no database.
+
+---
+
+## Stack
+
+| Layer    | Technology                                          |
+| -------- | --------------------------------------------------- |
+| Frontend | Vue 3, TypeScript, Vite, Vue Router, Tailwind CSS 4 |
+| Icons    | Simple Icons (tech badges), @lucide/vue (UI icons)  |
+| Backend  | Slim 4 (PHP 8.3), PHP-DI, symfony/yaml, phpdotenv   |
+| Content  | YAML + Markdown flat files (outside repo)           |
+| Dev env  | DDEV (no database container)                        |
+
+---
+
+## Directory Structure
+
+```text
+/
+├── api/                  PHP backend
+│   ├── public/           DDEV docroot — index.php entry point
+│   ├── src/
+│   │   ├── Handlers/     Route handlers (PageHandler, ManifestHandler, ContentHandler)
+│   │   ├── Services/     Business logic (ContentService, ManifestService)
+│   │   └── Middleware/   CorsMiddleware
+│   ├── config/pages/     Page layout YAML configs (checked in)
+│   ├── composer.json
+│   └── .env              Local only — gitignored
+│
+├── frontend/             Vue 3 SPA
+│   ├── public/
+│   │   └── images/       Static assets served as-is (body-bg-dark.png, etc.)
+│   ├── src/
+│   │   ├── assets/
+│   │   │   ├── css/      main.css — Tailwind + CSS custom properties + base styles
+│   │   │   └── logo.png
+│   │   ├── components/
+│   │   │   ├── layout/   AppHeader, AppFooter, AppNav
+│   │   │   ├── ui/       ContentCard, SectionHeading, TechBadge, MarkdownRenderer
+│   │   │   ├── portfolio/
+│   │   │   ├── articles/
+│   │   │   ├── home/
+│   │   │   └── clippy/
+│   │   ├── composables/  Reusable fetch logic (useContent, useManifest, usePageConfig)
+│   │   ├── types/        TypeScript interfaces (portfolio.ts, article.ts, job.ts, page.ts)
+│   │   ├── views/        Route-level page components
+│   │   ├── router/       index.ts
+│   │   ├── App.vue
+│   │   ├── main.ts
+│   │   └── vite-env.d.ts
+│   ├── index.html
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   └── package.json
+│
+├── content/              Gitignored — synced separately via rsync
+├── docs/                 Planning and reference documents
+└── .ddev/                DDEV config
+```
+
+---
+
+## Key Commands
+
+```bash
+ddev start                                              # Start dev environment
+ddev stop                                               # Stop dev environment
+ddev describe                                           # Show URLs and service status
+
+ddev composer install                                   # Install PHP dependencies (runs from api/)
+ddev exec --dir /var/www/html/frontend npm install      # Install JS dependencies
+ddev exec --dir /var/www/html/frontend npm run dev      # Start Vite dev server
+ddev exec --dir /var/www/html/frontend npm run build    # Production build
+```
+
+**URLs (when running):**
+
+- API: <https://peter-portfolio.ddev.site>
+- Vite dev server: <https://peter-portfolio.ddev.site:5173>
+
+---
+
+## CSS Architecture
+
+- `src/assets/css/main.css` — single entry point: Google Fonts, Tailwind 4 import,
+  CSS custom properties (colour + font tokens), base element styles
+- Tailwind `@theme` block extends utilities with project tokens (e.g. `text-accent`, `bg-primary-dark`)
+- Component-level decoration (pseudo-elements, clip-path, backdrop-filter) lives in
+  `<style scoped>` blocks in each `.vue` file
+- No Bootstrap. No utility-only approach — Tailwind for layout/spacing, scoped CSS for decoration.
+
+---
+
+## API Endpoints (not yet implemented)
+
+```text
+GET /api/page/{page}
+GET /api/manifest/{name}?limit=3&filter=featured
+GET /api/content/{type}/{slug}
+```
+
+Content path configured via `CONTENT_PATH` env var in `api/.env`.
+
+---
+
+## Working with Peter — Important
+
+Peter is using this project to learn TypeScript and Vue 3 Composition API in depth.
+The PHP backend is familiar ground. He has Vue 2 / Options API experience, so draw
+parallels to that where helpful. The learning focus is Composition API, composables,
+TypeScript patterns in Vue, directives, slots, and advanced router usage.
+
+**Always:**
+
+- Build in small, logical pieces — one component or concept at a time
+- Explain what each new TypeScript or Vue Composition API feature does when it first appears
+- Draw parallels to the Vue 2 Options API (e.g. "`ref()` is like a reactive `data` property")
+- Offer to go deeper on any concept before moving on
+- Wait for acknowledgment/review before writing the next piece
+- Reference `docs/typescript-vue-concepts.md` — tick off concepts as they come up naturally
+
+**Never:**
+
+- Dump a complete component without walking through it
+- Use a TypeScript feature silently without noting what it is
+- Assume prior knowledge of TS generics, utility types, `defineProps`, composables, etc.
+
+---
+
+## Commit Message Workflow
+
+Peter commits manually — never run `git commit` or `git add` unless explicitly asked.
+
+When asked to help draft a commit message:
+
+1. Run `git diff --staged` to see what's being committed
+2. Draft a message following **Conventional Commits** standard:
+   - Format: `type(scope): short description`
+   - Types: `feat`, `fix`, `chore`, `style`, `refactor`, `docs`, `test`
+   - Example: `feat(frontend): add AppHeader component with marble texture`
+   - Body optional for non-trivial changes
+3. **After drafting the commit message, update `SESSION.md`** to reflect current progress
+
+---
+
+## SESSION.md
+
+Maintain `SESSION.md` in the project root as a running scratchpad (gitignored).
+Update it after every commit message request with a one-line entry:
+
+```text
+YYYY-MM-DD | <what was done> | <status> | <next step>
+```
+
+Keep under 50 lines — summarise older entries rather than accumulating.
+On a new session, read SESSION.md first to restore context.
+
+---
+
+## Documentation Standards
+
+### PHP (api/src/)
+
+Use PHPDoc with **Drupal-style indented descriptions** on tags:
+
+```php
+/**
+ * Brief one-line description.
+ *
+ * Longer explanation if needed. Wrap at 80 chars.
+ *
+ * @param string $slug
+ *   The content slug to look up.
+ * @param bool $includeBody
+ *   Whether to include the full markdown body.
+ *
+ * @return array<string, mixed>
+ *   The parsed content data, or an empty array if not found.
+ *
+ * @throws \RuntimeException
+ *   If the content directory is not readable.
+ */
+```
+
+All classes, public methods, and non-obvious private methods need docblocks.
+Use `@throws` whenever an exception can be raised.
+
+### TypeScript / Vue (frontend/src/)
+
+Use **TSDoc** format:
+
+```typescript
+/**
+ * Brief one-line description.
+ *
+ * Longer explanation if needed.
+ *
+ * @param slug - The content slug to look up.
+ * @param includeBody - Whether to include the full markdown body.
+ * @returns The parsed content data, or null if not found.
+ */
+```
+
+Composables, exported functions, and non-obvious helpers all need docblocks.
+Vue component files: a brief comment at the top of `<script setup>` describing what
+the component does is enough — no need to docblock every prop.
+
+---
+
+## Running Code Quality Tools
+
+```bash
+# PHP — from project root
+ddev exec --dir /var/www/html/api vendor/bin/phpcs
+ddev exec --dir /var/www/html/api vendor/bin/phpstan analyse src
+
+# Frontend — type checking and build verification
+ddev exec --dir /var/www/html/frontend npm run build
+```
+
+The `.ddev/run-phpcs` and `.ddev/run-phpcbf` wrapper scripts are used by the
+phpsab VS Code extension. They translate local file paths to container paths and
+invoke phpcs/phpcbf with `--dir /var/www/html/api` so the ruleset in `api/phpcs.xml`
+is discovered correctly.
+
+PHP coding standard: PSR-12 + Slevomat (strict types, return/param hints, sorted
+imports, early exit) + `drupal/coder` Commenting sniffs for Drupal-style docblocks.
+Inline `/** @var \Full\ClassName $var */` annotations are allowed (Drupal sub-sniffs
+that block them are excluded in `phpcs.xml`).
