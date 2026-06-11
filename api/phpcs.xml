@@ -41,4 +41,14 @@
 
     <!-- Slevomat: no useless else -->
     <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
+
+    <!-- Drupal-style docblock formatting (indented @param/@return descriptions) -->
+    <rule ref="Drupal.Commenting.DocComment">
+        <!-- Allow /** @var Type $var */ inline type-hint annotations -->
+        <exclude name="Drupal.Commenting.DocComment.ContentAfterOpen"/>
+        <exclude name="Drupal.Commenting.DocComment.MissingShort"/>
+        <exclude name="Drupal.Commenting.DocComment.ContentBeforeClose"/>
+    </rule>
+    <rule ref="Drupal.Commenting.FunctionComment"/>
+    <rule ref="Drupal.Commenting.ClassComment"/>
 </ruleset>
