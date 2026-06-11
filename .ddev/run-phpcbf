@@ -23,7 +23,7 @@ done
 if [ "$#" -gt 0 ]; then
   # Run phpcbf inside the ddev container, suppress ddev exec's error message, and capture stdout and exit code.
   stderr_file=$(mktemp)
-  output=$(ddev exec vendor/bin/phpcbf "$@" 2> "$stderr_file")
+  output=$(ddev exec --dir /var/www/html/api vendor/bin/phpcbf "$@" 2> "$stderr_file")
   exit_code=$?
 
   phpcbf_exit_code=0
