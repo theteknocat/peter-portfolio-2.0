@@ -9,8 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "marked": "^15.0.0",
+    "@lucide/vue": "^1.17.0",
+    "@tailwindcss/vite": "^4.3.0",
     "js-yaml": "^4.1.0",
+    "marked": "^15.0.0",
+    "simple-icons": "^16.23.0",
+    "tailwindcss": "^4.3.0",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0"
   },

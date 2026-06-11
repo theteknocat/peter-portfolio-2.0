@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Righteous&display=swap');
+@import "tailwindcss";
+
+/* ─── Colour tokens ──────────────────────────────────────────────────────── */
+
+:root {
+  --color-primary:        #00a24e;
+  --color-primary-light:  #4ed68e;
+  --color-primary-dark:   #003d1e;
+
+  --color-accent:         #ffd52b;
+  --color-accent-light:   #ffe98d;
+  --color-accent-lighter: #ffdf6b;
+
+  --color-bg:             #403c34;
+  --color-bg-dark:        rgb(21, 21, 29);
+  --color-bg-glass:       rgba(21, 21, 29, 0.6);
+
+  --color-text:           rgb(172, 160, 141);
+  --color-text-light:     #f9f1e9;
+  --color-border:         rgb(136, 125, 108);
+  --color-border-accent:  var(--color-accent-light);
+
+  --color-link:           var(--color-accent);
+  --color-link-hover:     var(--color-primary-light);
+}
+
+/* ─── Typography tokens ──────────────────────────────────────────────────── */
+
+:root {
+  --font-body:     'Open Sans', sans-serif;
+  --font-heading:  'Righteous', sans-serif;
+  --font-display:  'Audiowide', cursive;
+}
+
+/* ─── Tailwind theme extension ───────────────────────────────────────────── */
+
+@theme {
+  --color-primary:        var(--color-primary);
+  --color-primary-light:  var(--color-primary-light);
+  --color-primary-dark:   var(--color-primary-dark);
+  --color-accent:         var(--color-accent);
+  --color-accent-light:   var(--color-accent-light);
+  --color-bg:             var(--color-bg);
+  --color-bg-dark:        var(--color-bg-dark);
+  --color-text:           var(--color-text);
+  --color-text-light:     var(--color-text-light);
+  --color-border:         var(--color-border);
+
+  --font-family-body:     var(--font-body);
+  --font-family-heading:  var(--font-heading);
+  --font-family-display:  var(--font-display);
+}
+
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  background-image: url('/images/body-bg-dark.png');
+  background-repeat: repeat;
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-primary-light);
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+/* Content area link hover — box appears on hover */
+a:not(.btn, .nav-link):hover {
+  color: var(--color-link-hover);
+  background: var(--color-primary-dark);
+  outline: 1px solid var(--color-primary);
+}
+
+hr {
+  border-color: var(--color-accent-light);
+  opacity: 1;
+}
