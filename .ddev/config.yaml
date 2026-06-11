@@ -14,6 +14,9 @@ nodejs_version: "22"
 web_environment:
     - CONTENT_PATH=/var/www/html/content
 corepack_enable: false
+hooks:
+    post-start:
+        - exec-host: "git config core.hooksPath .githooks"
 web_extra_exposed_ports:
     - name: vite
       container_port: 5173
