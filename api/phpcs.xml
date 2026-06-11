@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<ruleset name="peter-portfolio-api">
+    <file>src</file>
+    <file>public/index.php</file>
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+
+    <!-- PSR-12 base standard -->
+    <rule ref="PSR12">
+        <exclude name="Generic.Files.LineLength.TooLong"/>
+    </rule>
+
+    <!-- Slevomat: require strict types declaration -->
+    <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+        <properties>
+            <property name="linesCountBeforeDeclare" value="1"/>
+            <property name="linesCountAfterDeclare" value="1"/>
+            <property name="spacesCountAroundEqualsSign" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- Slevomat: require return type hints (traversable inner types not enforced) -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification"/>
+    </rule>
+
+    <!-- Slevomat: require parameter type hints (traversable inner types not enforced) -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingTraversableTypeHintSpecification"/>
+    </rule>
+
+    <!-- Slevomat: unused use statements -->
+    <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
+        <properties>
+            <property name="searchAnnotations" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- Slevomat: alphabetically sorted use statements -->
+    <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses"/>
+
+    <!-- Slevomat: no useless else -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
+</ruleset>
