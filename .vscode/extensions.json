@@ -1,0 +1,29 @@
+{
+    "recommendations": [
+        // PHP
+        "bmewburn.vscode-intelephense",
+        "valeryanm.vscode-phpsab",
+        "xdebug.php-debug",
+
+        // Vue + TypeScript
+        "vue.volar",
+        "nicholashsiang.vscode-vue3-snippets",
+
+        // Frontend tooling
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+
+        // Data formats
+        "mikestead.dotenv",
+        "redhat.vscode-yaml",
+
+        // Dev environment
+        "biati.ddev-manager",
+
+        // DX / workflow
+        "usernamehw.errorlens",
+        "vivaxy.vscode-conventional-commits",
+        "eamodio.gitlens"
+    ]
+}
