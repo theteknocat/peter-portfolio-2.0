@@ -7,6 +7,27 @@ Screenshots taken 2026-06-12 from the running DDEV instance (`peter-epp.ddev.sit
 
 ---
 
+## Base Typography & Font Sizes
+
+From `base_theme/scss/typography.scss` (peter_portfolio inherits this):
+
+- **`$font-size-base: 1.1rem`** — not 1rem. The whole theme scales from this.
+- **`$line-height-base: 1.8`**
+- Heading sizes (base × multiplier): h1/h2: 2.75rem, h3: 2.2rem, h4: 1.925rem, h5: 1.65rem, h6: 1.375rem
+- `font-weight-headings: normal` (not bold)
+- Nav links: `1.1rem` (inherit from body)
+- Navbar brand: `1.5rem` (2rem on `sm+`) — explicit override in `custom.scss`
+- Logo height: `$site-logo-height: 50px`
+
+Corrected token values (from compiled SCSS, not estimates):
+
+- `--color-primary-light`: `#60ffac` — `lighten(#00a24e, 37%)` compiled output
+- `--color-primary-dark`: `#002d16` — `darken(#00a24e, 23%)` compiled output (confirmed from header/nav hover bg in compiled CSS)
+- Footer copyright uses `$footer-color: $accent-lighter` = `--color-accent-lighter` (#ffdf6b)
+- Footer links use `$footer-link-color: $accent-shade` = `--color-accent`
+
+---
+
 ## Header (`AppHeader` + `AppNav`)
 
 ### SCSS source (`scss/custom.scss` lines 160–228)
@@ -367,22 +388,22 @@ hr { &:before, &:after { bottom: -5px; } }
 
 ### Technology → FA icon mapping (from Twig template)
 
-| ID | Technology       | FA icon class           |
-|----|------------------|-------------------------|
-| 1  | Drupal           | `fab fa-drupal`         |
-| 2  | Laravel          | `fab fa-laravel`        |
-| 3  | PHP              | `fab fa-php`            |
-| 4  | MySQL / MariaDB  | `fas fa-database`       |
-| 5  | HTML5            | `fab fa-html5`          |
-| 6  | CSS3             | `fab fa-css3-alt`       |
-| 7  | Javascript       | `fab fa-js-square`      |
-| 8  | jQuery           | `fab fa-js-square`      |
-| 9  | VueJS            | `fab fa-vuejs`          |
-| 10 | Bootstrap        | `fas fa-th`             |
-| 11 | Agile / Scrum    | `fas fa-sync-alt`       |
-| 12 | Responsive Design| `fas fa-mobile-alt`     |
-| 13 | REST APIs        | `fas fa-plug`           |
-| 14 | Symfony          | `fa-brands fa-symfony`  |
+| ID  | Technology        | FA icon class          |
+| --- | ----------------- | ---------------------- |
+| 1   | Drupal            | `fab fa-drupal`        |
+| 2   | Laravel           | `fab fa-laravel`       |
+| 3   | PHP               | `fab fa-php`           |
+| 4   | MySQL / MariaDB   | `fas fa-database`      |
+| 5   | HTML5             | `fab fa-html5`         |
+| 6   | CSS3              | `fab fa-css3-alt`      |
+| 7   | Javascript        | `fab fa-js-square`     |
+| 8   | jQuery            | `fab fa-js-square`     |
+| 9   | VueJS             | `fab fa-vuejs`         |
+| 10  | Bootstrap         | `fas fa-th`            |
+| 11  | Agile / Scrum     | `fas fa-sync-alt`      |
+| 12  | Responsive Design | `fas fa-mobile-alt`    |
+| 13  | REST APIs         | `fas fa-plug`          |
+| 14  | Symfony           | `fa-brands fa-symfony` |
 
 **Note:** The Vue rebuild uses Simple Icons (not FA) for brand logos. This table is for
 reference only — the mapping will be rebuilt in `TechBadge.vue` using Simple Icons SVGs.
@@ -473,11 +494,11 @@ a.social-media-icon {
 
 ### Social links (from live HTML, footer region)
 
-| Icon class        | Label         | URL                             |
-|-------------------|---------------|---------------------------------|
-| `fab fa-drupal`   | Drupal.org    | `https://drupal.org/u/teknocat` |
-| `fab fa-linkedin` | LinkedIn      | Peter's LinkedIn profile        |
-| `fab fa-github`   | GitHub        | Peter's GitHub profile          |
+| Icon class        | Label      | URL                             |
+| ----------------- | ---------- | ------------------------------- |
+| `fab fa-drupal`   | Drupal.org | `https://drupal.org/u/teknocat` |
+| `fab fa-linkedin` | LinkedIn   | Peter's LinkedIn profile        |
+| `fab fa-github`   | GitHub     | Peter's GitHub profile          |
 
 ### Copyright block HTML (from `block--pepp-copyright-block.html.twig`)
 
@@ -516,10 +537,10 @@ Already implemented in `main.css` — verify values match.
 
 ## Assets Already Ported
 
-| File                       | Location in Vue project               |
-|----------------------------|---------------------------------------|
-| `body-bg-dark.png`         | `frontend/public/images/`             |
-| `green-marble-texture.jpg` | `frontend/public/images/`             |
-| `logo.jpg`                 | `frontend/src/assets/logo.jpg`        |
+| File                       | Location in Vue project        |
+| -------------------------- | ------------------------------ |
+| `body-bg-dark.png`         | `frontend/public/images/`      |
+| `green-marble-texture.jpg` | `frontend/public/images/`      |
+| `logo.jpg`                 | `frontend/src/assets/logo.jpg` |
 
 Still needed: `mario_running.gif`, `sonic-spinning.gif` (for Konami Easter egg — low priority).
