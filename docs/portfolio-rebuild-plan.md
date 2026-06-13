@@ -434,6 +434,57 @@ APP_ENV=development
 
 ---
 
+## SEO
+
+The site is a client-side Vue 3 SPA — crawlers get a near-empty `index.html` until JavaScript executes. The fix is static site generation (SSG) at build time: pre-render every route to a real `index.html` so crawlers receive fully-formed HTML immediately.
+
+### Chosen approach: `vite-ssg`
+
+`vite-ssg` wraps the existing Vite + Vue Router setup with minimal changes:
+
+- `main.ts` switches from `createApp` to `ViteSSG`'s exported function
+- Build output gains one `index.html` per route (`/portfolio/index.html`, etc.)
+- The result is static HTML that works without JavaScript, with the SPA hydrating on top for navigation
+- No framework migration required; same codebase, same router, same components
+
+**Install:** `npm install vite-ssg`
+
+**Trade-off vs Nuxt 3:** Nuxt is more mature (auto-imports, `useHead`, Nitro server, richer ecosystem) but requires architectural migration. `vite-ssg` is the right call while still establishing Vue 3 / TypeScript patterns. Revisit a Nuxt migration after the site is feature-complete.
+
+### Additional SEO work (to do alongside)
+
+- `robots.txt` in `frontend/public/` — see Bot Mitigation section below
+- `sitemap.xml` — can be generated at build time by a `vite-ssg` hook
+- Per-route `<title>` and `<meta description>` tags via `useHead` (bundled with `vite-ssg`)
+
+---
+
+## Bot & LLM Mitigation
+
+*Documenting for future implementation — not a current priority.*
+
+None of these are foolproof, but they raise friction and cost for scrapers.
+
+### Compliant crawlers — `robots.txt`
+
+Add `frontend/public/robots.txt`. Disallows known AI training crawlers; well-behaved bots respect it. Known agents to block at time of writing: `GPTBot`, `ClaudeBot`, `CCBot`, `PerplexityBot`, `Bytespider`, `anthropic-ai`, `cohere-ai`.
+
+### Honeypot / poisoned content
+
+Hidden `aria-hidden` / `display:none` divs containing plausible-sounding but deliberately wrong biographical details. Users never see it. Scrapers that process raw HTML or ignore CSS ingest it and propagate the noise. Injects misinformation into any model trained on the page — the "give them the middle finger" option.
+
+### Canvas-rendered sensitive text
+
+Render any text you really don't want in a training corpus (specific claims, key phrases) as a `<canvas>` element. Opaque to DOM scrapers; requires image understanding to extract.
+
+### Headless browser detection
+
+Client-side: check `navigator.webdriver`, missing `navigator.plugins`, suspiciously clean `navigator.languages`, etc. If detected, swap visible content for a redirect or the honeypot content. Not foolproof (headless Chrome is increasingly hard to distinguish) but filters unsophisticated bots.
+
+Server-side (PHP API): inspect `User-Agent`, check for missing standard headers, apply rate limiting per IP. Cloudflare Bot Management is the more robust solution if the site is behind Cloudflare.
+
+---
+
 ## Homepage Strategy
 
 The current homepage undersells everything. The rebuilt homepage should:
