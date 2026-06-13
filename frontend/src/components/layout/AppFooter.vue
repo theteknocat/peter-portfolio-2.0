@@ -1,0 +1,83 @@
+<script setup lang="ts">
+// Site footer: copyright year (auto-updating) + social icon links.
+import { computed } from 'vue'
+import { siDrupal, siGithub } from 'simple-icons'
+
+const currentYear = computed(() => new Date().getFullYear())
+
+// LinkedIn omitted for now — simple-icons v16 dropped the LinkedIn icon and
+// @lucide/vue's export name was unresolved at build time.
+// Profile URL: https://www.linkedin.com/in/peter-epp-b9390819/
+// Revisit if simple-icons restores it or a reliable SVG source is found.
+</script>
+
+<template>
+  <footer>
+    <div class="footer-inner">
+      <p class="copyright">
+        Copyright &copy; {{ currentYear }} Peter Epp
+      </p>
+      <nav class="social-links" aria-label="Social links">
+        <a href="https://drupal.org/u/teknocat" class="social-link" aria-label="Drupal.org Profile" target="_blank" rel="noopener noreferrer">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span v-html="siDrupal.svg" class="social-icon" />
+        </a>
+        <a href="https://github.com/teknocat" class="social-link" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span v-html="siGithub.svg" class="social-icon" />
+        </a>
+      </nav>
+    </div>
+  </footer>
+</template>
+
+<style scoped>
+footer {
+  border-top: 1px solid var(--color-primary);
+  background-color: var(--color-primary-dark);
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 1rem 1.5rem;
+}
+
+.copyright {
+  color: var(--color-accent-lighter);
+  margin: 0;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.social-link:hover {
+  transform: scale(1.3);
+  background: transparent;
+  outline: none;
+}
+
+/* simple-icons SVGs inject via v-html — target through the wrapping span */
+.social-icon :deep(svg),
+.social-icon :deep(svg) path {
+  fill: var(--color-accent);
+}
+
+.social-icon :deep(svg) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+</style>
