@@ -11,11 +11,3 @@ import ContentCard from '@/components/ui/ContentCard.vue'
     </ContentCard>
   </div>
 </template>
-
-<style scoped>
-.view-container {
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: 2rem 1.5rem;
-}
-</style>

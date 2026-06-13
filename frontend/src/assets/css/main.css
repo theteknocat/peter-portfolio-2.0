@@ -108,6 +108,14 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* ─── View layout ────────────────────────────────────────────────────────── */
+
+.view-container {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 2rem 1.5rem;
+}
+
 /* ─── Nav links ──────────────────────────────────────────────────────────── */
 
 .nav-link {
