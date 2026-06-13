@@ -190,21 +190,97 @@ This is a `nice-to-have` for the initial build — the core visual style works w
 
 ## Navigation / Header
 
-- Sticky header with green marble texture background
-- `border-bottom: 1px solid $primary-shade`
-- Site name in **Audiowide** font, gold (`$accent-lighter`) colour
-- Nav links: gold by default, green hover with green border on hover/active state
-  (`border: 1px solid $primary-shade` appears on hover)
-- Hamburger icon colour: gold
+### Structure
+
+Logo (avatar `logo.jpg`, 40–50px, rounded 5px border `--color-primary`) + "Peter Epp"
+text in **Audiowide** font, gold (`--color-accent-lighter`). Three nav links right-aligned:
+**Portfolio, Articles, Job History**.
+
+### Sticky + scroll behaviour
+
+The header is always `position: fixed; top: 0; width: 100%; z-index: 50` (not conditional
+on scroll — always sticky).
+
+A `::before` pseudo-element carries the **marble texture** background:
+
+```css
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/green-marble-texture.jpg');
+  background-repeat: repeat;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+```
+
+The header itself has:
+
+```css
+header {
+  position: fixed; top: 0; width: 100%; z-index: 50;
+  background-color: #002d16;             /* solid dark green at rest */
+  border-bottom: 1px solid #00a24e;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+```
+
+When a `.scrolled` class is applied to the header (via JS scroll listener):
+
+```css
+header.scrolled {
+  background-color: rgba(0, 45, 22, 0.5);   /* semi-transparent */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+}
+header.scrolled::before {
+  opacity: 0.5;   /* $header-background-transparency-amount = 0.5 */
+}
+```
+
+**Why `::before`?** `backdrop-filter` requires the element to have a (semi-)transparent
+background. If the marble texture were the element's own background, the blur would
+process pixels *behind* the texture — invisible. The `::before` carries the texture at
+reduced opacity so the blur effect composites correctly.
+
+**Vue implementation:** A `useScrolled.ts` composable watches `window.scroll` and
+returns a reactive `isScrolled: Ref<boolean>`. The header binds `:class="{ scrolled: isScrolled }"`.
+
+### Nav link styling
+
+```css
+/* default */
+color: rgb(255, 213, 43);   /* --color-accent */
+border: 1px solid transparent;
+background: transparent;
+
+/* hover / active */
+color: #4ed68e;              /* --color-primary-light */
+background-color: #002d16;  /* dark green */
+border-color: #00a24e;      /* --color-primary */
+```
 
 ---
 
 ## Footer
 
-- `border-top: 1px solid $primary-shade`
-- Background: `$primary-dark` (dark green)
-- Link colour: `$accent-shade` (gold)
-- Link hover: `$primary-light`
+- `border-top: 1px solid var(--color-primary)`
+- Background: `var(--color-primary-dark)` (dark green)
+- Layout: copyright text left, three social icon links right
+
+### Social links (in order)
+
+| Icon                | Label              | URL                             |
+| ------------------- | ------------------ | ------------------------------- |
+| Drupal brand icon   | Drupal.org Profile | <https://drupal.org/u/teknocat> |
+| LinkedIn brand icon | LinkedIn           | (user's LinkedIn)               |
+| GitHub brand icon   | GitHub             | (user's GitHub)                 |
+
+In the Drupal theme these are Font Awesome `fab` icons. In the Vue rebuild use
+`@lucide/vue` for UI icons and Simple Icons for brand logos, or just link text if
+icons aren't resolved yet.
 
 ---
 
