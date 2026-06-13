@@ -84,6 +84,28 @@ ddev exec --dir /var/www/html/frontend npm run build    # Production build
 
 ---
 
+## Source References
+
+### Drupal Theme (the site being rebuilt)
+
+- **Theme:** `../resume-and-portfolio-drupal/docroot/themes/custom/peter_portfolio`
+- **Base theme (boilerplate CSS reference):** `../resume-and-portfolio-drupal/docroot/themes/custom/base_theme`
+- **Compiled CSS (always check this, not SCSS source):**
+  `../resume-and-portfolio-drupal/docroot/themes/custom/peter_portfolio/css/style.css`
+
+The old theme is Bootstrap 5. SCSS variables compile — font sizes become fluid `calc()` via
+Bootstrap's RFS system, colours become resolved hex values, etc. The SCSS source gives intent;
+`style.css` gives the actual values to port.
+
+### Project Docs
+
+- `docs/theme-migration.md` — visual system port guide (colours, typography, decorative elements)
+- `docs/source-reference.md` — confirmed compiled values (use when a token needs verification)
+- `docs/portfolio-rebuild-plan.md` — overall plan, SEO strategy, feature roadmap
+- `docs/typescript-vue-concepts.md` — TS/Vue concepts checklist (tick off as covered)
+
+---
+
 ## CSS Architecture
 
 - `src/assets/css/main.css` — single entry point: Google Fonts, Tailwind 4 import,
