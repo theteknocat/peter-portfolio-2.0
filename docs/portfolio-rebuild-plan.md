@@ -276,14 +276,64 @@ GET /api/content/{type}/{slug}
 
 ## Vue Router Routes
 
-```text
-/                    → HomeView
-/portfolio           → PortfolioView
-/portfolio/:slug     → PortfolioItemView
-/articles            → ArticlesView
-/articles/:slug      → ArticleView
-/job-history         → JobHistoryView
+Top-level routes render into the default `<RouterView>`. Second-level (detail) routes use named views — the parent listing renders in the `default` view (visible behind the modal), and the item renders in the `modal` view.
+
+```typescript
+// Top-level — full page transitions
+/                    → { default: HomeView }
+/portfolio           → { default: PortfolioView }
+/articles            → { default: ArticlesView }
+/job-history         → { default: JobHistoryView }
+
+// Second-level — modal overlay, parent stays visible behind
+/portfolio/:slug     → { default: PortfolioView, modal: PortfolioItemView }
+/articles/:slug      → { default: ArticlesView,  modal: ArticleView       }
 ```
+
+`meta.modal: true` flags modal routes so `App.vue` knows to render the overlay.
+
+---
+
+## Navigation Architecture & Transitions
+
+### Top-level page transitions
+
+The default `<RouterView>` in `App.vue` is wrapped in Vue's `<Transition>` component. Each top-level route carries a `meta.transition` value; a watcher sets the active transition name dynamically so direction (forward/back) can vary the animation.
+
+**Effect:** The current page's content container drops forward and fades out (`translateY` + slight `rotateX` + `opacity → 0`). The incoming page flips up from below and fades in (reverse). Achieved with CSS `perspective` + 3D transforms on the `ContentCard` wrapper — not the full viewport.
+
+Key CSS properties: `perspective`, `transform-style: preserve-3d`, `rotateX`, `translateY`, `opacity`, `transition`.
+
+### Modal / overlay routing (second-level)
+
+`App.vue` has two `<RouterView>` elements:
+
+```html
+<RouterView />               <!-- main content, always present -->
+<RouterView name="modal" />  <!-- modal overlay, active on modal routes only -->
+```
+
+The `modal` RouterView is wrapped in a `<Transition>` (fade + scale or slide-up) and rendered inside a `ModalOverlay.vue` wrapper that provides:
+
+- Full-viewport backdrop (semi-transparent dark)
+- Scroll lock on the background content
+- Close button → `router.back()` (or `router.push(parentPath)` if navigated to directly)
+- Keyboard `Escape` to close
+
+When navigating directly to a second-level URL (e.g. bookmarked `/portfolio/lighthouse`), the parent listing is still shown in the default view because the route definition includes `PortfolioView` as the `default` component — there's no special handling needed for direct access.
+
+### New components required
+
+- `ModalOverlay.vue` — `src/components/layout/ModalOverlay.vue`
+  Backdrop + close affordance. Wraps the modal `<RouterView>`. Watches `route.meta.modal` to show/hide.
+
+- `ContentCard.vue` — `src/components/ui/ContentCard.vue`
+  The decorated container (double border + corner brackets). The 3D page transition is applied to this element, so it must exist before transitions are wired up.
+
+### Known trade-offs to revisit
+
+- The `default` view re-renders `PortfolioView` every time `/portfolio/:slug` is navigated to. Component caching with `<KeepAlive>` on the default RouterView may be desirable once the API is wired up, to avoid re-fetching the listing on every modal open/close.
+- Transition direction (forward vs back) requires tracking navigation history or comparing route depths — simplest initial approach is a single transition style for all top-level moves, with directional variants added later.
 
 ---
 
