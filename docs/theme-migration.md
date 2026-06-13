@@ -349,7 +349,6 @@ From `images/` in the Drupal theme:
 
 | File                       | Use                        | Priority     |
 | -------------------------- | -------------------------- | ------------ |
-| `favicon.ico`              | Browser favicon            | Must have    |
 | `body-bg-dark.png`         | Body background tile       | Must have    |
 | `green-marble-texture.jpg` | Header background          | Must have    |
 | `logo-rev.svg`             | Site logo (reversed/white) | Must have    |

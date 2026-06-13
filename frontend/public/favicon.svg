@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#15151d"/>
+  <!-- Right chevron (behind) -->
+  <polygon fill="#00a24e" points="26,6 56,32 26,58"/>
+  <polygon fill="#002d16" points="26,14 48,32 26,50"/>
+  <!-- Left chevron (in front, overlapping) -->
+  <polygon fill="#00a24e" points="6,6 36,32 6,58"/>
+  <polygon fill="#002d16" points="6,14 28,32 6,50"/>
+</svg>
