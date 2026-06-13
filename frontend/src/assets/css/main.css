@@ -9,7 +9,7 @@
   --color-primary-dark:   #002d16;
 
   --color-accent:         #ffd52b;
-  --color-accent-light:   #ffe98d;
+  --color-accent-light:   #ffeeab;
   --color-accent-lighter: #ffdf6b;
 
   --color-bg:             #403c34;
@@ -71,11 +71,20 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-h1, h2 { font-size: 2.75rem; }
-h3      { font-size: 2.2rem;  }
-h4      { font-size: 1.925rem; }
-h5      { font-size: 1.65rem; }
-h6      { font-size: 1.375rem; }
+h1 { font-size: calc(1.4rem + 1.8vw); }
+h2 { font-size: calc(1.345rem + 1.14vw); }
+h3 { font-size: calc(1.3175rem + 0.81vw); }
+h4 { font-size: calc(1.29rem + 0.48vw); }
+h5 { font-size: calc(1.2625rem + 0.15vw); }
+h6 { font-size: 1.1rem; }
+
+@media (min-width: 75rem) {
+  h1 { font-size: 2.75rem; }
+  h2 { font-size: 2.2rem; }
+  h3 { font-size: 1.925rem; }
+  h4 { font-size: 1.65rem; }
+  h5 { font-size: 1.375rem; }
+}
 
 a {
   color: var(--color-link);
@@ -92,6 +101,11 @@ a:not(.btn, .nav-link):hover {
 hr {
   border-color: var(--color-accent-light);
   opacity: 1;
+}
+
+/* Locked by ModalOverlay when a detail route is active */
+body.modal-open {
+  overflow: hidden;
 }
 
 /* ─── Nav links ──────────────────────────────────────────────────────────── */

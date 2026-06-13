@@ -1,14 +1,46 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import type { RouteRecordRaw } from 'vue-router'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { transition: 'page' },
+  },
+  {
+    path: '/portfolio',
+    component: () => import('@/views/PortfolioView.vue'),
+    meta: { transition: 'page' },
+  },
+  {
+    path: '/portfolio/:slug',
+    components: {
+      default: () => import('@/views/PortfolioView.vue'),
+      modal:   () => import('@/views/PortfolioItemView.vue'),
+    },
+    meta: { modal: true },
+  },
+  {
+    path: '/articles',
+    component: () => import('@/views/ArticlesView.vue'),
+    meta: { transition: 'page' },
+  },
+  {
+    path: '/articles/:slug',
+    components: {
+      default: () => import('@/views/ArticlesView.vue'),
+      modal:   () => import('@/views/ArticleView.vue'),
+    },
+    meta: { modal: true },
+  },
+  {
+    path: '/job-history',
+    component: () => import('@/views/JobHistoryView.vue'),
+    meta: { transition: 'page' },
+  },
+]
 
 export const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    { path: '/', component: HomeView },
-    { path: '/portfolio', component: () => import('../views/PortfolioView.vue') },
-    { path: '/portfolio/:slug', component: () => import('../views/PortfolioItemView.vue') },
-    { path: '/articles', component: () => import('../views/ArticlesView.vue') },
-    { path: '/articles/:slug', component: () => import('../views/ArticleView.vue') },
-    { path: '/job-history', component: () => import('../views/JobHistoryView.vue') },
-  ],
+  routes,
 })

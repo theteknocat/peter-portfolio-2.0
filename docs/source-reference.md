@@ -23,6 +23,7 @@ Corrected token values (from compiled SCSS, not estimates):
 
 - `--color-primary-light`: `#60ffac` — `lighten(#00a24e, 37%)` compiled output
 - `--color-primary-dark`: `#002d16` — `darken(#00a24e, 23%)` compiled output (confirmed from header/nav hover bg in compiled CSS)
+- `--color-accent-light`: `#ffeeab` — `$accent-light` compiled output (`rgb(255, 238, 171)`)
 - Footer copyright uses `$footer-color: $accent-lighter` = `--color-accent-lighter` (#ffdf6b)
 - Footer links use `$footer-link-color: $accent-shade` = `--color-accent`
 
