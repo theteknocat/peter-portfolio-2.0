@@ -5,8 +5,8 @@
 
 :root {
   --color-primary:        #00a24e;
-  --color-primary-light:  #4ed68e;
-  --color-primary-dark:   #003d1e;
+  --color-primary-light:  #60ffac;
+  --color-primary-dark:   #002d16;
 
   --color-accent:         #ffd52b;
   --color-accent-light:   #ffe98d;
@@ -35,7 +35,7 @@
 
 /* ─── Tailwind theme extension ───────────────────────────────────────────── */
 
-@theme {
+@theme inline {
   --color-primary:        var(--color-primary);
   --color-primary-light:  var(--color-primary-light);
   --color-primary-dark:   var(--color-primary-dark);
@@ -56,6 +56,8 @@
 
 body {
   font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.8;
   background-color: var(--color-bg);
   background-image: url('/images/body-bg-dark.png');
   background-repeat: repeat;
@@ -65,7 +67,15 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-primary-light);
+  font-weight: normal;
+  line-height: 1.2;
 }
+
+h1, h2 { font-size: 2.75rem; }
+h3      { font-size: 2.2rem;  }
+h4      { font-size: 1.925rem; }
+h5      { font-size: 1.65rem; }
+h6      { font-size: 1.375rem; }
 
 a {
   color: var(--color-link);
