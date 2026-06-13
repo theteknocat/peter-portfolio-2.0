@@ -84,7 +84,7 @@ These work the same as Vue 2, but worth a refresh on the less common ones:
 - [ ] `v-show` vs `v-if` — when to use which and the performance difference
 - [ ] `v-for` with `:key` — why the key matters for DOM diffing
 - [ ] `v-model` modifiers — `.lazy`, `.trim`, `.number`
-- [ ] Custom directives — writing a `v-focus` or `v-click-outside` from scratch
+- [x] Custom directives — `v-tooltip` directive: `mounted`/`unmounted`, `DirectiveBinding<T>`, `WeakMap` state, global `app.directive()` registration
 
 ### Lifecycle (parallels to Options API hooks)
 - [ ] `onMounted()` → replaces `mounted()`
