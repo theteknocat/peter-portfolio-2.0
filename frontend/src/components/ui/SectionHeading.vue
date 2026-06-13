@@ -25,6 +25,7 @@
   font-family: var(--font-display);
   font-weight: normal;
   width: fit-content;
+  margin-block: 1rem;
   margin-inline: auto;
   /* Inner arrows (smaller, dark) — overlay the outer green arrows */
 }
