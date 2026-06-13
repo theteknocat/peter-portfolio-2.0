@@ -53,20 +53,19 @@ footer {
 
 .social-links {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .social-link {
   display: flex;
+  padding: 4px 6px;
   align-items: center;
   transition: transform 0.2s ease;
 }
 
 .social-link:hover {
   transform: scale(1.3);
-  background: transparent;
-  outline: none;
 }
 
 /* simple-icons SVGs inject via v-html — target through the wrapping span */
@@ -76,8 +75,8 @@ footer {
 }
 
 .social-icon :deep(svg) {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.7rem;
+  height: 1.7rem;
 }
 
 </style>
