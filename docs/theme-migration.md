@@ -2,6 +2,15 @@
 
 Source: `../resume-and-portfolio-drupal/docroot/themes/custom/peter_portfolio`
 
+A base theme lives alongside it at `../resume-and-portfolio-drupal/docroot/themes/custom/base_theme`
+and is useful for boilerplate CSS reference if needed.
+
+**Bootstrap 5 note:** The Drupal theme is based on Bootstrap 5. SCSS variables like `$primary-shade`
+or font size values get compiled — Bootstrap's RFS system converts fixed rem font sizes into fluid
+`calc()` expressions, for example. Always check the compiled
+`../resume-and-portfolio-drupal/docroot/themes/custom/peter_portfolio/css/style.css` for the actual
+CSS values rather than reading the SCSS source directly.
+
 This document captures everything from the Drupal theme that needs to be ported.
 Inner layout and content structure will be redesigned — this covers the base visual
 system only: colour, typography, decorative elements, and key interaction patterns.
@@ -340,6 +349,7 @@ From `images/` in the Drupal theme:
 
 | File                       | Use                        | Priority     |
 | -------------------------- | -------------------------- | ------------ |
+| `favicon.ico`              | Browser favicon            | Must have    |
 | `body-bg-dark.png`         | Body background tile       | Must have    |
 | `green-marble-texture.jpg` | Header background          | Must have    |
 | `logo-rev.svg`             | Site logo (reversed/white) | Must have    |
