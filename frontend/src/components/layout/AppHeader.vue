@@ -12,7 +12,9 @@ const { isScrolled } = useScrolled()
   <header :class="{ scrolled: isScrolled }">
     <div class="header-inner">
       <RouterLink to="/" class="site-brand link-poly link-poly--slash link-poly--twist">
-        <img :src="logoSrc" alt="Peter Epp" class="brand-logo" />
+        <span class="brand-logo-wrapper">
+          <img :src="logoSrc" alt="Peter Epp" class="brand-logo" />
+        </span>
         <span class="brand-name">Peter Epp</span>
       </RouterLink>
       <nav class="flex gap-2">
@@ -80,13 +82,23 @@ header.scrolled::before {
   padding: 0 0.625rem;
 }
 
+.brand-logo-wrapper {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--color-primary);
+  clip-path: polygon(54px 8px, 51px 41px, 54px 54px, 0px 48px, 4px 12px, 0px 0px);
+}
+
 .brand-logo {
   width: 50px;
   height: 50px;
-  border-radius: 5px;
-  border: 1px solid var(--color-primary);
   object-fit: cover;
-  flex-shrink: 0;
+  display: block;
+  clip-path: polygon(50px 7px, 47px 38px, 50px 50px, 0px 45px, 4px 12px, 0px 0px);
 }
 
 .brand-name {
