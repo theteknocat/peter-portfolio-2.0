@@ -24,7 +24,6 @@ defineProps<{
 .content-card {
   position: relative;
   background-color: var(--color-bg-glass);
-  backdrop-filter: blur(3px);
   border: 1px solid var(--color-border);
   outline: 1px solid var(--color-border);
   outline-offset: 8px;

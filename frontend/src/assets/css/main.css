@@ -14,7 +14,7 @@
 
   --color-bg:             #403c34;
   --color-bg-dark:        rgb(21, 21, 29);
-  --color-bg-glass:       rgba(21, 21, 29, 0.6);
+  --color-bg-glass:       rgba(21, 21, 29, 0.725);
 
   --color-text:           rgb(172, 160, 141);
   --color-text-light:     #f9f1e9;
@@ -59,9 +59,61 @@ body {
   font-size: 1.1rem;
   line-height: 1.8;
   background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ─── Scrolling background + glitch slices ───────────────────────────────── */
+
+.bg-layer {
   background-image: url('/images/body-bg-dark.png');
   background-repeat: repeat;
-  color: var(--color-text);
+  animation: bg-scroll 35s linear infinite;
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+}
+
+/* Spot wrapper: a fixed-position shape whose edges fade to transparent via a
+   radial mask — no dark vignette, the background shows through as it thins out.
+   Spreads from a point via transform: scale(0 → 1). --spot-* set by JS. */
+.bg-spot {
+  position: fixed;
+  width: var(--spot-w, 300px);
+  height: var(--spot-h, 250px);
+  top: var(--spot-top, -50vh);
+  left: var(--spot-left, -50vw);
+  /* No border-radius or overflow:hidden — mask-image is set per-spot by JS
+     (useBackgroundGlitch.ts) using SVG polygon shapes. */
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  transform: scale(0);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.4s ease-in;
+  z-index: -9;
+  pointer-events: none;
+}
+
+/* Inner: sized to the full viewport and offset so its top-left sits at the
+   viewport origin — aligns its background with .bg-layer without needing
+   background-attachment: fixed (which breaks when filter is applied). */
+.bg-spot-inner {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: calc(-1 * var(--spot-top, -50vh));
+  left: calc(-1 * var(--spot-left, -50vw));
+  background-image: url('/images/body-bg-dark.png');
+  background-repeat: repeat;
+  animation: bg-scroll 35s linear infinite;
+  will-change: filter;
+}
+
+/* Tile is 625×625px — x offset must be a multiple of 625 for a seamless loop. */
+@keyframes bg-scroll {
+  from { background-position: 0px 0px; }
+  to   { background-position: -625px -600px; }
 }
 
 h1, h2, h3, h4, h5, h6 {

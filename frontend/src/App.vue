@@ -1,13 +1,25 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
+import { useBackgroundGlitch } from '@/composables/useBackgroundGlitch'
 
 const route = useRoute()
+const bgContainer = ref<HTMLElement | null>(null)
+
+useBackgroundGlitch(bgContainer)
 </script>
 
 <template>
+  <!-- Background layer + glitch slices: aria-hidden, pointer-events blocked in CSS -->
+  <div ref="bgContainer" aria-hidden="true">
+    <div class="bg-layer" />
+    <div v-for="n in 4" :key="n" class="bg-spot">
+      <div class="bg-spot-inner" />
+    </div>
+  </div>
   <div class="app-wrapper">
     <AppHeader />
     <main>
