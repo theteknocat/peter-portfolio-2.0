@@ -213,6 +213,8 @@ body.modal-open {
   max-width: 72rem;
   margin-inline: auto;
   padding: 0 1.5rem 2rem;
+  /* Shared perspective context for 3D card flip transitions */
+  perspective: 1200px;
 }
 
 /* ─── Tooltips ───────────────────────────────────────────────────────────── */
@@ -275,4 +277,82 @@ body.modal-open {
 a.nav-link:hover,
 a.nav-link.router-link-active {
   color: var(--color-primary-light);
+}
+
+/* ─── Page transitions ───────────────────────────────────────────────────── */
+
+/* These rules must be global — scoped CSS in App.vue won't reach route component
+   root elements across the RouterView boundary. */
+
+.page-enter-active {
+  transition: opacity 0.7s ease;
+}
+
+/* Leaves flow so entering page can occupy the same space during cross-fade.
+   Applies to .page-slot (plain wrapper), not .view-container, so the inner
+   max-width centering is unaffected. z-index: 10 keeps it on top. */
+.page-leave-active {
+  transition: opacity 0.5s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+/* Page-level opacity is barely perceptible — child animations are the main event.
+   Must define from/to so the transition actually fires (no change = no transitionend). */
+.page-enter-from { opacity: 0.98; }
+.page-enter-to   { opacity: 1; }
+.page-leave-from { opacity: 1; }
+.page-leave-to   { opacity: 0.98; }
+
+@keyframes heading-enter {
+  from { opacity: 0; transform: translateY(-30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heading-leave {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-30px); }
+}
+
+/* Cards enter by swinging down from behind (hinge at top, bottom was away from viewer).
+   Cards exit by swinging forward and up (bottom comes toward viewer). */
+@keyframes card-flip-in {
+  from { opacity: 0; transform: rotateX(90deg); }
+  to   { opacity: 1; transform: rotateX(0deg); }
+}
+
+@keyframes card-flip-out {
+  from { opacity: 1; transform: rotateX(0deg); }
+  to   { opacity: 0; transform: rotateX(-90deg); }
+}
+
+/* Section heading: drop in, rise out */
+.page-enter-active .section-heading {
+  animation: heading-enter 0.35s ease both;
+}
+
+.page-leave-active .section-heading {
+  animation: heading-leave 0.25s ease both;
+}
+
+/* Content cards: flip in with stagger, flip out together */
+.page-enter-active .content-card {
+  animation: card-flip-in 0.4s ease both;
+  transform-origin: top center;
+  animation-delay: 0.1s;
+}
+
+/* Each additional card staggers 0.1s later.
+   Assumes heading is 1st child of .view-container, cards are 2nd+ */
+.page-enter-active .content-card:nth-child(3) { animation-delay: 0.2s; }
+.page-enter-active .content-card:nth-child(4) { animation-delay: 0.3s; }
+.page-enter-active .content-card:nth-child(5) { animation-delay: 0.4s; }
+.page-enter-active .content-card:nth-child(6) { animation-delay: 0.5s; }
+
+.page-leave-active .content-card {
+  animation: card-flip-out 0.35s ease both;
+  transform-origin: top center;
 }

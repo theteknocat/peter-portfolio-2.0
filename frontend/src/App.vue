@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
+
+const route = useRoute()
 </script>
 
 <template>
   <div class="app-wrapper">
     <AppHeader />
     <main>
-      <!-- Page transitions will be wired to this Transition once ContentCard
-           is confirmed. The name="page" prefix maps to .page-* CSS classes. -->
-      <Transition name="page" mode="out-in">
-        <RouterView />
-      </Transition>
+      <!-- v-slot extracts the route component vnode directly so <Transition>
+           sees it as an immediate child — wrapping <RouterView> directly hides
+           the component behind a renderless wrapper and transition classes miss. -->
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" :duration="{ enter: 700, leave: 500 }">
+          <!-- page-slot is a plain full-width wrapper so position:absolute on
+               .page-leave-active doesn't disrupt .view-container's centering -->
+          <div class="page-slot" :key="route.path">
+            <component :is="Component" />
+          </div>
+        </Transition>
+      </RouterView>
     </main>
     <AppFooter />
     <!-- Modal overlay sits outside <main> so it can cover the full viewport -->
@@ -30,16 +39,9 @@ import ModalOverlay from '@/components/layout/ModalOverlay.vue'
 
 main {
   flex: 1;
+  position: relative; /* anchors .page-leave-active absolute positioning */
 }
 
-/* Placeholder page transition — simple fade until 3D transforms are wired up */
-.page-enter-active,
-.page-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.page-enter-from,
-.page-leave-to {
-  opacity: 0;
-}
+/* Positioning moved to main.css as global rules — scoped CSS won't reach
+   the route component's root element across the RouterView boundary. */
 </style>
