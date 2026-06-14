@@ -1,24 +1,29 @@
 <script setup lang="ts">
 /**
- * Decorated page-level heading. Always renders as h1. Uses layered CSS
- * pseudo-elements on the h1 and inner span to produce the chevron arrows
- * flanking the title, matching the original theme's h2.title pattern.
+ * Decorated page-level heading. Flanking arrows are inline SVG polygons —
+ * cleaner than the previous layered CSS border-trick pseudo-elements.
  */
 </script>
 
 <template>
   <h1 class="section-heading">
-    <span class="heading-text">
-      <span class="heading-inner">
-        <slot />
-      </span>
+    <svg class="heading-arrow" viewBox="0 0 50 24" aria-hidden="true">
+      <polygon points="50,0 0,12 50,24" />
+    </svg>
+    <span class="heading-inner">
+      <slot />
     </span>
+    <svg class="heading-arrow" viewBox="0 0 50 24" aria-hidden="true">
+      <polygon points="0,0 50,12 0,24" />
+    </svg>
   </h1>
 </template>
 
 <style scoped>
 .section-heading {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   color: var(--color-accent-light);
   text-align: center;
   text-shadow: -2px -2px 0 black;
@@ -27,69 +32,23 @@
   width: fit-content;
   margin-block: 1rem;
   margin-inline: auto;
-  /* Inner arrows (smaller, dark) — overlay the outer green arrows */
 }
 
-/* Inner left arrow */
-.section-heading::before {
-  content: '';
-  position: absolute;
-  z-index: 5;
-  left: -55px;
-  top: 55%;
-  transform: translateY(-50%);
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 43px solid var(--color-primary-dark);
+.heading-arrow {
+  width: 50px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
-/* Inner right arrow */
-.section-heading::after {
-  content: '';
-  position: absolute;
-  z-index: 5;
-  right: -55px;
-  top: 55%;
-  transform: translateY(-50%);
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 43px solid var(--color-primary-dark);
-}
-
-.heading-text {
-  position: relative;
-  z-index: 1;
-  display: block;
-  padding: 20px 0 10px;
-  /* Outer arrows (larger, green) — sit behind the dark inner arrows */
-}
-
-/* Outer left arrow */
-.heading-text::before {
-  content: '';
-  position: absolute;
-  left: -60px;
-  top: 55%;
-  transform: translateY(-50%);
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-right: 50px solid var(--color-primary);
-}
-
-/* Outer right arrow */
-.heading-text::after {
-  content: '';
-  position: absolute;
-  right: -60px;
-  top: 55%;
-  transform: translateY(-50%);
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-left: 50px solid var(--color-primary);
+/* CSS properties (not SVG attributes) so CSS custom properties resolve correctly */
+.heading-arrow polygon {
+  fill: var(--color-primary-dark);
+  stroke: var(--color-primary);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .heading-inner {
-  display: block;
   position: relative;
 }
 
