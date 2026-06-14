@@ -117,6 +117,15 @@ Bootstrap's RFS system, colours become resolved hex values, etc. The SCSS source
 
 ---
 
+## Icon Conventions
+
+- Simple Icons SVGs (injected via `v-html`) include a `<title>` element that browsers render
+  as a native tooltip — always strip it when a custom `v-tooltip` is present.
+- Use `stripTitle()` from `@/utils/svg` — never inline the regex in a component.
+- Example: `v-html="stripTitle(siDrupal.svg)"`
+
+---
+
 ## API Endpoints (not yet implemented)
 
 ```text
