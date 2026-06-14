@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 158" width="89" height="158" overflow="hidden">
+
+  <!-- Outer diamond outline — corner points land on tile edges, forming the lattice when tiled -->
+  <path d="M 44.5,0 L 89,79 L 44.5,158 L 0,79 Z"
+        fill="none" stroke="#1f1f2b" stroke-width="1.5"/>
+
+  <!-- Primary diamond interior shapes (centre at 44.5,79) -->
+  <!-- Outer house: peak y=30, walls x=14.83/74.17, transition y=82.66, bottom y=105.3 -->
+  <path d="M 14.83,105.3 L 14.83,82.66 L 44.5,30 L 74.17,82.66 L 74.17,105.3"
+        fill="none" stroke="#1f1f2b" stroke-width="1.5"/>
+  <!-- Inner house: peak y=60, walls x=29.67/59.33, transition y=86.33, bottom y=131.7 -->
+  <path d="M 29.67,131.7 L 29.67,86.33 L 44.5,60 L 59.33,86.33 L 59.33,131.7"
+        fill="none" stroke="#1f1f2b" stroke-width="1.5"/>
+  <!-- Centre vertical line: inner house transition down to diamond bottom point -->
+  <line x1="44.5" y1="86.33" x2="44.5" y2="158"
+        stroke="#1f1f2b" stroke-width="1.5"/>
+
+  <!--
+    Interstitial diamond corners — 4 tiles meet at each corner, so each tile
+    draws its quarter of the interstitial diamond. Content outside the viewBox
+    is clipped here and completed by adjacent tiles when CSS tiles the image.
+
+    Relative shapes (centred at origin):
+      Outer house: M -29.67,26.3 L -29.67,3.66 L 0,-49 L 29.67,3.66 L 29.67,26.3
+      Inner house: M -14.83,52.7 L -14.83,7.33 L 0,-19 L 14.83,7.33 L 14.83,52.7
+      Centre line: (0,7.33) → (0,79)
+  -->
+
+  <!-- Corner at (0,0) -->
+  <g transform="translate(0,0)" fill="none" stroke="#1f1f2b" stroke-width="1.5">
+    <path d="M -29.67,26.3 L -29.67,3.66 L 0,-49 L 29.67,3.66 L 29.67,26.3"/>
+    <path d="M -14.83,52.7 L -14.83,7.33 L 0,-19 L 14.83,7.33 L 14.83,52.7"/>
+    <line x1="0" y1="7.33" x2="0" y2="79"/>
+  </g>
+
+  <!-- Corner at (89,0) -->
+  <g transform="translate(89,0)" fill="none" stroke="#1f1f2b" stroke-width="1.5">
+    <path d="M -29.67,26.3 L -29.67,3.66 L 0,-49 L 29.67,3.66 L 29.67,26.3"/>
+    <path d="M -14.83,52.7 L -14.83,7.33 L 0,-19 L 14.83,7.33 L 14.83,52.7"/>
+    <line x1="0" y1="7.33" x2="0" y2="79"/>
+  </g>
+
+  <!-- Corner at (0,158) -->
+  <g transform="translate(0,158)" fill="none" stroke="#1f1f2b" stroke-width="1.5">
+    <path d="M -29.67,26.3 L -29.67,3.66 L 0,-49 L 29.67,3.66 L 29.67,26.3"/>
+    <path d="M -14.83,52.7 L -14.83,7.33 L 0,-19 L 14.83,7.33 L 14.83,52.7"/>
+    <line x1="0" y1="7.33" x2="0" y2="79"/>
+  </g>
+
+  <!-- Corner at (89,158) -->
+  <g transform="translate(89,158)" fill="none" stroke="#1f1f2b" stroke-width="1.5">
+    <path d="M -29.67,26.3 L -29.67,3.66 L 0,-49 L 29.67,3.66 L 29.67,26.3"/>
+    <path d="M -14.83,52.7 L -14.83,7.33 L 0,-19 L 14.83,7.33 L 14.83,52.7"/>
+    <line x1="0" y1="7.33" x2="0" y2="79"/>
+  </g>
+
+</svg>

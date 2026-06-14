@@ -65,8 +65,10 @@ body {
 /* ─── Scrolling background + glitch slices ───────────────────────────────── */
 
 .bg-layer {
-  background-image: url('/images/body-bg-dark.png');
+  background-color: #020203;
+  background-image: url('/images/body-bg-tile.svg?v=4');
   background-repeat: repeat;
+  background-size: 89px 158px;
   animation: bg-scroll 35s linear infinite;
   position: fixed;
   inset: 0;
@@ -104,16 +106,29 @@ body {
   height: 100vh;
   top: calc(-1 * var(--spot-top, -50vh));
   left: calc(-1 * var(--spot-left, -50vw));
-  background-image: url('/images/body-bg-dark.png');
+  background-image: url('/images/body-bg-tile.svg?v=2');
   background-repeat: repeat;
+  background-size: 89px 158px;
   animation: bg-scroll 35s linear infinite;
   will-change: filter;
 }
 
-/* Tile is 625×625px — x offset must be a multiple of 625 for a seamless loop. */
+/* Tile is 89×158px — offsets must be exact multiples for a seamless loop: 7×89=623, 4×158=632. */
 @keyframes bg-scroll {
   from { background-position: 0px 0px; }
-  to   { background-position: -625px -600px; }
+  to   { background-position: -623px -632px; }
+}
+
+/* Transparent overlay for JS-driven streak animations (useBackgroundStreaks.ts).
+   overflow:visible so streaks near edges aren't clipped. */
+.bg-streak-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: -9;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -260,8 +275,7 @@ a:not(.btn, .link-poly):focus-visible::after {
 /* Transition: jitter — polygon glitches intermittently while visible.
    Runs on loop the entire time hover/active is held — no snap-in animation. */
 .link-poly--jitter:hover::before,
-.link-poly--jitter:focus-visible::before,
-.link-poly--jitter.nav-link.router-link-active::before {
+.link-poly--jitter:focus-visible::before {
   animation: poly-glitch 5s linear infinite;
 }
 
@@ -402,8 +416,7 @@ a.nav-link.router-link-active {
    No HTML changes needed: text-shadow paints behind text by definition.
    4s cycle; burst 1 fires at 2% so a quick hover-over still catches it. */
 a:not(.site-brand):hover,
-a:not(.site-brand):focus-visible,
-a.nav-link.router-link-active {
+a:not(.site-brand):focus-visible {
   animation: nav-text-glitch 4s linear infinite;
 }
 

@@ -5,20 +5,24 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
 import { useBackgroundGlitch } from '@/composables/useBackgroundGlitch'
+import { useBackgroundStreaks } from '@/composables/useBackgroundStreaks'
 
 const route = useRoute()
 const bgContainer = ref<HTMLElement | null>(null)
+const streakSvg = ref<SVGSVGElement | null>(null)
 
 useBackgroundGlitch(bgContainer)
+useBackgroundStreaks(streakSvg)
 </script>
 
 <template>
   <!-- Background layer + glitch slices: aria-hidden, pointer-events blocked in CSS -->
   <div ref="bgContainer" aria-hidden="true">
-    <div class="bg-layer" />
+    <div class="bg-layer"></div>
     <div v-for="n in 4" :key="n" class="bg-spot">
-      <div class="bg-spot-inner" />
+      <div class="bg-spot-inner"></div>
     </div>
+    <svg ref="streakSvg" class="bg-streak-overlay" aria-hidden="true"></svg>
   </div>
   <div class="app-wrapper">
     <AppHeader />
