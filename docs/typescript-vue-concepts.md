@@ -133,7 +133,7 @@ These work the same as Vue 2, but worth a refresh on the less common ones:
 - [ ] Typing `computed()` — when TypeScript needs help with the return type
 - [ ] Typed props with interfaces — `defineProps<{ item: PortfolioItem }>()`
 - [ ] Typed emits — `defineEmits<{ select: [id: string] }>()`
-- [ ] Typing async functions — `async function fetch(): Promise<PortfolioItem[]>`
+- [x] Typing async functions — `async function fetch(): Promise<PortfolioItem[]>` — used in `createTooltip` returning `Promise<{ el: HTMLElement; cleanup: () => void }>`
 - [ ] Handling `null` and `undefined` in templates safely
 
 ---
