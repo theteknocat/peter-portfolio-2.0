@@ -11,7 +11,7 @@
  * browser's own tooltip does not appear alongside.
  */
 
-import { computePosition, flip, shift, offset, arrow } from '@floating-ui/dom'
+import { computePosition, flip, shift, offset, arrow, autoUpdate } from '@floating-ui/dom'
 import type { DirectiveBinding } from 'vue'
 
 // 8px square rotated 45° — ceil(8 * √2) = 12px full diagonal, 6px half.
@@ -23,6 +23,7 @@ interface TooltipState {
   onEnter: () => void
   onLeave: () => void
   getTooltipEl: () => HTMLElement | null
+  getCleanup: () => (() => void) | null
 }
 
 const stateMap = new WeakMap<HTMLElement, TooltipState>()
@@ -46,12 +47,17 @@ function resolveText(el: HTMLElement, binding: DirectiveBinding<string | undefin
 
 /**
  * Creates and positions the tooltip element relative to the target.
+ * Returns the element and an `autoUpdate` cleanup function that continuously
+ * repositions the tooltip as the anchor moves (e.g. mid-CSS-transform).
  *
  * @param anchor - The element to position the tooltip against.
  * @param text - The text to display inside the tooltip.
- * @returns The created tooltip DOM element.
+ * @returns The created tooltip element and its autoUpdate cleanup function.
  */
-async function createTooltip(anchor: HTMLElement, text: string): Promise<HTMLElement> {
+async function createTooltip(
+  anchor: HTMLElement,
+  text: string,
+): Promise<{ el: HTMLElement; cleanup: () => void }> {
   const tooltipEl = document.createElement('div')
   tooltipEl.className = 'tooltip-popup'
   tooltipEl.textContent = text
@@ -65,41 +71,52 @@ async function createTooltip(anchor: HTMLElement, text: string): Promise<HTMLEle
 
   document.body.appendChild(tooltipEl)
 
-  const { x, y, placement, middlewareData } = await computePosition(anchor, tooltipEl, {
-    placement: 'top',
-    middleware: [
-      offset(10),
-      flip(),
-      shift({ padding: 8 }),
-      arrow({ element: arrowEl }),
-    ],
-  })
+  async function updatePosition(): Promise<void> {
+    const { x, y, placement, middlewareData } = await computePosition(anchor, tooltipEl, {
+      placement: 'top',
+      middleware: [
+        offset(10),
+        flip(),
+        shift({ padding: 8 }),
+        arrow({ element: arrowEl }),
+      ],
+    })
 
-  Object.assign(tooltipEl.style, {
-    left: `${x}px`,
-    top: `${y}px`,
-  })
+    Object.assign(tooltipEl.style, {
+      left: `${x}px`,
+      top: `${y}px`,
+    })
 
-  // Position the wrapper on the tooltip edge closest to the anchor.
-  // staticSide is that edge; arrowX/Y give its position along the edge.
-  const { x: arrowX, y: arrowY } = middlewareData.arrow ?? {}
-  const staticSide = ({ top: 'bottom', bottom: 'top', left: 'right', right: 'left' } as const)[
-    placement.split('-')[0] as 'top' | 'bottom' | 'left' | 'right'
-  ]
+    // Position the wrapper on the tooltip edge closest to the anchor.
+    // staticSide is that edge; arrowX/Y give its position along the edge.
+    const { x: arrowX, y: arrowY } = middlewareData.arrow ?? {}
+    const staticSide = ({ top: 'bottom', bottom: 'top', left: 'right', right: 'left' } as const)[
+      placement.split('-')[0] as 'top' | 'bottom' | 'left' | 'right'
+    ]
 
-  // Horizontal edges (top/bottom): wrapper is wide and short; vertical: tall and narrow.
-  const isHorizontal = staticSide === 'bottom' || staticSide === 'top'
-  arrowEl.dataset.side = staticSide
-  Object.assign(arrowEl.style, {
-    width: `${isHorizontal ? FULL_DIAG : HALF_DIAG}px`,
-    height: `${isHorizontal ? HALF_DIAG : FULL_DIAG}px`,
-    left: arrowX != null ? `${arrowX}px` : '',
-    top: arrowY != null ? `${arrowY}px` : '',
-    // 1px overlap into the tooltip box hides the seam between arrow and border.
-    [staticSide]: `-${HALF_DIAG - 1}px`,
-  })
+    // Horizontal edges (top/bottom): wrapper is wide and short; vertical: tall and narrow.
+    const isHorizontal = staticSide === 'bottom' || staticSide === 'top'
+    arrowEl.dataset.side = staticSide
+    Object.assign(arrowEl.style, {
+      width: `${isHorizontal ? FULL_DIAG : HALF_DIAG}px`,
+      height: `${isHorizontal ? HALF_DIAG : FULL_DIAG}px`,
+      left: arrowX != null ? `${arrowX}px` : '',
+      top: arrowY != null ? `${arrowY}px` : '',
+      // 1px overlap into the tooltip box hides the seam between arrow and border.
+      [staticSide]: `-${HALF_DIAG - 1}px`,
+    })
+  }
 
-  return tooltipEl
+  // Initial position — awaited so the tooltip is correctly placed before it
+  // becomes visible.
+  await updatePosition()
+
+  // autoUpdate re-runs updatePosition whenever the anchor or viewport changes
+  // (scroll, resize, DOM mutations), keeping the tooltip locked to the anchor
+  // even if a CSS transform is mid-animation when mouseenter fired.
+  const cleanup = autoUpdate(anchor, tooltipEl, updatePosition)
+
+  return { el: tooltipEl, cleanup }
 }
 
 export const vTooltip = {
@@ -113,17 +130,20 @@ export const vTooltip = {
     }
 
     let tooltipEl: HTMLElement | null = null
+    let tooltipCleanup: (() => void) | null = null
     let cancelled = false
 
     const onEnter = () => {
       cancelled = false
-      createTooltip(el, text).then((tip) => {
+      createTooltip(el, text).then(({ el: tip, cleanup }) => {
         // mouseleave fired before the async position calculation finished — discard.
         if (cancelled) {
+          cleanup()
           tip.remove()
           return
         }
         tooltipEl = tip
+        tooltipCleanup = cleanup
         requestAnimationFrame(() => tip.classList.add('is-visible'))
       })
     }
@@ -135,7 +155,11 @@ export const vTooltip = {
         return
       }
       const tip = tooltipEl
+      const cleanup = tooltipCleanup
       tooltipEl = null
+      tooltipCleanup = null
+      // Stop position tracking before beginning the exit transition.
+      cleanup?.()
       tip.classList.remove('is-visible')
       tip.addEventListener('transitionend', () => tip.remove(), { once: true })
     }
@@ -143,14 +167,21 @@ export const vTooltip = {
     el.addEventListener('mouseenter', onEnter)
     el.addEventListener('mouseleave', onLeave)
 
-    // getTooltipEl lets unmounted reach the live closure variable.
-    stateMap.set(el, { tooltipEl: null, onEnter, onLeave, getTooltipEl: () => tooltipEl })
+    // getTooltipEl / getCleanup let unmounted reach the live closure variables.
+    stateMap.set(el, {
+      tooltipEl: null,
+      onEnter,
+      onLeave,
+      getTooltipEl: () => tooltipEl,
+      getCleanup: () => tooltipCleanup,
+    })
   },
 
   unmounted(el: HTMLElement) {
     const state = stateMap.get(el)
     if (!state) return
 
+    state.getCleanup()?.()
     state.getTooltipEl()?.remove()
     el.removeEventListener('mouseenter', state.onEnter)
     el.removeEventListener('mouseleave', state.onLeave)
