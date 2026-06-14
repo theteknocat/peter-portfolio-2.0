@@ -11,14 +11,14 @@ const { isScrolled } = useScrolled()
 <template>
   <header :class="{ scrolled: isScrolled }">
     <div class="header-inner">
-      <RouterLink to="/" class="site-brand">
+      <RouterLink to="/" class="site-brand link-poly link-poly--slash link-poly--twist">
         <img :src="logoSrc" alt="Peter Epp" class="brand-logo" />
         <span class="brand-name">Peter Epp</span>
       </RouterLink>
       <nav class="flex gap-2">
-        <RouterLink to="/portfolio" class="nav-link">Portfolio</RouterLink>
-        <RouterLink to="/articles" class="nav-link">Articles</RouterLink>
-        <RouterLink to="/job-history" class="nav-link">Job History</RouterLink>
+        <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash link-poly--twist">Portfolio</RouterLink>
+        <RouterLink to="/articles" class="nav-link link-poly link-poly--slash link-poly--twist">Articles</RouterLink>
+        <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash link-poly--twist">Job History</RouterLink>
       </nav>
     </div>
   </header>
@@ -78,15 +78,6 @@ header.scrolled::before {
   gap: 0.75rem;
   text-decoration: none;
   padding: 0 0.625rem;
-  border: 1px solid transparent;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-
-/* Apply original box treatment; suppress global outline in favour of border */
-.site-brand:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary);
-  outline: none;
 }
 
 .brand-logo {
