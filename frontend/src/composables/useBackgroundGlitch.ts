@@ -27,12 +27,51 @@ function randInt(min: number, max: number): number {
   return Math.floor(rand(min, max + 1))
 }
 
+// Controls how much of the turbulence cloud is visible.
+// alpha = CLOUD_SHARPNESS × (turbulence alpha) + CLOUD_THRESHOLD
+// Raising CLOUD_SHARPNESS → harder edges. Lowering CLOUD_THRESHOLD → more holes.
+const CLOUD_SHARPNESS = 5
+const CLOUD_THRESHOLD = -2
+
 function randomTurbulenceMask(): string {
   const seed = randInt(0, 9999)
   const freq = rand(0.008, 0.025).toFixed(3)
-  // SVG <mask> with a radial gradient fades the turbulence rect's hard edges to
-  // transparent — all references are self-contained within the data URI so they resolve.
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><radialGradient id='g' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='white' stop-opacity='1'/><stop offset='100%' stop-color='white' stop-opacity='0'/></radialGradient><mask id='m'><rect width='100' height='100' fill='url(#g)'/></mask><filter id='f' x='0%' y='0%' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='3' seed='${seed}'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5 0 0 0 -1.5'/></filter></defs><rect width='100' height='100' filter='url(#f)' mask='url(#m)'/></svg>`
+
+  // Radial gradient fades the turbulence rect's hard edges to transparent.
+  // All IDs are self-contained within the data URI so they resolve correctly.
+  const radialGradient = `
+    <radialGradient id='g' cx='50%' cy='50%' r='50%'>
+      <stop offset='0%'   stop-color='white' stop-opacity='1'/>
+      <stop offset='100%' stop-color='white' stop-opacity='0'/>
+    </radialGradient>`
+
+  // Mask applies the radial gradient so edges fade out
+  const edgeMask = `
+    <mask id='m'>
+      <rect width='100' height='100' fill='url(#g)'/>
+    </mask>`
+
+  // feTurbulence generates the cloud shape; feColorMatrix thresholds it to an alpha mask
+  const cloudFilter = `
+    <filter id='f' x='0%' y='0%' width='100%' height='100%'>
+      <feTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='3' seed='${seed}'/>
+      <feColorMatrix type='matrix' values='
+        0 0 0 0 0
+        0 0 0 0 0
+        0 0 0 0 0
+        ${CLOUD_SHARPNESS} 0 0 0 ${CLOUD_THRESHOLD}'/>
+    </filter>`
+
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>
+      <defs>
+        ${radialGradient}
+        ${edgeMask}
+        ${cloudFilter}
+      </defs>
+      <rect width='100' height='100' filter='url(#f)' mask='url(#m)'/>
+    </svg>`
+
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
@@ -54,7 +93,7 @@ export function useBackgroundGlitch(containerRef: Ref<HTMLElement | null>): void
   }
 
   function repositionSpot(spot: HTMLElement): void {
-    const w = randInt(200, 480)
+    const w = randInt(400, 800)
     spot.style.setProperty('--spot-w', `${w}px`)
     // Height constrained to 4:3 max (h ≤ w×0.75), wider aspects allowed
     spot.style.setProperty('--spot-h', `${randInt(Math.floor(w * 0.35), Math.floor(w * 0.75))}px`)
