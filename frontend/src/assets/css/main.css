@@ -169,7 +169,8 @@ a:not(.btn, .link-poly):hover::after {
   transition: opacity 0.15s ease;
 }
 
-.link-poly:hover::before {
+.link-poly:hover::before,
+.link-poly.nav-link.router-link-active::before {
   opacity: 1;
 }
 
