@@ -94,12 +94,17 @@ a {
   transition: all 0.2s ease;
 }
 
+a:focus-visible {
+  outline: none;
+}
+
 a:not(.btn, .link-poly) {
   margin: 0 15px;
 }
 
 /* Content area link hover */
-a:not(.btn):hover {
+a:not(.btn):hover,
+a:not(.btn):focus-visible {
   color: var(--color-link-hover);
   z-index: 20;
 }
@@ -142,11 +147,13 @@ a:not(.btn, .link-poly)::after {
 }
 
 /* Enter: fade in first, slide continues for the full duration */
-a:not(.btn, .link-poly):hover::before {
+a:not(.btn, .link-poly):hover::before,
+a:not(.btn, .link-poly):focus-visible::before {
   transform: translateY(-50%) translateX(-180%);
 }
 
-a:not(.btn, .link-poly):hover::after {
+a:not(.btn, .link-poly):hover::after,
+a:not(.btn, .link-poly):focus-visible::after {
   transform: translateY(-50%) translateX(180%);
 }
 
@@ -170,6 +177,7 @@ a:not(.btn, .link-poly):hover::after {
 }
 
 .link-poly:hover::before,
+.link-poly:focus-visible::before,
 .link-poly.nav-link.router-link-active::before {
   opacity: 1;
 }
@@ -191,9 +199,66 @@ a:not(.btn, .link-poly):hover::after {
 }
 
 .link-poly--twist:hover::before,
+.link-poly--twist:focus-visible::before,
 .link-poly--twist.nav-link.router-link-active::before {
   transform: rotate(0deg) scale(1);
   transition: opacity 0.15s ease, transform 0.3s ease;
+}
+
+/* Transition: jitter — polygon glitches intermittently while visible.
+   Runs on loop the entire time hover/active is held — no snap-in animation. */
+.link-poly--jitter:hover::before,
+.link-poly--jitter:focus-visible::before,
+.link-poly--jitter.nav-link.router-link-active::before {
+  animation: poly-glitch 5s linear infinite;
+}
+
+/* 5s cycle: 4 bursts of varying length (50ms–280ms) at irregular positions.
+   Between bursts the shape holds flat — translate(0) scaleX(1) skewX(0).
+   Abrupt position changes with no easing = tearing rather than rubber. */
+@keyframes poly-glitch {
+  0%, 100% { transform: translate(0) scaleX(1) skewX(0); }
+
+  /* Burst 1: ~200ms. 5.8–9.8% */
+  5.8%  { transform: translate(0) scaleX(1) skewX(0); }
+  6.2%  { transform: translate(-4px, 0) scaleX(1.05) skewX(3deg); }
+  6.6%  { transform: translate( 3px, 0) scaleX(0.93) skewX(-2deg); }
+  7.0%  { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  7.5%  { transform: translate(-3px, 0) scaleX(1.04) skewX(2deg); }
+  7.9%  { transform: translate( 5px, 0) scaleX(0.91); }
+  8.3%  { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  8.8%  { transform: translate(-2px, 0) skewX(-3deg); }
+  9.3%  { transform: translate( 4px, 0) scaleX(1.06) skewX(1deg); }
+  9.8%  { transform: translate( 0,   0) scaleX(1) skewX(0); }
+
+  /* Burst 2: ~100ms. 27.5–29.5% */
+  27.5% { transform: translate(0) scaleX(1) skewX(0); }
+  27.8% { transform: translate( 5px, 0) scaleX(0.92) skewX(-5deg); }
+  28.3% { transform: translate(-3px, 0) scaleX(1.07); }
+  28.7% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  29.1% { transform: translate(-4px, 0) skewX(3deg); }
+  29.5% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+
+  /* Burst 3: very brief ~50ms. 50.5–51.5% */
+  50.5% { transform: translate(0) scaleX(1) skewX(0); }
+  50.8% { transform: translate( 6px, 0) scaleX(0.88) skewX(-5deg); }
+  51.3% { transform: translate(-4px, 0) scaleX(1.09); }
+  51.6% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+
+  /* Burst 4: longest ~280ms. 72.0–77.6% */
+  72.0% { transform: translate(0) scaleX(1) skewX(0); }
+  72.4% { transform: translate(-3px, 0) scaleX(1.05) skewX(3deg); }
+  72.8% { transform: translate( 5px, 0) scaleX(0.95); }
+  73.2% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  73.6% { transform: translate(-4px, 0) skewX(-2deg); }
+  74.1% { transform: translate( 3px, 0) scaleX(1.06) skewX(2deg); }
+  74.5% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  75.0% { transform: translate(-5px, 0) scaleX(0.91) skewX(4deg); }
+  75.5% { transform: translate( 4px, 0) scaleX(1.05); }
+  76.0% { transform: translate( 0,   0) scaleX(1) skewX(0); }
+  76.5% { transform: translate(-2px, 0) scaleX(1.03) skewX(-2deg); }
+  77.1% { transform: translate( 3px, 0) scaleX(0.96); }
+  77.6% { transform: translate( 0,   0) scaleX(1) skewX(0); }
 }
 
 hr {
@@ -276,8 +341,92 @@ body.modal-open {
 
 /* Colour override — specificity needs element selector to beat a:not(.btn):hover */
 a.nav-link:hover,
+a.nav-link:focus-visible,
 a.nav-link.router-link-active {
   color: var(--color-primary-light);
+}
+
+/* Text glitch via text-shadow — zero blur = sharp offset copy, always under text.
+   No HTML changes needed: text-shadow paints behind text by definition.
+   4s cycle; burst 1 fires at 2% so a quick hover-over still catches it. */
+a:not(.site-brand):hover,
+a:not(.site-brand):focus-visible,
+a.nav-link.router-link-active {
+  animation: nav-text-glitch 4s linear infinite;
+}
+
+@keyframes nav-text-glitch {
+  0%, 100% { text-shadow: none; }
+
+  /* Burst 1: ~210ms. 2–7.3% */
+  2.0% { text-shadow: -4px 0 0 #00ff80,  5px 0 0 #9500ff; }
+  2.6% { text-shadow:  3px 0 0 #00ff80, -4px 0 0 #9500ff; }
+  3.1% { text-shadow: none; }
+  3.9% { text-shadow: -5px 0 0 #00ff80,  3px 0 0 #9500ff; }
+  4.6% { text-shadow:  4px 0 0 #00ff80, -5px 0 0 #9500ff; }
+  5.3% { text-shadow: none; }
+  6.0% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  6.7% { text-shadow:  5px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  7.3% { text-shadow: none; }
+
+  /* Burst 2: ~120ms. 32–35% */
+  32.0% { text-shadow: none; }
+  32.5% { text-shadow:  6px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  33.1% { text-shadow: -4px 0 0 #00ff80,  5px 0 0 #9500ff; }
+  33.6% { text-shadow: none; }
+  34.3% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  34.9% { text-shadow: none; }
+
+  /* Burst 3: ~260ms. 68–74.5% */
+  68.0% { text-shadow: none; }
+  68.5% { text-shadow: -5px 0 0 #00ff80,  4px 0 0 #9500ff; }
+  69.2% { text-shadow:  4px 0 0 #00ff80, -5px 0 0 #9500ff; }
+  69.8% { text-shadow: none; }
+  70.6% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  71.4% { text-shadow:  5px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  72.1% { text-shadow: none; }
+  72.9% { text-shadow: -4px 0 0 #00ff80,  3px 0 0 #9500ff; }
+  73.6% { text-shadow:  3px 0 0 #00ff80, -6px 0 0 #9500ff; }
+  74.5% { text-shadow: none; }
+}
+
+/* SVG icon glitch — drop-shadow() traces the icon alpha shape the way text-shadow
+   traces text. Zero blur = sharp coloured ghost at the offset position.
+   Mirrors nav-text-glitch timing; placed after it so the higher specificity of
+   .social-link:hover overrides the a:not(.site-brand):hover animation rule. */
+@keyframes icon-glitch {
+  0%, 100% { filter: none; }
+
+  /* Burst 1: ~210ms. 2–7.3% */
+  2.0% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 5px 0 0 #9500ff); }
+  2.6% { filter: drop-shadow( 3px 0 0 #00ff80) drop-shadow(-4px 0 0 #9500ff); }
+  3.1% { filter: none; }
+  3.9% { filter: drop-shadow(-5px 0 0 #00ff80) drop-shadow( 3px 0 0 #9500ff); }
+  4.6% { filter: drop-shadow( 4px 0 0 #00ff80) drop-shadow(-5px 0 0 #9500ff); }
+  5.3% { filter: none; }
+  6.0% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  6.7% { filter: drop-shadow( 5px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  7.3% { filter: none; }
+
+  /* Burst 2: ~120ms. 32–35% */
+  32.0% { filter: none; }
+  32.5% { filter: drop-shadow( 6px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  33.1% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 5px 0 0 #9500ff); }
+  33.6% { filter: none; }
+  34.3% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  34.9% { filter: none; }
+
+  /* Burst 3: ~260ms. 68–74.5% */
+  68.0% { filter: none; }
+  68.5% { filter: drop-shadow(-5px 0 0 #00ff80) drop-shadow( 4px 0 0 #9500ff); }
+  69.2% { filter: drop-shadow( 4px 0 0 #00ff80) drop-shadow(-5px 0 0 #9500ff); }
+  69.8% { filter: none; }
+  70.6% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  71.4% { filter: drop-shadow( 5px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  72.1% { filter: none; }
+  72.9% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 3px 0 0 #9500ff); }
+  73.6% { filter: drop-shadow( 3px 0 0 #00ff80) drop-shadow(-6px 0 0 #9500ff); }
+  74.5% { filter: none; }
 }
 
 /* ─── Page transitions ───────────────────────────────────────────────────── */

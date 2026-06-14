@@ -19,12 +19,12 @@ const currentYear = computed(() => new Date().getFullYear())
         Copyright &copy; {{ currentYear }} Peter Epp
       </p>
       <nav class="social-links" aria-label="Social links">
-        <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash link-poly--twist" target="_blank" rel="noopener noreferrer">
+        <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash link-poly--jitter" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Drupal.org Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-html="stripTitle(siDrupal.svg)" class="social-icon" />
         </a>
-        <a v-tooltip="'Github Profile'" href="https://github.com/teknocat" class="social-link link-poly link-poly--slash link-poly--twist" target="_blank" rel="noopener noreferrer">
+        <a v-tooltip="'Github Profile'" href="https://github.com/teknocat" class="social-link link-poly link-poly--slash link-poly--jitter" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Github Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-html="stripTitle(siGithub.svg)" class="social-icon" />
@@ -64,17 +64,25 @@ footer {
   display: flex;
   padding: 4px 6px;
   align-items: center;
-  transition: transform 0.2s ease;
+  color: var(--color-accent);
+  transition: transform 0.2s ease, color 0.15s ease;
 }
 
-.social-link:hover {
+.social-link:hover,
+.social-link:focus-visible {
   transform: scale(1.3);
+  color: var(--color-primary-light);
 }
 
-/* simple-icons SVGs inject via v-html — target through the wrapping span */
+.social-link:hover .social-icon,
+.social-link:focus-visible .social-icon {
+  animation: icon-glitch 4s linear infinite;
+}
+
+/* currentColor lets the SVG fill inherit from the link's color property */
 .social-icon :deep(svg),
 .social-icon :deep(svg) path {
-  fill: var(--color-accent);
+  fill: currentColor;
 }
 
 .social-icon :deep(svg) {
