@@ -2,6 +2,7 @@
 // Site footer: copyright year (auto-updating) + social icon links.
 import { computed } from 'vue'
 import { siDrupal, siGithub } from 'simple-icons'
+import { stripTitle } from '@/utils/svg'
 
 const currentYear = computed(() => new Date().getFullYear())
 
@@ -21,12 +22,12 @@ const currentYear = computed(() => new Date().getFullYear())
         <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash link-poly--twist" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Drupal.org Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
-          <span v-html="siDrupal.svg" class="social-icon" />
+          <span v-html="stripTitle(siDrupal.svg)" class="social-icon" />
         </a>
         <a v-tooltip="'Github Profile'" href="https://github.com/teknocat" class="social-link link-poly link-poly--slash link-poly--twist" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Github Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
-          <span v-html="siGithub.svg" class="social-icon" />
+          <span v-html="stripTitle(siGithub.svg)" class="social-icon" />
         </a>
       </nav>
     </div>
