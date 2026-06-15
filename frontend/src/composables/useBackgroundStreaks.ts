@@ -4,6 +4,9 @@
  * edges and may change diagonal family at each vertex — so it bends like a natural
  * bolt tracing the Art Deco grid.
  *
+ * When a streak turns at a vertex it may spawn a fork: a dimmer, shorter child streak
+ * that continues in the original direction, creating a lightning-branch effect.
+ *
  * A single requestAnimationFrame loop per streak drives stroke-dashoffset (pulse
  * travel) and translates the <g> to stay locked to the moving background.
  *
@@ -31,6 +34,11 @@ const STREAK_SPEED_MIN = 280   // px/s — slow, drifting glow
 const STREAK_SPEED_MAX = 550   // px/s
 const TURN_PROB = 0.3          // probability of switching diagonal family at each vertex
 const MAX_STEPS = 30           // max edge segments before stopping path generation
+
+// Fork: when the main streak turns, it may spawn a dimmer child that continues straight.
+const FORK_PROB = 1.0          // always fork at each turn point
+const FORK_OPACITY_SCALE = 1.0 // fork brightness relative to parent
+const FORK_MAX_STEPS = 10      // fork paths are shorter than the main streak
 
 // Stacked strokes simulate Gaussian glow without CSS filter: blur().
 // Segments ordered longest (tail, dimmest) → shortest (tip, brightest). All share
@@ -69,6 +77,13 @@ const DIRS: [number, number][] = [
 // Turn: flip x, keep y direction. Excludes U-turns (y-flip) for performance.
 const TURN_PARTNER = [1, 0, 3, 2]
 
+interface ForkPoint {
+  cx: number
+  cy: number
+  dirIdx: number   // direction the main streak was traveling before it turned
+  stepIndex: number
+}
+
 function rand(min: number, max: number): number {
   return Math.random() * (max - min) + min
 }
@@ -104,49 +119,52 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     return { x: BG_TOTAL_X * progress, y: BG_TOTAL_Y * progress }
   }
 
-  function createStreak(svg: SVGSVGElement): void {
-    const offset = bgOffset(performance.now() - mountTime)
+  /**
+   * Builds a path along the lattice, renders it as an animated glow pulse,
+   * and schedules any fork children.
+   *
+   * @param svg - The overlay SVG element to append to.
+   * @param startCx - Starting x in SVG coordinate space (current-offset-adjusted).
+   * @param startCy - Starting y in SVG coordinate space (current-offset-adjusted).
+   * @param startDirIdx - Initial direction index into DIRS.
+   * @param color - Stroke colour shared with any forks.
+   * @param opacityScale - Multiplier applied to all segment opacities (< 1 for forks).
+   * @param maxSteps - Maximum lattice edges to walk.
+   * @param canFork - Whether to spawn fork children at turn points.
+   */
+  function buildAndAnimate(
+    svg: SVGSVGElement,
+    startCx: number,
+    startCy: number,
+    startDirIdx: number,
+    color: string,
+    opacityScale: number,
+    maxSteps: number,
+    canFork: boolean,
+  ): void {
     const vw = window.innerWidth
     const vh = window.innerHeight
 
-    // Pick a random lattice vertex within (or just outside) the viewport
-    const colMin = Math.floor((-TILE_W - offset.x) / TILE_W)
-    const colMax = Math.ceil((vw + TILE_W - offset.x) / TILE_W)
-    const rowMin = Math.floor((-TILE_H - offset.y) / TILE_H)
-    const rowMax = Math.ceil((vh + TILE_H - offset.y) / TILE_H)
-
-    // Pick direction first so the starting row can be constrained by it.
-    let dirIdx = randInt(0, DIRS.length - 1)
-    const [, initDy] = DIRS[dirIdx]
-
-    // Exclude starting rows within STREAK_PX of the edge we're heading toward —
-    // streaks need that much room to travel before they exit the viewport.
-    let safeRowMin = rowMin
-    let safeRowMax = rowMax
-    if (initDy < 0) {
-      safeRowMin = Math.max(rowMin, Math.ceil((STREAK_PX - offset.y) / TILE_H))
-    } else if (initDy > 0) {
-      safeRowMax = Math.min(rowMax, Math.floor((vh - STREAK_PX - offset.y) / TILE_H))
-    }
-    if (safeRowMin > safeRowMax) { safeRowMin = rowMin; safeRowMax = rowMax }
-
-    let cx = offset.x + randInt(colMin, colMax) * TILE_W + 44.5
-    let cy = offset.y + randInt(safeRowMin, safeRowMax) * TILE_H
-
-    // Walk the lattice: at each vertex, continue straight or turn to partner family
+    let cx = startCx
+    let cy = startCy
+    let dirIdx = startDirIdx
     const points: [number, number][] = [[cx, cy]]
+    const forkPoints: ForkPoint[] = []
 
-    for (let i = 0; i < MAX_STEPS; i++) {
+    for (let i = 0; i < maxSteps; i++) {
       const [dx, dy] = DIRS[dirIdx]
       cx += dx
       cy += dy
       points.push([cx, cy])
 
       if (Math.random() < TURN_PROB) {
+        // Record the pre-turn direction as a potential fork before changing course.
+        if (canFork && Math.random() < FORK_PROB) {
+          forkPoints.push({ cx, cy, dirIdx, stepIndex: i + 1 })
+        }
         dirIdx = TURN_PARTNER[dirIdx]
       }
 
-      // Stop early if we've travelled well past all four edges of the viewport
       const margin = STREAK_PX + EDGE_LEN * 2
       if (cx < -margin || cx > vw + margin || cy < -margin || cy > vh + margin) break
     }
@@ -159,7 +177,6 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     ).join(' ')
 
     const svgNS = 'http://www.w3.org/2000/svg'
-    const color = STREAK_COLORS[Math.floor(Math.random() * STREAK_COLORS.length)]
 
     // dashoffset starts at STREAK_PX so the pulse begins just before p=0 (invisible).
     // As it decreases toward -(pathLen + STREAK_PX), the pulse travels the full path.
@@ -168,7 +185,7 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
       p.setAttribute('d', pathStr)
       p.setAttribute('fill', 'none')
       p.setAttribute('stroke', color)
-      p.setAttribute('stroke-opacity', String(opacity))
+      p.setAttribute('stroke-opacity', String(opacity * opacityScale))
       p.setAttribute('stroke-width', String(width))
       p.setAttribute('stroke-linecap', 'round')
       // Haze layers use bevel joins — round joins create asymmetric bumps on the
@@ -198,6 +215,31 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     const state = { active: true }
     activeStreaks.add(state)
 
+    // Schedule each fork to fire when the pulse reaches that vertex.
+    // tForkMs is when the pulse leading edge arrives at the fork vertex.
+    // The fork's start position is corrected for how much the background has
+    // drifted between this streak's creation time and when the fork fires.
+    // Fire when the bright tip's leading edge reaches the vertex — not when the
+    // full 500px haze tail clears it (which is STREAK_PX worth of extra travel later).
+    const tipLen = SEGMENTS[SEGMENTS.length - 1].len
+    forkPoints.forEach(fork => {
+      const tForkMs = Math.round((tipLen + fork.stepIndex * EDGE_LEN) / speed * 1000)
+      after(tForkMs, () => {
+        if (!state.active) return
+        const drift = bgDelta(tForkMs)
+        buildAndAnimate(
+          svg,
+          fork.cx + drift.x,
+          fork.cy + drift.y,
+          fork.dirIdx,
+          color,
+          opacityScale * FORK_OPACITY_SCALE,
+          FORK_MAX_STEPS,
+          false,
+        )
+      })
+    })
+
     function tick(): void {
       if (!state.active) return
       const elapsed = performance.now() - creationTime
@@ -225,6 +267,39 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
       requestAnimationFrame(tick)
     }
     requestAnimationFrame(tick)
+  }
+
+  function createStreak(svg: SVGSVGElement): void {
+    const offset = bgOffset(performance.now() - mountTime)
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+
+    // Pick a random lattice vertex within (or just outside) the viewport
+    const colMin = Math.floor((-TILE_W - offset.x) / TILE_W)
+    const colMax = Math.ceil((vw + TILE_W - offset.x) / TILE_W)
+    const rowMin = Math.floor((-TILE_H - offset.y) / TILE_H)
+    const rowMax = Math.ceil((vh + TILE_H - offset.y) / TILE_H)
+
+    // Pick direction first so the starting row can be constrained by it.
+    let dirIdx = randInt(0, DIRS.length - 1)
+    const [, initDy] = DIRS[dirIdx]
+
+    // Exclude starting rows within STREAK_PX of the edge we're heading toward —
+    // streaks need that much room to travel before they exit the viewport.
+    let safeRowMin = rowMin
+    let safeRowMax = rowMax
+    if (initDy < 0) {
+      safeRowMin = Math.max(rowMin, Math.ceil((STREAK_PX - offset.y) / TILE_H))
+    } else if (initDy > 0) {
+      safeRowMax = Math.min(rowMax, Math.floor((vh - STREAK_PX - offset.y) / TILE_H))
+    }
+    if (safeRowMin > safeRowMax) { safeRowMin = rowMin; safeRowMax = rowMax }
+
+    const startCx = offset.x + randInt(colMin, colMax) * TILE_W + 44.5
+    const startCy = offset.y + randInt(safeRowMin, safeRowMax) * TILE_H
+    const color = STREAK_COLORS[Math.floor(Math.random() * STREAK_COLORS.length)]
+
+    buildAndAnimate(svg, startCx, startCy, dirIdx, color, 1.0, MAX_STEPS, true)
   }
 
   function startStreakLoop(): void {
