@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="content-card">
+  <div v-specular-highlight class="content-card">
     <div class="card-endcap top"></div>
     <div class="content-card-inner">
       <slot />

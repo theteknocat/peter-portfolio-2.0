@@ -32,6 +32,16 @@
   --font-display:  'Audiowide', cursive;
 }
 
+/* ─── Registered custom properties ──────────────────────────────────────── */
+
+/* Declares --specular-angle as an interpolatable <angle> so CSS transitions
+   can tween it smoothly between mouse positions. Must live in global scope. */
+@property --specular-angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 135deg;
+}
+
 /* ─── Tailwind theme extension ───────────────────────────────────────────── */
 
 @theme inline {
@@ -568,4 +578,39 @@ a:not(.site-brand):focus-visible {
 .page-leave-active .content-card {
   animation: card-flip-out 0.35s ease both;
   transform-origin: top center;
+}
+
+/* ─── Specular highlight (v-specular-highlight directive) ────────────────── */
+
+/* Two bright spots 180° apart that orbit to follow the cursor angle, mimicking
+   specular reflection off a slightly convex surface. The mask composite punches
+   out the interior so only the 2px border strip is visible. */
+.specular-highlight::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  background: conic-gradient(
+    from calc(var(--specular-angle, 135deg) - 20deg),
+    transparent              0%,
+    var(--color-primary-light) 8%,
+    white                   12%,
+    var(--color-primary-light) 16%,
+    transparent             24%,
+
+    transparent             48%,
+    var(--color-primary-light) 58%,
+    white                   62%,
+    var(--color-primary-light) 66%,
+    transparent             74%,
+
+    transparent            100%
+  );
+  opacity: 0.5;
+  padding: 2px;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
 }
