@@ -45,6 +45,16 @@ const SEGMENTS = [
   { len:  60, haze: [{ w: 20, o: 0.008 }, { w: 10, o: 0.014 }, { w: 5, o: 0.022 }], core: 0.038 },
 ]
 
+// Streak colours: white plus pale tints of the site's accent palette.
+// Non-white values are desaturated/lightened so they read as colour tints
+// at the very low stroke opacities used throughout.
+const STREAK_COLORS = [
+  'white',
+  '#a0ffd0',  // pale green
+  '#fff0a0',  // pale yellow
+  '#ddb8ff',  // pale purple
+]
+
 // The four edge directions in the Art Deco diamond lattice.
 // Turn rule: flip the x-component (index ^ 1 for pairs 0/1 and 2/3).
 //   right-down ↔ left-down (indices 0,1) — both heading downward
@@ -105,11 +115,25 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     const rowMin = Math.floor((-TILE_H - offset.y) / TILE_H)
     const rowMax = Math.ceil((vh + TILE_H - offset.y) / TILE_H)
 
+    // Pick direction first so the starting row can be constrained by it.
+    let dirIdx = randInt(0, DIRS.length - 1)
+    const [, initDy] = DIRS[dirIdx]
+
+    // Exclude starting rows within STREAK_PX of the edge we're heading toward —
+    // streaks need that much room to travel before they exit the viewport.
+    let safeRowMin = rowMin
+    let safeRowMax = rowMax
+    if (initDy < 0) {
+      safeRowMin = Math.max(rowMin, Math.ceil((STREAK_PX - offset.y) / TILE_H))
+    } else if (initDy > 0) {
+      safeRowMax = Math.min(rowMax, Math.floor((vh - STREAK_PX - offset.y) / TILE_H))
+    }
+    if (safeRowMin > safeRowMax) { safeRowMin = rowMin; safeRowMax = rowMax }
+
     let cx = offset.x + randInt(colMin, colMax) * TILE_W + 44.5
-    let cy = offset.y + randInt(rowMin, rowMax) * TILE_H
+    let cy = offset.y + randInt(safeRowMin, safeRowMax) * TILE_H
 
     // Walk the lattice: at each vertex, continue straight or turn to partner family
-    let dirIdx = randInt(0, DIRS.length - 1)
     const points: [number, number][] = [[cx, cy]]
 
     for (let i = 0; i < MAX_STEPS; i++) {
@@ -135,18 +159,21 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     ).join(' ')
 
     const svgNS = 'http://www.w3.org/2000/svg'
+    const color = STREAK_COLORS[Math.floor(Math.random() * STREAK_COLORS.length)]
 
     // dashoffset starts at STREAK_PX so the pulse begins just before p=0 (invisible).
     // As it decreases toward -(pathLen + STREAK_PX), the pulse travels the full path.
-    function makePath(width: number, opacity: number, dashLen: number): SVGPathElement {
+    function makePath(width: number, opacity: number, dashLen: number, isCore = false): SVGPathElement {
       const p = document.createElementNS(svgNS, 'path')
       p.setAttribute('d', pathStr)
       p.setAttribute('fill', 'none')
-      p.setAttribute('stroke', 'white')
+      p.setAttribute('stroke', color)
       p.setAttribute('stroke-opacity', String(opacity))
       p.setAttribute('stroke-width', String(width))
       p.setAttribute('stroke-linecap', 'round')
-      p.setAttribute('stroke-linejoin', 'round')
+      // Haze layers use bevel joins — round joins create asymmetric bumps on the
+      // outside of every turn, which stack visibly on wide low-opacity strokes.
+      p.setAttribute('stroke-linejoin', isCore ? 'round' : 'bevel')
       p.setAttribute('stroke-dasharray', `${dashLen} 99999`)
       p.setAttribute('stroke-dashoffset', String(STREAK_PX))
       return p
@@ -157,7 +184,7 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     // edge; shorter segments stack opacity additively toward the tip.
     const segPaths: SVGPathElement[][] = SEGMENTS.map(seg => [
       ...seg.haze.map(({ w, o }) => makePath(w, o, seg.len)),
-      makePath(CORE_WIDTH, seg.core, seg.len),
+      makePath(CORE_WIDTH, seg.core, seg.len, true),
     ])
     segPaths.forEach(paths => paths.forEach(p => g.appendChild(p)))
     svg.appendChild(g)
