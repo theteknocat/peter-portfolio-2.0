@@ -39,21 +39,22 @@
   z-index: -9;
   pointer-events: none;
 
-  /* Inner: sized to the full viewport and offset so its top-left sits at the
-     viewport origin — aligns its background with .bg-layer without needing
-     background-attachment: fixed (which breaks when filter is applied). */
-  &-inner {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: calc(-1 * var(--spot-top, -50vh));
-    left: calc(-1 * var(--spot-left, -50vw));
-    background-image: url('../../images/body-bg-tile.svg');
-    background-repeat: repeat;
-    background-size: 89px 158px;
-    animation: bg-scroll 35s linear infinite;
-    will-change: filter;
-  }
+}
+
+/* Inner: sized to the full viewport and offset so its top-left sits at the
+   viewport origin — aligns its background with .bg-layer without needing
+   background-attachment: fixed (which breaks when filter is applied). */
+.bg-spot-inner {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: calc(-1 * var(--spot-top, -50vh));
+  left: calc(-1 * var(--spot-left, -50vw));
+  background-image: url('../../images/body-bg-tile.svg');
+  background-repeat: repeat;
+  background-size: 89px 158px;
+  animation: bg-scroll 35s linear infinite;
+  will-change: filter;
 }
 
 /* ─── Streak overlay ─────────────────────────────────────────────────────── */
