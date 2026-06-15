@@ -32,13 +32,19 @@ const STREAK_SPEED_MAX = 550   // px/s
 const TURN_PROB = 0.3          // probability of switching diagonal family at each vertex
 const MAX_STEPS = 30           // max edge segments before stopping path generation
 
-// Glow layers: outer diffuse halo + thin bright core.
-// CSS blur on the outer path spreads the stroke into a soft luminous haze.
+// Glow layers: outer diffuse halo + thin bright core, each split into a dim
+// full-length tail and a bright short leading section. Both sets share the same
+// path; only dashoffset and dasharray differ to position each segment.
 const GLOW_WIDTH = 8           // px — outer halo stroke width
-const GLOW_OPACITY = 0.07      // very dim — barely perceptible haze
-const GLOW_BLUR = '6px'        // CSS blur for the outer halo
+const GLOW_OPACITY = 0.05      // tail haze — very dim
+const GLOW_BLUR = '10px'        // CSS blur for the outer halo
 const CORE_WIDTH = 1           // px — thin centre line
-const CORE_OPACITY = 0.18      // slightly brighter than the halo alone
+const CORE_OPACITY = 0.12      // tail core — dim
+
+// Leading bright tip — a shorter dash positioned at the front of the trail
+const LEAD_FRAC = 0.2          // fraction of STREAK_PX for the bright tip
+const LEAD_GLOW_OPACITY = 0.12 // additive: tip haze total = GLOW_OPACITY + LEAD_GLOW_OPACITY
+const LEAD_CORE_OPACITY = 0.28 // additive: tip core total = CORE_OPACITY + LEAD_CORE_OPACITY
 
 // The four edge directions in the Art Deco diamond lattice.
 // Turn rule: flip the x-component (index ^ 1 for pairs 0/1 and 2/3).
@@ -51,7 +57,7 @@ const DIRS: [number, number][] = [
   [-44.5, -79],   // 3: left-up
 ]
 
-// Perpendicular-family turn: flip x, keep y direction. Excludes U-turns.
+// Turn: flip x, keep y direction. Excludes U-turns (y-flip) for performance.
 const TURN_PARTNER = [1, 0, 3, 2]
 
 function rand(min: number, max: number): number {
@@ -113,7 +119,6 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
       cy += dy
       points.push([cx, cy])
 
-      // Decide at this vertex whether to turn (never U-turn, only family switch)
       if (Math.random() < TURN_PROB) {
         dirIdx = TURN_PARTNER[dirIdx]
       }
@@ -131,9 +136,11 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     ).join(' ')
 
     const svgNS = 'http://www.w3.org/2000/svg'
-    const dashArray = `${STREAK_PX} 99999`
+    const LEAD_LEN = Math.round(STREAK_PX * LEAD_FRAC)
 
-    function makePath(width: number, opacity: number): SVGPathElement {
+    // dashoffset starts at STREAK_PX so the pulse begins just before p=0 (invisible).
+    // As it decreases toward -(pathLen + STREAK_PX), the pulse travels the full path.
+    function makePath(width: number, opacity: number, dashLen: number): SVGPathElement {
       const p = document.createElementNS(svgNS, 'path')
       p.setAttribute('d', pathStr)
       p.setAttribute('fill', 'none')
@@ -142,21 +149,24 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
       p.setAttribute('stroke-width', String(width))
       p.setAttribute('stroke-linecap', 'round')
       p.setAttribute('stroke-linejoin', 'round')
-      p.setAttribute('stroke-dasharray', dashArray)
-      // dashoffset = STREAK_PX: pulse starts just before p=0 (invisible)
-      // As dashoffset decreases, pulse travels p=0 → p=pathLen
+      p.setAttribute('stroke-dasharray', `${dashLen} 99999`)
       p.setAttribute('stroke-dashoffset', String(STREAK_PX))
       return p
     }
 
     const g = document.createElementNS(svgNS, 'g')
-    // Outer diffuse halo — wide blurred stroke at very low opacity
-    const glow = makePath(GLOW_WIDTH, GLOW_OPACITY)
+    // Tail layers — full STREAK_PX length, dim: visible along the entire trail
+    const glow = makePath(GLOW_WIDTH, GLOW_OPACITY, STREAK_PX)
     glow.style.filter = `blur(${GLOW_BLUR})`
-    // Core — thin unblurred line giving the glow a bright centre
-    const core = makePath(CORE_WIDTH, CORE_OPACITY)
+    const core = makePath(CORE_WIDTH, CORE_OPACITY, STREAK_PX)
+    // Leading tip layers — shorter dash at the front, brighter additive layer
+    const leadGlow = makePath(GLOW_WIDTH, LEAD_GLOW_OPACITY, LEAD_LEN)
+    leadGlow.style.filter = `blur(${GLOW_BLUR})`
+    const leadCore = makePath(CORE_WIDTH, LEAD_CORE_OPACITY, LEAD_LEN)
     g.appendChild(glow)
     g.appendChild(core)
+    g.appendChild(leadGlow)
+    g.appendChild(leadCore)
     svg.appendChild(g)
 
     const creationTime = performance.now()
@@ -184,9 +194,14 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
       }
 
       const t = elapsed / duration
-      const currentOffset = (offsetStart + t * (offsetEnd - offsetStart)).toFixed(2)
+      const rawOffset = offsetStart + t * (offsetEnd - offsetStart)
+      const currentOffset = rawOffset.toFixed(2)
+      // Lead tip offset: shift forward so its dash aligns with the leading edge
+      const leadOffset = (rawOffset - (STREAK_PX - LEAD_LEN)).toFixed(2)
       glow.setAttribute('stroke-dashoffset', currentOffset)
       core.setAttribute('stroke-dashoffset', currentOffset)
+      leadGlow.setAttribute('stroke-dashoffset', leadOffset)
+      leadCore.setAttribute('stroke-dashoffset', leadOffset)
 
       requestAnimationFrame(tick)
     }
