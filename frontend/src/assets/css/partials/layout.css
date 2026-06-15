@@ -1,0 +1,16 @@
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+
+/* Locked by ModalOverlay when a detail route is active */
+body.modal-open {
+  overflow: hidden;
+}
+
+.view-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 0 1.5rem 2rem;
+  /* Shared perspective context for 3D card flip transitions */
+  perspective: 1200px;
+}

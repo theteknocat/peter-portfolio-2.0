@@ -1,0 +1,101 @@
+/* ─── Nav links ──────────────────────────────────────────────────────────── */
+
+.nav-link {
+  @apply px-3 py-2 font-medium;
+  color: var(--color-accent);
+}
+
+/* Colour override — specificity needs element selector to beat a:not(.btn):hover */
+a.nav-link {
+  &:hover,
+  &:focus-visible,
+  &.router-link-active {
+    color: var(--color-primary-light);
+  }
+}
+
+/* ─── Glitch animations ──────────────────────────────────────────────────── */
+
+/* Text glitch via text-shadow — zero blur = sharp offset copy, always under text.
+   No HTML changes needed: text-shadow paints behind text by definition.
+   4s cycle; burst 1 fires at 2% so a quick hover-over still catches it. */
+a:not(.site-brand) {
+  &:hover,
+  &:focus-visible {
+    animation: nav-text-glitch 4s linear infinite;
+  }
+}
+
+@keyframes nav-text-glitch {
+  0%, 100% { text-shadow: none; }
+
+  /* Burst 1: ~210ms. 2–7.3% */
+  2.0% { text-shadow: -4px 0 0 #00ff80,  5px 0 0 #9500ff; }
+  2.6% { text-shadow:  3px 0 0 #00ff80, -4px 0 0 #9500ff; }
+  3.1% { text-shadow: none; }
+  3.9% { text-shadow: -5px 0 0 #00ff80,  3px 0 0 #9500ff; }
+  4.6% { text-shadow:  4px 0 0 #00ff80, -5px 0 0 #9500ff; }
+  5.3% { text-shadow: none; }
+  6.0% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  6.7% { text-shadow:  5px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  7.3% { text-shadow: none; }
+
+  /* Burst 2: ~120ms. 32–35% */
+  32.0% { text-shadow: none; }
+  32.5% { text-shadow:  6px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  33.1% { text-shadow: -4px 0 0 #00ff80,  5px 0 0 #9500ff; }
+  33.6% { text-shadow: none; }
+  34.3% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  34.9% { text-shadow: none; }
+
+  /* Burst 3: ~260ms. 68–74.5% */
+  68.0% { text-shadow: none; }
+  68.5% { text-shadow: -5px 0 0 #00ff80,  4px 0 0 #9500ff; }
+  69.2% { text-shadow:  4px 0 0 #00ff80, -5px 0 0 #9500ff; }
+  69.8% { text-shadow: none; }
+  70.6% { text-shadow: -3px 0 0 #00ff80,  6px 0 0 #9500ff; }
+  71.4% { text-shadow:  5px 0 0 #00ff80, -3px 0 0 #9500ff; }
+  72.1% { text-shadow: none; }
+  72.9% { text-shadow: -4px 0 0 #00ff80,  3px 0 0 #9500ff; }
+  73.6% { text-shadow:  3px 0 0 #00ff80, -6px 0 0 #9500ff; }
+  74.5% { text-shadow: none; }
+}
+
+/* SVG icon glitch — drop-shadow() traces the icon alpha shape the way text-shadow
+   traces text. Zero blur = sharp coloured ghost at the offset position.
+   Mirrors nav-text-glitch timing; placed after it so the higher specificity of
+   .social-link:hover overrides the a:not(.site-brand):hover animation rule. */
+@keyframes icon-glitch {
+  0%, 100% { filter: none; }
+
+  /* Burst 1: ~210ms. 2–7.3% */
+  2.0% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 5px 0 0 #9500ff); }
+  2.6% { filter: drop-shadow( 3px 0 0 #00ff80) drop-shadow(-4px 0 0 #9500ff); }
+  3.1% { filter: none; }
+  3.9% { filter: drop-shadow(-5px 0 0 #00ff80) drop-shadow( 3px 0 0 #9500ff); }
+  4.6% { filter: drop-shadow( 4px 0 0 #00ff80) drop-shadow(-5px 0 0 #9500ff); }
+  5.3% { filter: none; }
+  6.0% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  6.7% { filter: drop-shadow( 5px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  7.3% { filter: none; }
+
+  /* Burst 2: ~120ms. 32–35% */
+  32.0% { filter: none; }
+  32.5% { filter: drop-shadow( 6px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  33.1% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 5px 0 0 #9500ff); }
+  33.6% { filter: none; }
+  34.3% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  34.9% { filter: none; }
+
+  /* Burst 3: ~260ms. 68–74.5% */
+  68.0% { filter: none; }
+  68.5% { filter: drop-shadow(-5px 0 0 #00ff80) drop-shadow( 4px 0 0 #9500ff); }
+  69.2% { filter: drop-shadow( 4px 0 0 #00ff80) drop-shadow(-5px 0 0 #9500ff); }
+  69.8% { filter: none; }
+  70.6% { filter: drop-shadow(-3px 0 0 #00ff80) drop-shadow( 6px 0 0 #9500ff); }
+  71.4% { filter: drop-shadow( 5px 0 0 #00ff80) drop-shadow(-3px 0 0 #9500ff); }
+  72.1% { filter: none; }
+  72.9% { filter: drop-shadow(-4px 0 0 #00ff80) drop-shadow( 3px 0 0 #9500ff); }
+  73.6% { filter: drop-shadow( 3px 0 0 #00ff80) drop-shadow(-6px 0 0 #9500ff); }
+  74.5% { filter: none; }
+}

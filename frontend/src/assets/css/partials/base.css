@@ -1,0 +1,36 @@
+/* ─── Base element styles ────────────────────────────────────────────────── */
+
+body {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-primary-light);
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+h1 { font-size: calc(1.4rem + 1.8vw); }
+h2 { font-size: calc(1.345rem + 1.14vw); }
+h3 { font-size: calc(1.3175rem + 0.81vw); }
+h4 { font-size: calc(1.29rem + 0.48vw); }
+h5 { font-size: calc(1.2625rem + 0.15vw); }
+h6 { font-size: 1.1rem; }
+
+@media (min-width: 75rem) {
+  h1 { font-size: 2.75rem; }
+  h2 { font-size: 2.2rem; }
+  h3 { font-size: 1.925rem; }
+  h4 { font-size: 1.65rem; }
+  h5 { font-size: 1.375rem; }
+}
+
+hr {
+  border-color: var(--color-accent-light);
+  opacity: 1;
+}

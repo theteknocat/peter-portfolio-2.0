@@ -5,8 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Peter Epp</title>
+    <style>
+      #browser-warning { display: block; padding: 1rem; text-align: center; font-family: sans-serif; }
+      @supports (selector(&)) and (color: oklch(0% 0 0)) {
+        #browser-warning { display: none; }
+      }
+    </style>
   </head>
   <body>
+    <div id="browser-warning">
+      Your browser is too old to display this site correctly. Please update to a modern browser such as Chrome, Firefox, or Safari.
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

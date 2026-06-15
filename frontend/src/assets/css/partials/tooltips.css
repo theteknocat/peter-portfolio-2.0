@@ -1,0 +1,48 @@
+/* ─── Tooltips (v-tooltip directive) ─────────────────────────────────────── */
+
+.tooltip-popup {
+  position: fixed;
+  z-index: 9999;
+  max-width: 14rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--color-primary-dark);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary-light);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-arrow-wrapper {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+
+  /* Rotated diamond clipped to a triangle by the parent overflow:hidden. */
+  &::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--color-primary-dark);
+    border: 1px solid var(--color-primary);
+    transform: rotate(45deg);
+  }
+
+  /* Position the diamond so only the outer half is visible per placement side. */
+  &[data-side="bottom"]::before { top: -4px; left: 2px; }
+  &[data-side="top"]::before    { top:  2px; left: 2px; }
+  &[data-side="right"]::before  { top:  2px; left: -4px; }
+  &[data-side="left"]::before   { top:  2px; left:  2px; }
+}
