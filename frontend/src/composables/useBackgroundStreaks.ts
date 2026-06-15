@@ -32,19 +32,18 @@ const STREAK_SPEED_MAX = 550   // px/s
 const TURN_PROB = 0.3          // probability of switching diagonal family at each vertex
 const MAX_STEPS = 30           // max edge segments before stopping path generation
 
-// Glow layers: outer diffuse halo + thin bright core, each split into a dim
-// full-length tail and a bright short leading section. Both sets share the same
-// path; only dashoffset and dasharray differ to position each segment.
-const GLOW_WIDTH = 8           // px — outer halo stroke width
-const GLOW_OPACITY = 0.05      // tail haze — very dim
-const GLOW_BLUR = '10px'        // CSS blur for the outer halo
-const CORE_WIDTH = 1           // px — thin centre line
-const CORE_OPACITY = 0.12      // tail core — dim
-
-// Leading bright tip — a shorter dash positioned at the front of the trail
-const LEAD_FRAC = 0.2          // fraction of STREAK_PX for the bright tip
-const LEAD_GLOW_OPACITY = 0.12 // additive: tip haze total = GLOW_OPACITY + LEAD_GLOW_OPACITY
-const LEAD_CORE_OPACITY = 0.28 // additive: tip core total = CORE_OPACITY + LEAD_CORE_OPACITY
+// Stacked strokes simulate Gaussian glow without CSS filter: blur().
+// Segments ordered longest (tail, dimmest) → shortest (tip, brightest). All share
+// the same leading edge; opacities accumulate additively toward the tip, producing
+// a smooth brightness ramp. CORE_WIDTH applies to every segment's thin centre line.
+const CORE_WIDTH = 1
+const SEGMENTS = [
+  { len: 500, haze: [{ w: 20, o: 0.008 }, { w: 10, o: 0.014 }, { w: 5, o: 0.018 }], core: 0.035 },
+  { len: 375, haze: [{ w: 20, o: 0.005 }, { w: 10, o: 0.007 }, { w: 5, o: 0.010 }], core: 0.012 },
+  { len: 250, haze: [{ w: 20, o: 0.006 }, { w: 10, o: 0.009 }, { w: 5, o: 0.013 }], core: 0.016 },
+  { len: 140, haze: [{ w: 20, o: 0.006 }, { w: 10, o: 0.010 }, { w: 5, o: 0.016 }], core: 0.026 },
+  { len:  60, haze: [{ w: 20, o: 0.008 }, { w: 10, o: 0.014 }, { w: 5, o: 0.022 }], core: 0.038 },
+]
 
 // The four edge directions in the Art Deco diamond lattice.
 // Turn rule: flip the x-component (index ^ 1 for pairs 0/1 and 2/3).
@@ -136,7 +135,6 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     ).join(' ')
 
     const svgNS = 'http://www.w3.org/2000/svg'
-    const LEAD_LEN = Math.round(STREAK_PX * LEAD_FRAC)
 
     // dashoffset starts at STREAK_PX so the pulse begins just before p=0 (invisible).
     // As it decreases toward -(pathLen + STREAK_PX), the pulse travels the full path.
@@ -155,18 +153,13 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
     }
 
     const g = document.createElementNS(svgNS, 'g')
-    // Tail layers — full STREAK_PX length, dim: visible along the entire trail
-    const glow = makePath(GLOW_WIDTH, GLOW_OPACITY, STREAK_PX)
-    glow.style.filter = `blur(${GLOW_BLUR})`
-    const core = makePath(CORE_WIDTH, CORE_OPACITY, STREAK_PX)
-    // Leading tip layers — shorter dash at the front, brighter additive layer
-    const leadGlow = makePath(GLOW_WIDTH, LEAD_GLOW_OPACITY, LEAD_LEN)
-    leadGlow.style.filter = `blur(${GLOW_BLUR})`
-    const leadCore = makePath(CORE_WIDTH, LEAD_CORE_OPACITY, LEAD_LEN)
-    g.appendChild(glow)
-    g.appendChild(core)
-    g.appendChild(leadGlow)
-    g.appendChild(leadCore)
+    // Each segment: haze layers (wide→narrow) then core. All share the same leading
+    // edge; shorter segments stack opacity additively toward the tip.
+    const segPaths: SVGPathElement[][] = SEGMENTS.map(seg => [
+      ...seg.haze.map(({ w, o }) => makePath(w, o, seg.len)),
+      makePath(CORE_WIDTH, seg.core, seg.len),
+    ])
+    segPaths.forEach(paths => paths.forEach(p => g.appendChild(p)))
     svg.appendChild(g)
 
     const creationTime = performance.now()
@@ -195,13 +188,12 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
 
       const t = elapsed / duration
       const rawOffset = offsetStart + t * (offsetEnd - offsetStart)
-      const currentOffset = rawOffset.toFixed(2)
-      // Lead tip offset: shift forward so its dash aligns with the leading edge
-      const leadOffset = (rawOffset - (STREAK_PX - LEAD_LEN)).toFixed(2)
-      glow.setAttribute('stroke-dashoffset', currentOffset)
-      core.setAttribute('stroke-dashoffset', currentOffset)
-      leadGlow.setAttribute('stroke-dashoffset', leadOffset)
-      leadCore.setAttribute('stroke-dashoffset', leadOffset)
+      // Each segment's dash is shifted so all leading edges stay aligned.
+      // Segment 0 (longest) uses rawOffset directly; shorter segments shift forward.
+      segPaths.forEach((paths, i) => {
+        const segOff = (rawOffset - (STREAK_PX - SEGMENTS[i].len)).toFixed(2)
+        paths.forEach(p => p.setAttribute('stroke-dashoffset', segOff))
+      })
 
       requestAnimationFrame(tick)
     }
