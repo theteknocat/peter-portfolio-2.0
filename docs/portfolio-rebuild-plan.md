@@ -296,7 +296,13 @@ GET /api/content/{type}/{slug}
 - **Content** (`content/{type}/{slug}.yaml` or `.md`, outside repo): the individual items
   that manifests reference. Also rsync-only to update.
 
-> **Future:** if a content item needs more than one markdown field, use an `@` sigil in the
+> **Future — multi-column layouts:** a section `type: two-column` with a `columns` array of
+> child sections, each with their own `type`/`source`/`manifest`. Backend `resolveSection()`
+> would recurse into `columns`; frontend component receives two pre-resolved children and
+> renders them side by side using the same dynamic component lookup. Same pattern, one level
+> deeper — not complex to add when needed.
+>
+> **Future — multiple markdown fields:** if a content item needs more than one markdown field, use an `@` sigil in the
 > YAML value to reference a separate file — e.g. `intro: "@my-project-intro"` would cause
 > `ContentService` to load `content/portfolio/my-project-intro.md` and substitute its contents
 > in place of the string. Not implemented yet — the current single `.md` body convention covers
