@@ -11,7 +11,7 @@ const { isScrolled } = useScrolled()
 <template>
   <header :class="{ scrolled: isScrolled }">
     <div class="header-inner">
-      <RouterLink to="/" class="site-brand link-poly link-poly--slash link-poly--jitter">
+      <RouterLink to="/" class="site-brand link-poly link-poly--notch link-poly--jitter">
         <span class="brand-logo-wrapper">
           <img :src="logoSrc" alt="Peter Epp" class="brand-logo" />
         </span>
