@@ -22,6 +22,8 @@ interface TooltipState {
   tooltipEl: HTMLElement | null
   onEnter: () => void
   onLeave: () => void
+  onFocus: () => void
+  onBlur: () => void
   getTooltipEl: () => HTMLElement | null
   getCleanup: () => (() => void) | null
 }
@@ -132,11 +134,15 @@ export const vTooltip = {
     let tooltipEl: HTMLElement | null = null
     let tooltipCleanup: (() => void) | null = null
     let cancelled = false
+    let pending = false
 
     const onEnter = () => {
+      if (tooltipEl || pending) return
       cancelled = false
+      pending = true
       createTooltip(el, text).then(({ el: tip, cleanup }) => {
-        // mouseleave fired before the async position calculation finished — discard.
+        pending = false
+        // mouseleave/blur fired before the async position calculation finished — discard.
         if (cancelled) {
           cleanup()
           tip.remove()
@@ -164,14 +170,24 @@ export const vTooltip = {
       tip.addEventListener('transitionend', () => tip.remove(), { once: true })
     }
 
+    const onFocus = () => {
+      if (el.matches(':focus-visible')) onEnter()
+    }
+
+    const onBlur = () => onLeave()
+
     el.addEventListener('mouseenter', onEnter)
     el.addEventListener('mouseleave', onLeave)
+    el.addEventListener('focus', onFocus)
+    el.addEventListener('blur', onBlur)
 
     // getTooltipEl / getCleanup let unmounted reach the live closure variables.
     stateMap.set(el, {
       tooltipEl: null,
       onEnter,
       onLeave,
+      onFocus,
+      onBlur,
       getTooltipEl: () => tooltipEl,
       getCleanup: () => tooltipCleanup,
     })
@@ -185,6 +201,8 @@ export const vTooltip = {
     state.getTooltipEl()?.remove()
     el.removeEventListener('mouseenter', state.onEnter)
     el.removeEventListener('mouseleave', state.onLeave)
+    el.removeEventListener('focus', state.onFocus)
+    el.removeEventListener('blur', state.onBlur)
     stateMap.delete(el)
   },
 }
