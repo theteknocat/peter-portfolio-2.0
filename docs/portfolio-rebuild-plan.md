@@ -1,5 +1,32 @@
 # Portfolio Site Rebuild Plan
 
+## Implementation Status (as of 2026-06-15)
+
+**Done — infrastructure:**
+- DDEV environment, Vite, TypeScript, Tailwind 4, Vue Router all configured
+- `AppHeader`, `AppNav`, `AppFooter` components built with full visual treatment
+- TypeScript interfaces (`portfolio.ts`, `article.ts`, `job.ts`, `page.ts`)
+- Route structure scaffolded; views exist but are mostly empty pending API
+
+**Done — visual system (substantially exceeds original plan):**
+- CSS architecture: Tailwind 4 + custom property tokens + scoped component styles
+- Animated SVG tile background with `bg-scroll` CSS keyframe (replaced porting the PNG)
+- Glitch spot overlay (`useBackgroundGlitch.ts`): SVG turbulence masks, radial-gradient soft edges
+- Lightning streak overlay (`useBackgroundStreaks.ts`): lattice-following glow pulses with forking at turn vertices
+- Full link decoration system: chevrons on plain links; `.link-poly` shape + transition modifiers for nav/interactive links
+- `v-tooltip` directive with `@floating-ui/dom`, arrow, enter/leave transitions
+- Glitch keyframe effects on header brand text, nav links, footer icons
+
+**Not yet started:**
+- API handlers (PageHandler, ManifestHandler, ContentHandler)
+- Content composables (`useContent`, `useManifest`, `usePageConfig`)
+- All page views (HomeView content, PortfolioView, ArticlesView, JobHistoryView)
+- UI components (TechBadge, ContentCard, SectionHeading, MarkdownRenderer)
+- Modal routing overlay
+- SSG / SEO setup
+
+---
+
 ## Overview
 
 A modern headless portfolio site with a Vue 3 SPA frontend consuming a lightweight Slim 4 PHP API. Content is managed via flat YAML/Markdown files outside the repository, synced locally and to the server via rsync. The public GitHub repo demonstrates the full stack while keeping content separate and privately managed.

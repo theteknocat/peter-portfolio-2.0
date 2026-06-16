@@ -86,6 +86,13 @@ The header uses a separate `images/green-marble-texture.jpg` repeating tile as a
 **Action needed:** Port both image files to `frontend/src/assets/`. The body background
 tile should become a CSS custom property or applied at the `body` level in global styles.
 
+✅ **Implemented — with significant additions beyond the plan:**
+
+- PNG replaced with `body-bg-tile.svg` (clean vector, same diamond lattice geometry). Animated via `bg-scroll` CSS keyframe (`-623px -632px` over 35s, exact tile multiples for a seamless loop). Lives in `frontend/public/images/` and is applied via `.bg-layer` in `background.css`.
+- `green-marble-texture.jpg` ported and applied in `AppHeader` as a `::before`.
+- **Added: glitch spot overlay** (`useBackgroundGlitch.ts`) — fixed-position organic blobs using SVG `feTurbulence` masks that briefly reveal a separately-scrolling background layer at irregular intervals.
+- **Added: lightning streak overlay** (`useBackgroundStreaks.ts`) — glow pulses that travel along the diamond lattice edges, turn at vertices, and fork off child streaks. Multi-layer stacked strokes simulate Gaussian glow; background-drift correction keeps streaks locked to the tile grid.
+
 ---
 
 ## Decorative Element: `container-deco`
@@ -257,6 +264,8 @@ reduced opacity so the blur effect composites correctly.
 **Vue implementation:** A `useScrolled.ts` composable watches `window.scroll` and
 returns a reactive `isScrolled: Ref<boolean>`. The header binds `:class="{ scrolled: isScrolled }"`.
 
+✅ **Implemented.** Header is fixed, marble texture in `::before`, scrolled blur/transparency working. Logo uses an angled clip-path shape (cyberpunk take on the original square). Glitch effects on the brand text and nav links via CSS keyframes.
+
 ### Nav link styling
 
 ```css
@@ -271,9 +280,13 @@ background-color: #002d16;  /* dark green */
 border-color: #00a24e;      /* --color-primary */
 ```
 
+✅ **Implemented** — via the `.link-poly` system rather than simple border/background hover. Nav links use `.link-poly--slash` + `.link-poly--jitter` modifiers: an irregular SVG polygon shape fades in behind the link on hover/active, and glitches while held. `router-link-active` also triggers the polygon via `.nav-link.router-link-active::before`.
+
 ---
 
 ## Footer
+
+✅ **Implemented.** Border, background, copyright, and social icons all done. Social icons use Simple Icons SVGs with `v-tooltip` labels. Glitch drop-shadow keyframe on icon hover (SVG `fill` via `currentColor`).
 
 - `border-top: 1px solid var(--color-primary)`
 - Background: `var(--color-primary-dark)` (dark green)
@@ -294,6 +307,8 @@ icons aren't resolved yet.
 ---
 
 ## Inline Link Hover Style
+
+✅ **Implemented** in `links.css` on `a:not(.btn, .link-poly)`. Also added flanking chevron decorators (left-pointing before, right-pointing after) that slide outward on hover — goes beyond the Drupal original.
 
 Applied to all content area links (not buttons or nav links):
 
@@ -327,6 +342,8 @@ Font Awesome Free is missing some (e.g. Tailscale).
 
 **Recommendation:** Switch to Simple Icons for tech badges; use a general icon set
 (Lucide, Heroicons, or FA Free) for UI icons (chevrons, calendar, etc.).
+
+✅ **Decided:** Simple Icons (`simple-icons` npm package) for tech/brand badges; `@lucide/vue` for UI icons. Already installed and in use — Simple Icons SVGs injected via `v-html`, with `stripTitle()` utility to remove the native `<title>` tooltip before applying `v-tooltip`.
 
 ---
 

@@ -532,16 +532,19 @@ a:not(.btn, .nav-link):hover {
 }
 ```
 
-Already implemented in `main.css` — verify values match.
+✅ Implemented in `links.css` on `a:not(.btn, .link-poly)`. Values confirmed. Also added flanking chevron pseudo-elements that slide outward on hover.
 
 ---
 
 ## Assets Already Ported
 
-| File                       | Location in Vue project        |
-| -------------------------- | ------------------------------ |
-| `body-bg-dark.png`         | `frontend/public/images/`      |
-| `green-marble-texture.jpg` | `frontend/public/images/`      |
-| `logo.jpg`                 | `frontend/src/assets/logo.jpg` |
+| File                       | Location in Vue project              | Notes                                           |
+| -------------------------- | ------------------------------------ | ----------------------------------------------- |
+| `body-bg-dark.png`         | `frontend/public/images/`            | Ported but superseded — see below               |
+| `body-bg-tile.svg`         | `frontend/public/images/`            | Replaces PNG; clean vector, same diamond pattern |
+| `green-marble-texture.jpg` | `frontend/public/images/`            | Used in AppHeader `::before`                    |
+| `logo.jpg`                 | `frontend/src/assets/logo.jpg`       |                                                 |
+
+`body-bg-dark.png` was ported initially but replaced by a hand-crafted `body-bg-tile.svg` — the SVG is smaller, scales perfectly, and makes the tile geometry explicit for the streak animation system.
 
 Still needed: `mario_running.gif`, `sonic-spinning.gif` (for Konami Easter egg — low priority).

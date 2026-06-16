@@ -16,7 +16,7 @@ Check off each one as it comes up and gets explained.
 - [ ] `any` — what it means and why to avoid it
 
 ### Shapes
-- [ ] `interface` — defining the shape of an object
+- [x] `interface` — defining the shape of an object
 - [ ] `type` alias — similar to interface, when to use which
 - [ ] Optional properties — `title?: string`
 - [ ] Readonly properties — `readonly slug: string`
@@ -87,10 +87,10 @@ These work the same as Vue 2, but worth a refresh on the less common ones:
 - [x] Custom directives — `v-tooltip` directive: `mounted`/`unmounted`, `DirectiveBinding<T>`, `WeakMap` state, global `app.directive()` registration
 
 ### Lifecycle (parallels to Options API hooks)
-- [ ] `onMounted()` → replaces `mounted()`
-- [ ] `onUnmounted()` → replaces `beforeDestroy()` / `destroyed()`; cleanup pattern
+- [x] `onMounted()` → replaces `mounted()`
+- [x] `onUnmounted()` → replaces `beforeDestroy()` / `destroyed()`; cleanup pattern
 - [ ] `onUpdated()` → replaces `updated()`
-- [ ] Why lifecycle hooks can be called multiple times in a composable
+- [x] Why lifecycle hooks can be called multiple times in a composable
 
 ### Slots
 - [ ] Default slot — `<slot />` and passing content from parent
@@ -99,7 +99,7 @@ These work the same as Vue 2, but worth a refresh on the less common ones:
 - [ ] The `$slots` object and checking if a slot was provided
 
 ### Advanced
-- [ ] Template refs — `ref()` for DOM elements: `const el = ref<HTMLElement | null>(null)`
+- [x] Template refs — `ref()` for DOM elements: `const el = ref<HTMLElement | null>(null)`
 - [ ] Dynamic components — `<component :is="..." />` and use cases
 - [ ] `defineExpose()` — exposing methods to parent components (rare but useful)
 
@@ -107,10 +107,10 @@ These work the same as Vue 2, but worth a refresh on the less common ones:
 
 ## Composables
 
-- [ ] What a composable is — a function that encapsulates reactive logic
-- [ ] Naming convention — `useXxx`
-- [ ] Returning refs from a composable
-- [ ] Why composables replace mixins from Vue 2
+- [x] What a composable is — a function that encapsulates reactive logic
+- [x] Naming convention — `useXxx`
+- [x] Returning refs from a composable
+- [x] Why composables replace mixins from Vue 2
 - [ ] `useFetch` pattern — async data fetching in a composable
 
 ---
