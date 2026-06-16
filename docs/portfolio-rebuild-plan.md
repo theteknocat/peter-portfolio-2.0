@@ -3,12 +3,14 @@
 ## Implementation Status (as of 2026-06-15)
 
 **Done — infrastructure:**
+
 - DDEV environment, Vite, TypeScript, Tailwind 4, Vue Router all configured
 - `AppHeader`, `AppNav`, `AppFooter` components built with full visual treatment
 - TypeScript interfaces (`portfolio.ts`, `article.ts`, `job.ts`, `page.ts`)
 - Route structure scaffolded; views exist but are mostly empty pending API
 
 **Done — visual system (substantially exceeds original plan):**
+
 - CSS architecture: Tailwind 4 + custom property tokens + scoped component styles
 - Animated SVG tile background with `bg-scroll` CSS keyframe (replaced porting the PNG)
 - Glitch spot overlay (`useBackgroundGlitch.ts`): SVG turbulence masks, radial-gradient soft edges
@@ -18,8 +20,9 @@
 - Glitch keyframe effects on header brand text, nav links, footer icons
 
 **Not yet started:**
-- API handlers (PageHandler, ManifestHandler, ContentHandler)
-- Content composables (`useContent`, `useManifest`, `usePageConfig`)
+
+- API handlers (PageHandler, ContentHandler)
+- Content composables (`usePageData`, `useContent`)
 - All page views (HomeView content, PortfolioView, ArticlesView, JobHistoryView)
 - UI components (TechBadge, ContentCard, SectionHeading, MarkdownRenderer)
 - Modal routing overlay
@@ -104,9 +107,8 @@ A modern headless portfolio site with a Vue 3 SPA frontend consuming a lightweig
 │   │   │   ├── ArticleView.vue
 │   │   │   └── JobHistoryView.vue
 │   │   ├── composables/             # Reusable API fetch logic
-│   │   │   ├── useContent.ts        # Generic content fetcher
-│   │   │   ├── useManifest.ts       # Fetch ordered content lists
-│   │   │   └── usePageConfig.ts     # Fetch page layout config
+│   │   │   ├── usePageData.ts       # Fetch fully resolved page (layout + all content)
+│   │   │   └── useContent.ts        # Fetch single content item (modal/detail views)
 │   │   ├── types/                   # TypeScript interfaces
 │   │   │   ├── portfolio.ts
 │   │   │   ├── article.ts
@@ -127,19 +129,17 @@ A modern headless portfolio site with a Vue 3 SPA frontend consuming a lightweig
 │   ├── src/
 │   │   ├── Handlers/
 │   │   │   ├── PageHandler.php      # GET /api/page/{page}
-│   │   │   ├── ManifestHandler.php  # GET /api/manifest/{name}
 │   │   │   └── ContentHandler.php   # GET /api/content/{type}/{slug}
 │   │   ├── Services/
-│   │   │   ├── ContentService.php   # File reading and YAML parsing
-│   │   │   └── ManifestService.php  # Manifest loading and resolution
+│   │   │   ├── ContentService.php   # File reading, YAML/Markdown parsing
+│   │   │   └── ManifestService.php  # Manifest loading and slug resolution (internal)
 │   │   └── Middleware/
 │   │       └── CorsMiddleware.php
-│   ├── config/
-│   │   └── pages/                   # Page layout configs (checked in)
-│   │       ├── home.yaml
-│   │       ├── portfolio.yaml
-│   │       ├── articles.yaml
-│   │       └── job-history.yaml
+│   ├── layouts/                     # Page layouts (checked in — structure only)
+│   │   ├── home.yaml
+│   │   ├── portfolio.yaml
+│   │   ├── articles.yaml
+│   │   └── job-history.yaml
 │   ├── composer.json
 │   └── .htaccess
 │
@@ -242,12 +242,15 @@ tags:
 Full article content in markdown...
 ```
 
-### Page Layout Config (e.g. `config/pages/home.yaml`, checked in)
+### Page Layout (e.g. `config/pages/home.yaml`, checked in)
+
+Defines page structure only — no content. The server resolves all `manifest` and `source`
+references at request time and embeds the data in the response.
 
 ```yaml
 sections:
   - type: hero
-    content: home-hero        # references a content key or inline
+    source: home-hero         # content file key
   - type: featured-portfolio
     manifest: portfolio
     limit: 3
@@ -266,36 +269,97 @@ sections:
 
 All responses are `application/json`. Markdown is returned as raw strings for client-side rendering.
 
+Two endpoints only. Manifests are resolved server-side — the frontend never fetches them directly.
+
 ```text
 GET /api/page/{page}
-  Returns page layout config for the given page slug.
-  Used by views to know what sections to render and in what order.
-
-GET /api/manifest/{name}?limit=3&filter=featured
-  Returns ordered list of content items from a manifest.
-  Resolves slugs to full content objects.
-  Supports optional limit and filter params.
+  Returns a fully resolved page: the layout structure with all manifest items
+  and content already fetched and embedded. One request per page view.
 
 GET /api/content/{type}/{slug}
   Returns a single content item by type and slug.
+  Used by modal/detail views (PortfolioItemView, ArticleView).
   Types: portfolio, article, job
 ```
 
-### Example Response — `GET /api/manifest/portfolio?limit=3&filter=featured`
+### Page layout vs manifest vs content
+
+- **Page layout** (`api/config/pages/{page}.yaml`, checked into repo): defines the structure
+  of a page — what sections exist, what type they are, which manifest or content source each
+  section draws from, and any query parameters (limit, filter). Changing a page's structure
+  requires a code commit and deploy.
+
+- **Manifest** (`content/manifests/{name}.yaml`, outside repo): an ordered list of content
+  slugs. Controls which items appear and in what order. Reordering or adding items only
+  requires rsyncing the content directory — no code change needed.
+
+- **Content** (`content/{type}/{slug}.yaml` or `.md`, outside repo): the individual items
+  that manifests reference. Also rsync-only to update.
+
+Data flow for a manifest-backed section:
+
+```text
+page layout → names a manifest + params (limit, filter)
+  → manifest → ordered list of slugs
+    → content files → resolved item data
+      → embedded in section response
+```
+
+### Example Response — `GET /api/page/home`
 
 ```json
 {
-  "items": [
+  "sections": [
     {
-      "slug": "lighthouse",
-      "title": "Lighthouse",
-      "date_start": 2007,
-      "date_end": "present",
-      "featured": true,
-      "summary": "Short summary...",
-      "technologies": ["laravel", "php", "vuejs"]
+      "type": "hero",
+      "content": { "title": "...", "body": "..." }
+    },
+    {
+      "type": "featured-portfolio",
+      "items": [
+        {
+          "slug": "lighthouse",
+          "title": "Lighthouse",
+          "date_start": 2007,
+          "date_end": "present",
+          "featured": true,
+          "summary": "Short summary...",
+          "technologies": ["laravel", "php", "vuejs"]
+        }
+      ]
+    },
+    {
+      "type": "featured-articles",
+      "items": [
+        {
+          "slug": "ai-tooling-strategy",
+          "title": "Problem-First AI Strategy",
+          "date": "2026-04-15",
+          "summary": "..."
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "items": { "languages": ["php", "typescript"], "frameworks": ["vue", "slim"] }
     }
   ]
+}
+```
+
+### Example Response — `GET /api/content/portfolio/lighthouse`
+
+```json
+{
+  "slug": "lighthouse",
+  "title": "Lighthouse",
+  "date_start": 2007,
+  "date_end": "present",
+  "featured": true,
+  "summary": "Short summary...",
+  "technologies": ["laravel", "php", "vuejs"],
+  "body": "Full markdown content...",
+  "gallery": [{ "filename": "lighthouse-dashboard.png", "alt": "Lighthouse dashboard view" }]
 }
 ```
 

@@ -27,7 +27,7 @@ Flat-file content (YAML/Markdown) — no database.
 │   │   ├── Handlers/     Route handlers (PageHandler, ManifestHandler, ContentHandler)
 │   │   ├── Services/     Business logic (ContentService, ManifestService)
 │   │   └── Middleware/   CorsMiddleware
-│   ├── config/pages/     Page layout YAML configs (checked in)
+│   ├── layouts/          Page layout YAML files (checked in)
 │   ├── composer.json
 │   └── .env              Local only — gitignored
 │
