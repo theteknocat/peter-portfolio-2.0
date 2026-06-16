@@ -9,9 +9,6 @@ frontend/dist/
 api/.env
 api/.env.local
 
-# Content (managed separately via rsync)
-content/
-
 # ddev
 .ddev/.gitignore
 
