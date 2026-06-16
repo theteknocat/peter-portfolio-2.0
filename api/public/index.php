@@ -11,6 +11,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
 $containerBuilder = new ContainerBuilder();
+$containerBuilder->addDefinitions(require __DIR__ . '/../src/dependencies.php');
 
 $container = $containerBuilder->build();
 

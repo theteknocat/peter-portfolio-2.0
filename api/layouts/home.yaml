@@ -1,6 +1,6 @@
 sections:
   - type: hero
-    content: home-hero
+    source: home-hero
   - type: featured-portfolio
     manifest: portfolio
     limit: 3
