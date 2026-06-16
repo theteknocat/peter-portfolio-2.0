@@ -284,7 +284,7 @@ GET /api/content/{type}/{slug}
 
 ### Page layout vs manifest vs content
 
-- **Page layout** (`api/config/pages/{page}.yaml`, checked into repo): defines the structure
+- **Page layout** (`api/layouts/{page}.yaml`, checked into repo): defines the structure
   of a page — what sections exist, what type they are, which manifest or content source each
   section draws from, and any query parameters (limit, filter). Changing a page's structure
   requires a code commit and deploy.
@@ -295,6 +295,12 @@ GET /api/content/{type}/{slug}
 
 - **Content** (`content/{type}/{slug}.yaml` or `.md`, outside repo): the individual items
   that manifests reference. Also rsync-only to update.
+
+> **Future:** if a content item needs more than one markdown field, use an `@` sigil in the
+> YAML value to reference a separate file — e.g. `intro: "@my-project-intro"` would cause
+> `ContentService` to load `content/portfolio/my-project-intro.md` and substitute its contents
+> in place of the string. Not implemented yet — the current single `.md` body convention covers
+> all known cases.
 
 Data flow for a manifest-backed section:
 
