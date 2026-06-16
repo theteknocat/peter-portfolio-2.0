@@ -1,18 +1,36 @@
 <script setup lang="ts">
-import SectionHeading from '@/components/ui/SectionHeading.vue'
-import ContentCard from '@/components/ui/ContentCard.vue'
+/**
+ * Home page — fetches the resolved page layout from the API and renders each
+ * section dynamically by mapping section.type to the appropriate component.
+ */
+import { type Component } from 'vue'
+import { usePageData } from '@/composables/usePageData'
+import HeroSection from '@/components/home/HeroSection.vue'
+import FeaturedPortfolioSection from '@/components/home/FeaturedPortfolioSection.vue'
+import FeaturedArticlesSection from '@/components/home/FeaturedArticlesSection.vue'
+import SkillsSection from '@/components/home/SkillsSection.vue'
+
+const { data, loading, error } = usePageData('home')
+
+const sectionComponents: Record<string, Component> = {
+  'hero': HeroSection,
+  'featured-portfolio': FeaturedPortfolioSection,
+  'featured-articles': FeaturedArticlesSection,
+  'skills': SkillsSection,
+}
 </script>
 
 <template>
   <div class="view-container">
-    <SectionHeading>Peter Epp</SectionHeading>
-    <ContentCard>
-      <p>Hero section, featured work, featured articles, and skills will live here.</p>
-      <p>
-        This is a paragraph with a link to
-        <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index">an MDN article about z-index and stacking contexts in CSS positioned layout</a>
-        that is long enough to wrap onto the next line mid-link.
-      </p>
-    </ContentCard>
+    <p v-if="loading">Loading…</p>
+    <p v-else-if="error">Error: {{ error }}</p>
+    <template v-else-if="data">
+      <component
+        v-for="section in data.sections"
+        :key="section.type"
+        :is="sectionComponents[section.type]"
+        :section="section"
+      />
+    </template>
   </div>
 </template>
