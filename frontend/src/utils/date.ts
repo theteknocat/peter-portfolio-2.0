@@ -1,5 +1,30 @@
 type DateFormat = 'short' | 'long' | 'month-year' | 'iso'
 
+/**
+ * Format a job date string for display.
+ *
+ * Handles three formats from content YAML: `"present"` → `"Present"`,
+ * `"YYYY"` → `"2003"`, `"YYYY-MM"` → `"Apr 2021"`. Uses the local Date
+ * constructor for partial dates to avoid UTC midnight timezone shifts.
+ * Unrecognised strings are returned unchanged.
+ *
+ * @param value - Partial ISO date string or the literal `"present"`.
+ */
+export function formatJobDate(value: string): string {
+  if (value.toLowerCase() === 'present') return 'Present'
+  if (/^\d{4}$/.test(value)) return value
+
+  const m = /^(\d{4})-(\d{2})$/.exec(value)
+  if (m) {
+    const date = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, 1)
+    return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short' }).format(date)
+  }
+
+  return value
+}
+
+
+
 const formatOptions: Record<Exclude<DateFormat, 'iso'>, Intl.DateTimeFormatOptions> = {
   short:        { year: 'numeric', month: 'short', day: 'numeric' },
   long:         { year: 'numeric', month: 'long',  day: 'numeric' },

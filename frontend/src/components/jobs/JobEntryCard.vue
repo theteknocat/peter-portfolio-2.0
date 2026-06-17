@@ -3,6 +3,7 @@
  * Inline job history entry — renders without a modal link.
  */
 import type { Job } from '@/types/job'
+import { formatJobDate } from '@/utils/date'
 
 defineProps<{
   item: Job
@@ -14,7 +15,7 @@ defineProps<{
     <div class="job-header">
       <h2 class="job-title">{{ item.title }}</h2>
       <span class="job-company">{{ item.company }}</span>
-      <span class="job-dates">{{ item.start }} – {{ item.end }}</span>
+      <span class="job-dates">{{ formatJobDate(item.start) }} – {{ formatJobDate(item.end) }}</span>
     </div>
     <p v-if="item.summary" class="job-summary">{{ item.summary }}</p>
     <ul v-if="item.skills?.length" class="job-skills">
