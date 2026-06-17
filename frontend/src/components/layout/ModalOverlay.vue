@@ -23,6 +23,7 @@ watch(
   () => route.meta.modal,
   (isModal) => {
     document.body.classList.toggle('modal-open', Boolean(isModal))
+    if (isModal) window.scrollTo({ top: 0, behavior: 'instant' })
   },
   { immediate: true },
 )
@@ -56,12 +57,15 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background-color: rgba(0, 0, 0, 0.55);
+  background-color: rgba(0, 0, 0, 0.01);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 3rem 1.5rem;
+  padding: 0;
   overflow-y: auto;
+  perspective: 1200px;
 }
 
 .modal-wrapper {
@@ -70,6 +74,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 72rem;
   min-height: calc(100vh - 6rem);
+  padding: 1rem 0 3rem;
 }
 
 .modal-close-row {
@@ -102,15 +107,32 @@ onUnmounted(() => {
   padding: 2.5rem;
 }
 
-/* Transition: fade + slight rise */
+/* Backdrop fades independently of the panel */
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.35s ease;
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
-  transform: translateY(0.75rem);
+}
+
+/* Panel sweeps in from bottom-left, rotating to flat as it settles */
+.modal-enter-active .modal-wrapper {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modal-enter-from .modal-wrapper {
+  transform: translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+}
+
+/* Panel retreats to bottom-left — reverse of the entrance */
+.modal-leave-active .modal-wrapper {
+  transition: transform 0.35s ease-in;
+}
+
+.modal-leave-to .modal-wrapper {
+  transform: translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
 }
 </style>
