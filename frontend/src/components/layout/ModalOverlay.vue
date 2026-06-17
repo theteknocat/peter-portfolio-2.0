@@ -73,7 +73,7 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: rgba(5, 15, 10, 0.05);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
@@ -125,7 +125,7 @@ onUnmounted(() => {
 .modal-container {
   flex: 1;
   padding: 2.5rem;
-  --cove-fill: rgba(2, 2, 3, 0.88);
+  --cove-fill: rgba(21, 21, 29, 0.92);
   --cove-border: var(--color-accent);
   @apply cove-corners cove-r-[17px];
 }

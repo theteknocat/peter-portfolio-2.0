@@ -12,6 +12,7 @@
     "@floating-ui/dom": "^1.7.6",
     "@lucide/vue": "^1.17.0",
     "@tailwindcss/vite": "^4.3.0",
+    "highlight.js": "^11.11.1",
     "js-yaml": "^4.1.0",
     "marked": "^15.0.0",
     "simple-icons": "^16.23.0",

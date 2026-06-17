@@ -1,3 +1,6 @@
+/* highlight.js theme for fenced code blocks */
+@import 'highlight.js/styles/atom-one-dark.css';
+
 /* ─── Markdown rendered content (.markdown-body) ─────────────────────────── */
 /* Scoped to .markdown-body so these don't bleed into nav lists, tag lists,  */
 /* or any other ul/ol in the app. Preflight strips all defaults so everything */
@@ -47,7 +50,7 @@
 }
 
 .markdown-body pre {
-  background-color: var(--color-primary-dark);
+  background-color: #1e2127;
   padding: 1rem 1.25rem;
   overflow-x: auto;
   border-radius: 4px;

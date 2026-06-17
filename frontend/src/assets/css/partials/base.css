@@ -6,6 +6,11 @@ body {
   line-height: 1.8;
   background-color: var(--color-bg-dark);
   color: var(--color-text);
+  transition: background-color 0.35s ease;
+}
+
+body.modal-open {
+  background-color: #141416;
 }
 
 h1, h2, h3, h4, h5, h6 {
