@@ -4,23 +4,27 @@
  * Renders the named "modal" RouterView, locks background scroll,
  * and handles close via button, backdrop click, or Escape key.
  */
-import { watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { closeModal } from '@/composables/useModalNavigation'
 
-const route  = useRoute()
-const router = useRouter()
+const route        = useRoute()
+const router       = useRouter()
+const modalWrapper = ref<HTMLElement | null>(null)
+
+let savedScrollY = 0
+let savedFocus: HTMLElement | null = null
 
 function close(): void {
   closeModal(router, route.path)
+  savedFocus?.focus({ preventScroll: true })
+  savedFocus = null
 }
 
 function onKeyDown(event: KeyboardEvent): void {
   if (event.key === 'Escape') close()
 }
-
-let savedScrollY = 0
 
 watch(
   () => route.meta.modal,
@@ -28,7 +32,11 @@ watch(
     document.body.classList.toggle('modal-open', Boolean(isModal))
     if (isModal) {
       savedScrollY = window.scrollY
-      nextTick(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+      savedFocus   = document.activeElement as HTMLElement | null
+      nextTick(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' })
+        modalWrapper.value?.focus({ preventScroll: true })
+      })
     } else if (wasModal) {
       nextTick(() => window.scrollTo({ top: savedScrollY, behavior: 'instant' }))
     }
@@ -46,7 +54,7 @@ onUnmounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="route.meta.modal" class="modal-backdrop" @click.self="close">
-      <div class="modal-wrapper">
+      <div ref="modalWrapper" class="modal-wrapper" role="dialog" aria-modal="true" tabindex="-1">
         <button class="modal-close" aria-label="Close" @click="close">
           <X :size="18" />
         </button>
@@ -84,6 +92,7 @@ onUnmounted(() => {
   max-width: 72rem;
   min-height: calc(100vh - 6rem);
   padding: 1.5rem 0;
+  outline: none;
 }
 
 .modal-close {
