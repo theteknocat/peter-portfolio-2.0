@@ -52,12 +52,14 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
            with the page when a modal opens. position:fixed on these elements
            fixes to .page-layer's coordinate space when it has an active transform,
            and to the viewport when it doesn't — no CSS changes needed. -->
-      <div ref="bgContainer" aria-hidden="true">
+      <div ref="bgContainer" class="bg-container" aria-hidden="true">
         <div class="bg-layer"></div>
         <div v-for="n in 4" :key="n" class="bg-spot">
           <div class="bg-spot-inner"></div>
         </div>
-        <svg ref="streakSvg" class="bg-streak-overlay" aria-hidden="true"></svg>
+        <div class="bg-streak-overlay">
+          <svg ref="streakSvg" width="100%" height="100%" aria-hidden="true"></svg>
+        </div>
       </div>
 
       <AppHeader />

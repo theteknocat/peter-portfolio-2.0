@@ -1,3 +1,18 @@
+/* ─── Background container ───────────────────────────────────────────────── */
+
+/* Fixed+clipping wrapper for all background layers. Children use
+   position:absolute so overflow:hidden actually clips them (fixed children
+   escape a plain div but respect this fixed ancestor). When .page-layer gets
+   a transform on modal open, this becomes fixed relative to .page-layer and
+   recedes with the page — children are dragged along since they're absolute. */
+.bg-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -9;
+}
+
 /* ─── Scrolling background ───────────────────────────────────────────────── */
 
 .bg-layer {
@@ -6,9 +21,8 @@
   background-repeat: repeat;
   background-size: 89px 158px;
   animation: bg-scroll 35s linear infinite;
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: -10;
   pointer-events: none;
 }
 
@@ -23,7 +37,7 @@
 /* Spot wrapper: fixed-position shape whose edges fade to transparent via a
    radial mask. Spreads from a point via transform: scale(0 → 1). --spot-* set by JS. */
 .bg-spot {
-  position: fixed;
+  position: absolute;
   width: var(--spot-w, 300px);
   height: var(--spot-h, 250px);
   top: var(--spot-top, -50vh);
@@ -36,9 +50,7 @@
   -webkit-mask-size: 100% 100%;
   transform: scale(0);
   transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.4s ease-in;
-  z-index: -9;
   pointer-events: none;
-
 }
 
 /* Inner: sized to the full viewport and offset so its top-left sits at the
@@ -60,13 +72,11 @@
 /* ─── Streak overlay ─────────────────────────────────────────────────────── */
 
 /* Transparent overlay for JS-driven streak animations (useBackgroundStreaks.ts).
-   overflow:visible so streaks near edges aren't clipped. */
+   Wrapper div clips to viewport; inner SVG uses overflow:visible so filter
+   effects (glow) aren't clipped by the SVG element boundary. */
 .bg-streak-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  overflow: hidden;
   pointer-events: none;
-  z-index: -9;
 }
