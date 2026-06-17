@@ -68,7 +68,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
              sees it as an immediate child — wrapping <RouterView> directly hides
              the component behind a renderless wrapper and transition classes miss. -->
         <RouterView v-slot="{ Component }">
-          <Transition name="page" :duration="{ enter: 700, leave: 500 }">
+          <Transition name="page" :duration="{ enter: 1500, leave: 300 }">
             <!-- page-slot is a plain full-width wrapper so position:absolute on
                  .page-leave-active doesn't disrupt .view-container's centering -->
             <div class="page-slot" :key="pageKey">

@@ -7,13 +7,13 @@
   transition: opacity 0.7s ease;
 
   .section-heading {
-    animation: heading-enter 0.35s ease both;
+    animation: heading-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   /* Content cards: flip in with stagger. Assumes heading is 1st child of
      .view-container, cards are 2nd+ */
   .content-card {
-    animation: card-flip-in 0.4s ease both;
+    animation: card-flip-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
     transform-origin: top center;
     animation-delay: 0.1s;
 
@@ -28,7 +28,7 @@
    Applies to .page-slot (plain wrapper), not .view-container, so the inner
    max-width centering is unaffected. z-index: 10 keeps it on top. */
 .page-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.3s ease;
   position: absolute;
   top: 0;
   left: 0;
@@ -36,11 +36,11 @@
   z-index: 10;
 
   .section-heading {
-    animation: heading-leave 0.25s ease both;
+    animation: heading-leave 0.2s ease both;
   }
 
   .content-card {
-    animation: card-flip-out 0.35s ease both;
+    animation: card-flip-out 0.25s ease both;
     transform-origin: top center;
   }
 }
