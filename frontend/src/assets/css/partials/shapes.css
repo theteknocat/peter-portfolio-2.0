@@ -1,0 +1,59 @@
+/* ─── Reusable polygon / corner shapes ──────────────────────────────────── */
+
+/**
+ * Cove corners: concave quarter-circle cuts at all four corners.
+ *
+ * ::before carries the filled background, ::after carries the border outline.
+ * Remove background-color and border from the host element and set these vars:
+ *
+ *   --cove-fill    fill colour   (default: var(--color-primary-dark))
+ *   --cove-border  border colour (default: var(--color-accent))
+ *   --cove-r       corner radius (default: 10px — override via cove-r-[size])
+ *
+ * Compose with cove-r-* to change corner size: cove-corners cove-r-[16px]
+ *
+ * isolation: isolate keeps z-index: -1 pseudo-elements inside the host's
+ * stacking context so they don't bleed behind ancestor backgrounds.
+ */
+@utility cove-corners {
+  position: relative;
+  isolation: isolate;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  &::before {
+    background: var(--cove-fill, var(--color-primary-dark));
+    mask:
+      radial-gradient(
+        var(--cove-r, 10px) at var(--cove-r, 10px) var(--cove-r, 10px),
+        #0000 98%, #000
+      )
+      calc(0px - var(--cove-r, 10px)) calc(0px - var(--cove-r, 10px));
+  }
+
+  &::after {
+    background: var(--cove-border, var(--color-accent));
+    mask:
+      radial-gradient(
+        var(--cove-r, 10px) at var(--cove-r, 10px) var(--cove-r, 10px),
+        #0000 calc(98% - 1px), #000 calc(100% - 1px) 98%, #0000
+      )
+      calc(0px - var(--cove-r, 10px)) calc(0px - var(--cove-r, 10px)),
+      linear-gradient(90deg, #000 2px, #0000 0)
+        -1px 50% / 100% calc(100% - 2 * var(--cove-r, 10px) + 1px) repeat-x,
+      linear-gradient(#000 2px, #0000 0)
+        50% -1px / calc(100% - 2 * var(--cove-r, 10px) + 1px) 100% repeat-y;
+  }
+}
+
+/** Sets the corner radius used by cove-corners. Usage: cove-r-[16px] */
+@utility cove-r-* {
+  --cove-r: --value([length]);
+}

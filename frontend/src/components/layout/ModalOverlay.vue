@@ -39,11 +39,9 @@ onUnmounted(() => {
   <Transition name="modal">
     <div v-if="route.meta.modal" class="modal-backdrop" @click.self="close">
       <div class="modal-wrapper">
-        <div class="modal-close-row">
-          <button class="modal-close" aria-label="Close" @click="close">
-            <X :size="18" />
-          </button>
-        </div>
+        <button class="modal-close" aria-label="Close" @click="close">
+          <X :size="18" />
+        </button>
         <div class="modal-container">
           <RouterView name="modal" />
         </div>
@@ -53,6 +51,8 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+@reference "../../assets/css/main.css";
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -63,48 +63,55 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 0;
+  padding: 0 1.5rem;
   overflow-y: auto;
   perspective: 1200px;
 }
 
 .modal-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 72rem;
   min-height: calc(100vh - 6rem);
-  padding: 1rem 0 3rem;
-}
-
-.modal-close-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.5rem;
+  padding: 1.5rem 0;
 }
 
 .modal-close {
+  position: absolute;
+  z-index: 10;
+  right: -0.9rem;
+  top: 0.6rem;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-accent);
   background: transparent;
-  border: 1px solid transparent;
-  padding: 0.25rem;
+  border: 0.06rem solid var(--color-accent);
+  border-radius: 50%;
+  padding: 0.33rem;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.modal-close:hover {
-  color: var(--color-accent-light);
-  border-color: var(--color-accent);
+.modal-close:hover,
+.modal-close:focus-visible {
+  outline: none;
+  color: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+  & svg {
+    animation: icon-glitch 4s linear infinite;
+  }
 }
 
 .modal-container {
   flex: 1;
-  background-color: rgba(2, 2, 3, 0.88);
-  border: 1px solid var(--color-accent);
   padding: 2.5rem;
+  --cove-fill: rgba(2, 2, 3, 0.88);
+  --cove-border: var(--color-accent);
+  @apply cove-corners cove-r-[17px];
 }
 
 /* Backdrop fades independently of the panel */
