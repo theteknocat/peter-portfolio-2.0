@@ -4,7 +4,7 @@
  * Renders the named "modal" RouterView, locks background scroll,
  * and handles close via button, backdrop click, or Escape key.
  */
-import { watch, onMounted, onUnmounted } from 'vue'
+import { watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { closeModal } from '@/composables/useModalNavigation'
@@ -24,7 +24,7 @@ watch(
   () => route.meta.modal,
   (isModal) => {
     document.body.classList.toggle('modal-open', Boolean(isModal))
-    if (isModal) window.scrollTo({ top: 0, behavior: 'instant' })
+    if (isModal) nextTick(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   },
   { immediate: true },
 )
