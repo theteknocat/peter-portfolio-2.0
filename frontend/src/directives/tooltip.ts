@@ -176,6 +176,9 @@ export const vTooltip = {
 
     const onBlur = () => onLeave()
 
+    // focus/blur only fire on natively focusable elements (<a>, <button> etc.).
+    // If this directive is applied to a <div> or <span>, add tabindex="0" on that
+    // element so keyboard users can trigger the tooltip.
     el.addEventListener('mouseenter', onEnter)
     el.addEventListener('mouseleave', onLeave)
     el.addEventListener('focus', onFocus)
