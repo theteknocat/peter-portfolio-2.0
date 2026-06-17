@@ -98,13 +98,16 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   min-height: 100vh;
   box-shadow: none;
   transform-origin: 50vw 50vh;
-  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
+  /* Return transition — applied when .is-modal-open is removed */
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1), filter 1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .page-layer.is-modal-open {
   transform: translate(calc(35vw - 5rem), calc(-35vh + 2rem)) scale(0.30) rotateY(-5deg) rotateX(-2deg);
   filter: brightness(0.65);
   box-shadow: 0 0 2px 1px var(--color-border);
+  /* Exit transition — applied when .is-modal-open is added */
+  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
 }
 
 main {

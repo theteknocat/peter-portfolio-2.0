@@ -81,7 +81,6 @@ onUnmounted(() => {
   justify-content: center;
   padding: 0 1.5rem;
   overflow-y: auto;
-  perspective: 1200px;
 }
 
 .modal-wrapper {
@@ -144,11 +143,11 @@ onUnmounted(() => {
 
 /* Panel sweeps in from bottom-left, rotating to flat as it settles */
 .modal-enter-active .modal-wrapper {
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .modal-enter-from .modal-wrapper {
-  transform: translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
 }
 
 /* Panel retreats to bottom-left — reverse of the entrance */
@@ -157,6 +156,6 @@ onUnmounted(() => {
 }
 
 .modal-leave-to .modal-wrapper {
-  transform: translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
 }
 </style>
