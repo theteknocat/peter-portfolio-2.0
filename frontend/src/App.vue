@@ -29,6 +29,7 @@ watch(
       setNonModalPath(path)
     }
   },
+  { immediate: true },
 )
 
 // The RouterView slot Component is only accessible in the template, not in
