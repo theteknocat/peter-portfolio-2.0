@@ -20,8 +20,10 @@ const { data, loading, error } = useContent<Article>('articles', slug)
     <p v-if="loading">Loading…</p>
     <p v-else-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
-      <p v-if="data.date" class="modal-date">{{ formatDate(data.date) }}</p>
-      <h2 class="modal-title">{{ data.title }}</h2>
+      <div class="modal-header">
+        <h2 class="modal-title">{{ data.title }}</h2>
+        <p v-if="data.date" class="modal-date">{{ formatDate(data.date) }}</p>
+      </div>
       <p v-if="data.summary" class="modal-summary">{{ data.summary }}</p>
       <MarkdownRenderer v-if="data.body" :content="data.body" />
     </template>
@@ -33,19 +35,31 @@ const { data, loading, error } = useContent<Article>('articles', slug)
   color: var(--color-text);
 }
 
+.modal-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
 .modal-date {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-family: var(--font-mono);
   color: var(--color-primary-light);
-  margin: 0 0 0.25rem;
+  margin-left: auto;
 }
 
 .modal-title {
   font-family: var(--font-display);
   font-weight: normal;
-  font-size: 1.75rem;
+  font-size: calc(1.37rem + 1.47vw);
   color: var(--color-accent-light);
-  margin: 0 0 0.75rem;
+  margin: 0;
+}
+
+@media (min-width: 75rem) {
+  .modal-title { font-size: 2.5rem; }
 }
 
 .modal-summary {

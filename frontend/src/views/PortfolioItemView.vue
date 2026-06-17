@@ -37,9 +37,13 @@ const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
 .modal-title {
   font-family: var(--font-display);
   font-weight: normal;
-  font-size: 1.75rem;
+  font-size: calc(1.37rem + 1.47vw);
   color: var(--color-accent-light);
   margin: 0 0 0.75rem;
+}
+
+@media (min-width: 75rem) {
+  .modal-title { font-size: 2.5rem; }
 }
 
 .modal-tags {

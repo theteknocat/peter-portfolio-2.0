@@ -17,7 +17,8 @@
   transition: border-color 0.2s ease;
 }
 
-.card-link:hover {
+.card-link:hover,
+.card-link:focus-visible {
   border-color: var(--color-accent);
 }
 
