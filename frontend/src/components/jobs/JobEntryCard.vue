@@ -83,5 +83,6 @@ defineProps<{
   color: var(--color-primary-light);
   border: 1px solid var(--color-primary-dark);
   padding: 0.125rem 0.5rem;
+  margin-block-start: 0;
 }
 </style>

@@ -30,6 +30,32 @@ h6 { font-size: 1.1rem; }
   h5 { font-size: 1.375rem; }
 }
 
+h1, h2, h3, h4, h5, h6 {
+  margin-block-start: 0.5em;
+  margin-block-end: 0.2em;
+}
+
+:is(h1, h2, h3, h4, h5, h6):first-child {
+  margin-block-start: 0;
+}
+
+/* After a non-heading (paragraph, list, etc.) — larger gap */
+:not(:is(h1, h2, h3, h4, h5, h6)) + :is(h1, h2, h3, h4, h5, h6) {
+  margin-block-start: 2rem;
+}
+
+p, ul, ol, dl, pre {
+  margin-block-end: 1em;
+}
+
+:is(p, ul, ol, dl, pre):last-child {
+  margin-block-end: 0;
+}
+
+li + li {
+  margin-block-start: 0.25em;
+}
+
 hr {
   border-color: var(--color-accent-light);
   opacity: 1;
