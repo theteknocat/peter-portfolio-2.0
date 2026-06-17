@@ -17,7 +17,7 @@ const { isScrolled } = useScrolled()
         </span>
         <span class="brand-name" data-text="Peter Epp"><span class="brand-name__text">Peter Epp</span></span>
       </RouterLink>
-      <nav class="flex gap-2">
+      <nav aria-label="Main navigation" class="flex gap-2">
         <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash link-poly--jitter">Portfolio</RouterLink>
         <RouterLink to="/articles" class="nav-link link-poly link-poly--slash link-poly--jitter">Articles</RouterLink>
         <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash link-poly--jitter">Job History</RouterLink>
