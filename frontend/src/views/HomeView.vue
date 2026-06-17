@@ -18,6 +18,14 @@ const sectionComponents: Record<string, Component> = {
   'featured-articles': FeaturedArticlesSection,
   'skills': SkillsSection,
 }
+
+function resolveSection(type: string): Component | undefined {
+  const component = sectionComponents[type]
+  if (!component && import.meta.env.DEV) {
+    console.warn(`[HomeView] No component registered for section type: "${type}"`)
+  }
+  return component
+}
 </script>
 
 <template>
@@ -28,7 +36,7 @@ const sectionComponents: Record<string, Component> = {
       <component
         v-for="section in data.sections"
         :key="section.type"
-        :is="sectionComponents[section.type]"
+        :is="resolveSection(section.type)"
         :section="section"
       />
     </template>
