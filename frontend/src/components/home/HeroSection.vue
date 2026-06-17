@@ -3,17 +3,18 @@
  * Hero section — page title, subtitle, and introductory body text.
  * Expects section.content from the 'pages/home-hero.yaml' content file.
  */
+import { computed } from 'vue'
 import type { ResolvedSection } from '@/types/page'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 
 const props = defineProps<{ section: ResolvedSection }>()
 
-const content = props.section.content as {
+const content = computed(() => props.section.content as {
   title?: string
   subtitle?: string
   body?: string
-} | null | undefined
+} | null | undefined)
 </script>
 
 <template>

@@ -3,15 +3,16 @@
  * Skills section — a flat list of skill/technology names from the skills content file.
  * Expects section.content from 'pages/skills.yaml'.
  */
+import { computed } from 'vue'
 import type { ResolvedSection } from '@/types/page'
 import ContentCard from '@/components/ui/ContentCard.vue'
 
 const props = defineProps<{ section: ResolvedSection }>()
 
-const content = props.section.content as {
+const content = computed(() => props.section.content as {
   title?: string
   skills?: string[]
-} | null | undefined
+} | null | undefined)
 </script>
 
 <template>
