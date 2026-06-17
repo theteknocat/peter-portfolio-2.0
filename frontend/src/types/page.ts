@@ -9,7 +9,14 @@ export interface ResolvedSection {
   type: string
   /** Present on source sections — a single resolved content item, or null if the file is missing. */
   content?: Record<string, unknown> | null
-  /** Present on manifest sections — the resolved list of content items. */
+  /**
+   * Present on manifest sections — the resolved list of content items.
+   *
+   * Typed loosely because the API can return any content shape depending on
+   * section type. Callers cast to the concrete type at point of use via
+   * `as unknown as T[]`. Shape correctness is guaranteed by the PHP backend;
+   * there is no runtime validation on the frontend.
+   */
   items?: Record<string, unknown>[]
 }
 
