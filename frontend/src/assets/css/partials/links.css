@@ -5,6 +5,9 @@ a {
   position: relative;
   color: var(--color-link);
   text-decoration: none;
+  /* transition: all is intentional — covers color, opacity, and any decoration
+     properties added later without needing to enumerate them. Revisit if a
+     specific property causes unintended transitions. */
   transition: all 0.2s ease;
 
   &:focus-visible {

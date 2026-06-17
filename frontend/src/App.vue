@@ -36,6 +36,16 @@ watch(
 // script. We capture it here during render so the background page stays frozen
 // (whatever page was active before the modal opened) rather than switching to
 // the modal route's default component (e.g. PortfolioView when opening from /).
+//
+// Writing to a shallowRef during render is an anti-pattern in general, but safe
+// here: the write is guarded by !isModal, so frozenComponent is never updated
+// while a modal is active (including modal-to-modal navigation). The guard runs
+// synchronously and Vue navigation guards prevent concurrent transitions, so
+// there is no race between the write and the modal opening.
+//
+// The alternative — reading route.matched in a watcher — doesn't work because
+// modal routes are nested children of page routes, so the background page's
+// component isn't present in the match records when a modal is open.
 const frozenComponent = shallowRef<object | null>(null)
 function backgroundComponent(comp: object | null, isModal: boolean): object | null {
   if (!isModal && comp) frozenComponent.value = comp
