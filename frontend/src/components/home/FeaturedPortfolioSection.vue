@@ -3,17 +3,15 @@
  * Featured portfolio section — up to 3 featured portfolio items.
  * Items are resolved server-side from the portfolio manifest (filter: featured, limit: 3).
  */
+import { RouterLink } from 'vue-router'
 import type { ResolvedSection } from '@/types/page'
+import type { PortfolioItem } from '@/types/portfolio'
 import SectionHeading from '@/components/ui/SectionHeading.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 
 const props = defineProps<{ section: ResolvedSection }>()
 
-const items = (props.section.items ?? []) as Array<{
-  slug: string
-  title?: string
-  summary?: string
-}>
+const items = (props.section.items ?? []) as unknown as PortfolioItem[]
 </script>
 
 <template>
@@ -23,10 +21,17 @@ const items = (props.section.items ?? []) as Array<{
       <p>Portfolio items will appear here once content is loaded.</p>
     </ContentCard>
     <div v-else class="featured-grid">
-      <ContentCard v-for="item in items" :key="item.slug">
-        <h2>{{ item.title ?? item.slug }}</h2>
-        <p v-if="item.summary">{{ item.summary }}</p>
-      </ContentCard>
+      <RouterLink
+        v-for="item in items"
+        :key="item.slug"
+        :to="`/portfolio/${item.slug}`"
+        class="featured-item"
+      >
+        <ContentCard>
+          <h2>{{ item.title }}</h2>
+          <p v-if="item.summary">{{ item.summary }}</p>
+        </ContentCard>
+      </RouterLink>
     </div>
   </section>
 </template>

@@ -1,13 +1,68 @@
 <script setup lang="ts">
+/**
+ * Portfolio item detail — rendered in the modal outlet.
+ * Fetches the full item (including markdown body) by slug from the API.
+ */
 import { useRoute } from 'vue-router'
-import ContentCard from '@/components/ui/ContentCard.vue'
+import { useContent } from '@/composables/useContent'
+import type { PortfolioItem } from '@/types/portfolio'
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer.vue'
 
 const route = useRoute()
+const slug = route.params.slug as string
+
+const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
 </script>
 
 <template>
-  <ContentCard>
-    <h2>Portfolio item: {{ route.params.slug }}</h2>
-    <p>Full project detail will render here, fetched from the API by slug.</p>
-  </ContentCard>
+  <div class="modal-content">
+    <p v-if="loading">Loading…</p>
+    <p v-else-if="error">Error: {{ error }}</p>
+    <template v-else-if="data">
+      <h2 class="modal-title">{{ data.title }}</h2>
+      <ul v-if="data.tags?.length" class="modal-tags">
+        <li v-for="tag in data.tags" :key="tag">{{ tag }}</li>
+      </ul>
+      <p v-if="data.summary" class="modal-summary">{{ data.summary }}</p>
+      <MarkdownRenderer v-if="data.body" :content="data.body" />
+    </template>
+  </div>
 </template>
+
+<style scoped>
+.modal-content {
+  color: var(--color-text);
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-weight: normal;
+  font-size: 1.75rem;
+  color: var(--color-accent-light);
+  margin: 0 0 0.75rem;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.modal-tags li {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--color-primary-light);
+  border: 1px solid var(--color-primary-dark);
+  padding: 0.125rem 0.5rem;
+}
+
+.modal-summary {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin: 0 0 1.5rem;
+  font-style: italic;
+}
+</style>

@@ -1,9 +1,9 @@
 export interface Article {
   slug: string
   title: string
-  date: string
-  featured: boolean
-  summary: string
+  date?: string
+  summary?: string
+  tags?: string[]
+  featured?: boolean
   body?: string
-  tags: string[]
 }

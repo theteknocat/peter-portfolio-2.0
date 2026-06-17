@@ -1,18 +1,41 @@
 <script setup lang="ts">
+/**
+ * Portfolio list page — fetches the portfolio page layout and renders
+ * each item as a clickable card linking to the modal detail route.
+ */
+import { computed } from 'vue'
+import { usePageData } from '@/composables/usePageData'
+import type { PortfolioItem } from '@/types/portfolio'
 import SectionHeading from '@/components/ui/SectionHeading.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
+import PortfolioCard from '@/components/portfolio/PortfolioCard.vue'
+
+const { data, loading, error } = usePageData('portfolio')
+
+// The portfolio page has a single 'portfolio-list' section.
+// Pull items directly rather than using a dynamic component map.
+const items = computed(
+  () => (data.value?.sections[0]?.items ?? []) as unknown as PortfolioItem[]
+)
 </script>
 
 <template>
   <div class="view-container">
     <SectionHeading>Portfolio</SectionHeading>
     <ContentCard>
-      <p>Project cards pulled from the portfolio manifest will appear here.</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer volutpat, quam venenatis aliquet congue, neque neque volutpat elit, eu blandit ex tortor sit amet dolor. Ut non turpis massa. Sed hendrerit nunc eget arcu vestibulum sodales. Mauris facilisis maximus sapien quis facilisis. Ut suscipit ligula nisl, et tristique lorem auctor sed. Integer nec leo arcu. Vivamus dapibus sit amet ante in iaculis. Morbi non tortor sed justo iaculis condimentum. Donec sed auctor mauris, at sodales lectus. Sed sit amet tristique urna. Aliquam semper ante posuere arcu pretium, eget lacinia risus cursus.</p>
-      <p>Curabitur ut odio varius, lobortis dui sed, porttitor nibh. Mauris accumsan libero hendrerit sem dictum euismod. Cras non velit elit. Vestibulum vitae turpis eget ipsum rutrum condimentum id ut est. Donec imperdiet libero at molestie tempus. Nulla nec risus eleifend, tempor neque in, pulvinar odio. Vestibulum tempus velit consectetur turpis convallis, vitae sodales nulla malesuada. Vestibulum lorem massa, egestas at consequat eu, egestas eu mauris. Praesent congue, lacus a tincidunt laoreet, elit diam aliquet quam, vitae fermentum justo ex vel nisl. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse potenti. Morbi venenatis at velit in facilisis. Pellentesque scelerisque orci ex, nec sollicitudin felis vehicula non. Fusce egestas nulla vel urna sollicitudin, sit amet viverra nisl porta.</p>
-      <p>Duis pellentesque lectus in nisi imperdiet aliquet. Donec ipsum sapien, volutpat a libero et, aliquet scelerisque nisi. Nunc at bibendum est. Sed nulla velit, tincidunt sed felis vitae, malesuada aliquet ex. Praesent in diam sit amet ante laoreet viverra. Nunc sed dui in nunc fringilla tristique. Vestibulum fringilla fermentum blandit. Maecenas faucibus, sapien in ultricies lobortis, nisi urna interdum urna, iaculis pretium sem orci at orci. Pellentesque sit amet ultrices risus, non viverra nisi. Proin eget imperdiet dolor, in viverra elit. In dui massa, imperdiet et lacus et, condimentum cursus mauris. Vestibulum ex eros, rutrum eget dictum eu, pharetra et tellus.</p>
-      <p>Curabitur laoreet ipsum in molestie porta. Vestibulum luctus sollicitudin turpis. In consequat tristique dolor eget tristique. Curabitur at mauris vehicula, vehicula mauris et, venenatis odio. Nam maximus mauris rhoncus cursus consectetur. Maecenas ullamcorper nisl eu egestas maximus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris in orci dui. Integer quis aliquet lacus, et lobortis lectus. Vivamus euismod consequat libero vel viverra. Phasellus rutrum venenatis lorem, ac laoreet ipsum malesuada ac. Suspendisse pellentesque lectus enim, eu rhoncus justo blandit quis.</p>
-      <p>In eget ante pulvinar lacus placerat dapibus ac sed sem. Vestibulum ligula dui, vestibulum non malesuada at, scelerisque mollis turpis. Vivamus ullamcorper fermentum arcu eget condimentum. Nam eget congue risus. Integer sed ultricies nisi. Vestibulum interdum auctor neque et vestibulum. Aenean a maximus libero. Maecenas ultrices ex vel massa lacinia, vel consectetur augue vehicula. Nulla eu pharetra nunc. Suspendisse a consectetur arcu, in pulvinar metus. Nullam lorem urna, efficitur ut ipsum id, dapibus mattis ante. Etiam eu iaculis neque. Curabitur ante lectus, pretium a sem interdum, maximus maximus lacus. Sed sed sollicitudin ante. Nunc scelerisque ornare justo, et elementum nulla auctor ac. Nulla gravida metus non elit porttitor fringilla.</p>
+      <p v-if="loading">Loading…</p>
+      <p v-else-if="error">Error: {{ error }}</p>
+      <div v-else class="portfolio-list">
+        <PortfolioCard v-for="item in items" :key="item.slug" :item="item" />
+      </div>
     </ContentCard>
   </div>
 </template>
+
+<style scoped>
+.portfolio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+</style>

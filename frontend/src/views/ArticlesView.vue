@@ -1,13 +1,39 @@
 <script setup lang="ts">
+/**
+ * Articles list page — fetches the articles page layout and renders
+ * each item as a clickable card linking to the modal detail route.
+ */
+import { computed } from 'vue'
+import { usePageData } from '@/composables/usePageData'
+import type { Article } from '@/types/article'
 import SectionHeading from '@/components/ui/SectionHeading.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
+import ArticleCard from '@/components/articles/ArticleCard.vue'
+
+const { data, loading, error } = usePageData('articles')
+
+const items = computed(
+  () => (data.value?.sections[0]?.items ?? []) as unknown as Article[]
+)
 </script>
 
 <template>
   <div class="view-container">
     <SectionHeading>Articles</SectionHeading>
     <ContentCard>
-      <p>Article cards pulled from the articles manifest will appear here.</p>
+      <p v-if="loading">Loading…</p>
+      <p v-else-if="error">Error: {{ error }}</p>
+      <div v-else class="article-list">
+        <ArticleCard v-for="item in items" :key="item.slug" :item="item" />
+      </div>
     </ContentCard>
   </div>
 </template>
+
+<style scoped>
+.article-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+</style>

@@ -48,11 +48,8 @@ class ManifestService
             return [];
         }
 
-        /** @var array<string, mixed> $data */
-        $data = Yaml::parseFile($path) ?? [];
-
         /** @var array<int, array<string, mixed>> $items */
-        $items = $data['items'] ?? [];
+        $items = Yaml::parseFile($path) ?? [];
 
         if ($filter !== null) {
             $items = array_values(
