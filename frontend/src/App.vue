@@ -3,9 +3,11 @@ import { ref, shallowRef, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import LoadingScreen from '@/components/layout/LoadingScreen.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
 import { useBackgroundGlitch } from '@/composables/useBackgroundGlitch'
 import { useBackgroundStreaks } from '@/composables/useBackgroundStreaks'
+import { setNonModalPath } from '@/composables/useModalNavigation'
 
 const route = useRoute()
 const bgContainer = ref<HTMLElement | null>(null)
@@ -22,7 +24,10 @@ const pageKey = ref(route.path)
 watch(
   () => route.path,
   (path) => {
-    if (!route.meta.modal) pageKey.value = path
+    if (!route.meta.modal) {
+      pageKey.value = path
+      setNonModalPath(path)
+    }
   },
 )
 
@@ -76,6 +81,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   <!-- ModalOverlay is a sibling of .page-scene so it has its own 3D context
        and sits outside the page recede transform entirely. -->
   <ModalOverlay />
+  <LoadingScreen />
 </template>
 
 <style scoped>

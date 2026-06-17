@@ -7,12 +7,13 @@
 import { watch, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
+import { closeModal } from '@/composables/useModalNavigation'
 
 const route  = useRoute()
 const router = useRouter()
 
 function close(): void {
-  router.back()
+  closeModal(router, route.path)
 }
 
 function onKeyDown(event: KeyboardEvent): void {
