@@ -36,14 +36,24 @@ function lerpAngle(a: number, b: number, t: number): number {
 export const vSpecularHighlight: Directive<HTMLElement, number | undefined> = {
   mounted(el: HTMLElement, binding: DirectiveBinding<number | undefined>) {
     const lerp = binding.value ?? DEFAULT_LERP
-    let targetAngle = 135
-    let currentAngle = 135
-    let rafId: number
+    const REST_ANGLE = 135
+    let targetAngle = REST_ANGLE
+    let currentAngle = REST_ANGLE
+    let rafId: number | null = null
+    let isHovered = false
 
     function tick(): void {
       currentAngle = lerpAngle(currentAngle, targetAngle, lerp)
       el.style.setProperty('--specular-angle', `${currentAngle.toFixed(2)}deg`)
-      rafId = requestAnimationFrame(tick)
+      if (isHovered || Math.abs(currentAngle - targetAngle) > 0.1) {
+        rafId = requestAnimationFrame(tick)
+      } else {
+        rafId = null
+      }
+    }
+
+    function startLoop(): void {
+      if (rafId === null) rafId = requestAnimationFrame(tick)
     }
 
     function onMouseMove(e: MouseEvent): void {
@@ -53,16 +63,41 @@ export const vSpecularHighlight: Directive<HTMLElement, number | undefined> = {
       targetAngle = Math.atan2(ny, nx) * 180 / Math.PI
     }
 
+    function onMouseEnter(): void {
+      isHovered = true
+      el.addEventListener('mousemove', onMouseMove)
+      startLoop()
+    }
+
+    function onMouseLeave(): void {
+      isHovered = false
+      targetAngle = REST_ANGLE
+      el.removeEventListener('mousemove', onMouseMove)
+      startLoop()
+    }
+
+    function onVisibilityChange(): void {
+      if (document.hidden) {
+        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null }
+      } else if (isHovered) {
+        startLoop()
+      }
+    }
+
     el.classList.add('specular-highlight')
-    window.addEventListener('mousemove', onMouseMove)
-    rafId = requestAnimationFrame(tick)
+    el.addEventListener('mouseenter', onMouseEnter)
+    el.addEventListener('mouseleave', onMouseLeave)
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     stateMap.set(el, {
       onMouseMove,
       cancel: () => {
         el.classList.remove('specular-highlight')
-        window.removeEventListener('mousemove', onMouseMove)
-        cancelAnimationFrame(rafId)
+        el.removeEventListener('mouseenter', onMouseEnter)
+        el.removeEventListener('mouseleave', onMouseLeave)
+        el.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+        if (rafId !== null) cancelAnimationFrame(rafId)
       },
     })
   },
