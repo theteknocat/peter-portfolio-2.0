@@ -4,27 +4,61 @@
  * Renders the named "modal" RouterView, locks background scroll,
  * and handles close via button, backdrop click, or Escape key.
  */
-import { watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { closeModal } from '@/composables/useModalNavigation'
 
-const route  = useRoute()
-const router = useRouter()
+const route       = useRoute()
+const router      = useRouter()
+const modalWrapper = ref<HTMLElement | null>(null)
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+let savedFocus: Element | null = null
 
 function close(): void {
   closeModal(router, route.path)
+  ;(savedFocus as HTMLElement | null)?.focus()
+  savedFocus = null
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') close()
+  if (event.key === 'Escape') {
+    close()
+    return
+  }
+
+  if (event.key === 'Tab' && route.meta.modal && modalWrapper.value) {
+    const focusable = Array.from(modalWrapper.value.querySelectorAll<HTMLElement>(FOCUSABLE))
+    if (!focusable.length) return
+    const first = focusable[0]
+    const last  = focusable[focusable.length - 1]
+    if (event.shiftKey) {
+      if (document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      }
+    } else {
+      if (document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+  }
 }
 
 watch(
   () => route.meta.modal,
   (isModal) => {
     document.body.classList.toggle('modal-open', Boolean(isModal))
-    if (isModal) nextTick(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+    if (isModal) {
+      nextTick(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' })
+        savedFocus = document.activeElement
+        modalWrapper.value?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+      })
+    }
   },
   { immediate: true },
 )
@@ -39,7 +73,7 @@ onUnmounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="route.meta.modal" class="modal-backdrop" @click.self="close">
-      <div class="modal-wrapper">
+      <div ref="modalWrapper" class="modal-wrapper" role="dialog" aria-modal="true">
         <button class="modal-close" aria-label="Close" @click="close">
           <X :size="18" />
         </button>
