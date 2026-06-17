@@ -59,7 +59,7 @@ onUnmounted(() => {
           <X :size="18" />
         </button>
         <div class="modal-container">
-          <RouterView name="modal" />
+          <RouterView name="modal" :key="(route.params.slug as string)" />
         </div>
       </div>
     </div>
