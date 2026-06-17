@@ -18,7 +18,7 @@ defineProps<{
       <span class="job-dates">{{ formatJobDate(item.start) }} – {{ formatJobDate(item.end) }}</span>
     </div>
     <p v-if="item.summary" class="job-summary">{{ item.summary }}</p>
-    <ul v-if="item.skills?.length" class="job-skills">
+    <ul v-if="item.skills?.length" class="tag-list">
       <li v-for="skill in item.skills" :key="skill">{{ skill }}</li>
     </ul>
   </div>
@@ -68,21 +68,4 @@ defineProps<{
   margin: 0 0 0.75rem;
 }
 
-.job-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.job-skills li {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--color-primary-light);
-  border: 1px solid var(--color-primary-dark);
-  padding: 0.125rem 0.5rem;
-  margin-block-start: 0;
-}
 </style>

@@ -25,17 +25,9 @@ const items = computed(
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>
-      <div v-else class="portfolio-list">
+      <div v-else class="card-stack">
         <PortfolioCard v-for="item in items" :key="item.slug" :item="item" />
       </div>
     </ContentCard>
   </div>
 </template>
-
-<style scoped>
-.portfolio-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-</style>

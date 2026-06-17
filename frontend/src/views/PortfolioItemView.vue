@@ -20,7 +20,7 @@ const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
     <p v-else-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <h2 class="modal-title">{{ data.title }}</h2>
-      <ul v-if="data.tags?.length" class="modal-tags">
+      <ul v-if="data.tags?.length" class="tag-list modal-tags">
         <li v-for="tag in data.tags" :key="tag">{{ tag }}</li>
       </ul>
       <p v-if="data.summary" class="modal-summary">{{ data.summary }}</p>
@@ -43,20 +43,7 @@ const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
 }
 
 .modal-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  list-style: none;
-  margin: 0 0 1rem;
-  padding: 0;
-}
-
-.modal-tags li {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--color-primary-light);
-  border: 1px solid var(--color-primary-dark);
-  padding: 0.125rem 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .modal-summary {

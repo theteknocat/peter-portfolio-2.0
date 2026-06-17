@@ -6,6 +6,7 @@
 @import "./partials/base.css";
 @import "./partials/background.css";
 @import "./partials/layout.css";
+@import "./partials/ui.css";
 @import "./partials/links.css";
 @import "./partials/nav.css";
 @import "./partials/tooltips.css";

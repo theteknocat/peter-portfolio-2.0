@@ -18,17 +18,9 @@ const items = (props.section.items ?? []) as unknown as PortfolioItem[]
     <ContentCard>
       <h2 class="text-center">Featured Work</h2>
       <p v-if="items.length === 0">Portfolio items will appear here once content is loaded.</p>
-      <div v-else class="item-list">
+      <div v-else class="card-stack">
         <PortfolioCard v-for="item in items" :key="item.slug" :item="item" />
       </div>
     </ContentCard>
   </section>
 </template>
-
-<style scoped>
-.item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-</style>
