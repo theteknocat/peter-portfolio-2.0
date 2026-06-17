@@ -4,7 +4,6 @@
  * Expects section.content from 'pages/skills.yaml'.
  */
 import type { ResolvedSection } from '@/types/page'
-import SectionHeading from '@/components/ui/SectionHeading.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 
 const props = defineProps<{ section: ResolvedSection }>()
@@ -17,14 +16,12 @@ const content = props.section.content as {
 
 <template>
   <section class="home-skills">
-    <SectionHeading>{{ content?.title ?? 'Skills' }}</SectionHeading>
-    <ContentCard v-if="content?.skills?.length">
-      <ul class="skills-list">
+    <ContentCard>
+      <h2 class="text-center">{{ content?.title ?? 'Skills' }}</h2>
+      <ul v-if="content?.skills?.length" class="skills-list">
         <li v-for="skill in content.skills" :key="skill">{{ skill }}</li>
       </ul>
-    </ContentCard>
-    <ContentCard v-else>
-      <p>Skills content not yet loaded.</p>
+      <p v-else>Skills content not yet loaded.</p>
     </ContentCard>
   </section>
 </template>

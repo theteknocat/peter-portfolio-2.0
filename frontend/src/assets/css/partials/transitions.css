@@ -6,7 +6,7 @@
 .page-enter-active {
   transition: opacity 0.7s ease;
 
-  .section-heading {
+  .page-title {
     animation: heading-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
@@ -35,7 +35,7 @@
   right: 0;
   z-index: 10;
 
-  .section-heading {
+  .page-title {
     animation: heading-leave 0.2s ease both;
   }
 

@@ -6,7 +6,7 @@
 import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
 import type { PortfolioItem } from '@/types/portfolio'
-import SectionHeading from '@/components/ui/SectionHeading.vue'
+import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import PortfolioCard from '@/components/portfolio/PortfolioCard.vue'
 
@@ -21,7 +21,7 @@ const items = computed(
 
 <template>
   <div class="view-container">
-    <SectionHeading>Portfolio</SectionHeading>
+    <PageTitle>Portfolio</PageTitle>
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>

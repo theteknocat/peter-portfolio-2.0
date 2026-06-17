@@ -34,3 +34,9 @@ const sectionComponents: Record<string, Component> = {
     </template>
   </div>
 </template>
+
+<style scoped>
+.view-container {
+  gap: 1.5rem;
+}
+</style>

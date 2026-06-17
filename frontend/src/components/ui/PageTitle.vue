@@ -6,7 +6,7 @@
 </script>
 
 <template>
-  <h1 class="section-heading">
+  <h1 class="page-title">
     <svg class="heading-arrow" viewBox="0 0 50 24" aria-hidden="true">
       <polygon points="50,0 0,12 50,24" />
     </svg>
@@ -20,7 +20,7 @@
 </template>
 
 <style scoped>
-.section-heading {
+.page-title {
   display: flex;
   align-items: center;
   gap: 1rem;

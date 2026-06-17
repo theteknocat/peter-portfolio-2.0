@@ -6,7 +6,7 @@
 import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
 import type { Job } from '@/types/job'
-import SectionHeading from '@/components/ui/SectionHeading.vue'
+import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import JobEntryCard from '@/components/jobs/JobEntryCard.vue'
 
@@ -19,7 +19,7 @@ const items = computed(
 
 <template>
   <div class="view-container">
-    <SectionHeading>Job History</SectionHeading>
+    <PageTitle>Job History</PageTitle>
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>
