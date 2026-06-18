@@ -50,5 +50,6 @@
         "xsl", "Zend OPcache", "zip", "zlib", "imagick"
     ],
     "terminal.integrated.env.osx": {},
-    "php.validate.executablePath": ".ddev/run-php"
+    "php.validate.executablePath": ".ddev/run-php",
+    "css.lint.unknownAtRules": "ignore"
 }
