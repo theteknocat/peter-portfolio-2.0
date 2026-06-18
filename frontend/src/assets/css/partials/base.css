@@ -1,5 +1,9 @@
 /* ─── Base element styles ────────────────────────────────────────────────── */
 
+strong, b {
+  font-weight: 600;
+}
+
 body {
   font-family: var(--font-body);
   font-size: 1.1rem;
