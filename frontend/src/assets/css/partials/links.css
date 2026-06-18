@@ -69,167 +69,46 @@ a:not(.btn, .link-poly) {
   }
 }
 
-/* ─── Poly link shapes (.link-poly + shape + transition modifiers) ────────── */
+/* ─── Poly link shapes (.link-poly + shape modifier + optional transition) ─── */
 
-/* Base: pseudo-element scaffolding only — no shape, no transform */
-.link-poly {
-  &::before,
-  &::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: -12px;
-    right: -12px;
-    top: -7px;
-    bottom: -7px;
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-  }
+@layer components {
+  /* Base: link-specific shape vars and opacity behaviour.
+     Pseudo-element scaffolding comes from the shape modifier via shape-base. */
+  .link-poly {
+    --shape-inset: -7px -12px;
+    --shape-fill: var(--color-primary-dark);
+    --shape-border: var(--color-primary);
 
-  &::before {
-    z-index: -2;
-    background: var(--color-primary-dark);
-  }
-  &::after {
-    z-index: -1;
-    background: var(--color-primary);
+    &::before,
+    &::after {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    &:hover::before,
+    &:hover::after,
+    &:focus-visible::before,
+    &:focus-visible::after,
+    &.nav-link.router-link-active::before,
+    &.nav-link.router-link-active::after {
+      opacity: 1;
+    }
   }
 
-  &:hover::before,
-  &:hover::after,
-  &:focus-visible::before,
-  &:focus-visible::after,
-  &.nav-link.router-link-active::before,
-  &.nav-link.router-link-active::after {
-    opacity: 1;
+  /* Shape: irregular slash polygon */
+  .link-poly--slash { @apply shape-slash; }
+
+  /* Shape: bevelled corner box */
+  .link-poly--chamfer { @apply shape-chamfer; }
+
+  /* Shape: cove corners */
+  .link-poly--cove {
+    @apply shape-cove;
+    --cove-r: 10px;
   }
 
-}
-
-/* Shape: irregular slash polygon */
-.link-poly--slash {
-  &::before {
-    clip-path: polygon(
-      100% 0%,
-      calc(100% - 15px) calc(100% - 15px),
-      100% calc(100% - 10px),
-      0% 100%,
-      15px 15px,
-      0% 10px
-    );
-  }
-  &::after {
-    clip-path: polygon(
-      100% 0%,
-      calc(100% - 15px) calc(100% - 15px),
-      100% calc(100% - 10px),
-      0% 100%,
-      15px 15px,
-      0% 10px,
-      2px 10px,
-      16px 14.5px,
-      1px calc(100% - 1px),
-      calc(100% - 3.5px) calc(100% - 10.5px),
-      calc(100% - 16px) calc(100% - 14.5px),
-      calc(100% - 1px) 1px,
-      3.5px 10.5px,
-      0% 10px
-    );
-  }
-}
-
-/* Shape: bevelled corner box */
-.link-poly--chamfer {
-  &::before {
-    clip-path: polygon(
-      10px 0%, calc(100% - 10px) 0%,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) 100%, 10px 100%,
-      0% calc(100% - 10px), 0% 10px
-    );
-  }
-  &::after {
-    clip-path: polygon(
-      10px 0%, calc(100% - 10px) 0%,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) 100%, 10px 100%,
-      0% calc(100% - 10px), 0% 10px,
-      1px 10px,
-      1px calc(100% - 10px),
-      10px calc(100% - 1px),
-      calc(100% - 10px) calc(100% - 1px),
-      calc(100% - 1px) calc(100% - 10px),
-      calc(100% - 1px) 10px,
-      calc(100% - 10px) 1px,
-      10px 1px,
-      1px 10px,
-      0 10px
-    );
-  }
-}
-
-.link-poly--cove {
-  &::before {
-    mask: radial-gradient(10px at 10px 10px,#0000 98%,#000) -10px -10px;
-  }
-  &::after {
-    mask:
-      radial-gradient(10px at 10px 10px,#0000 calc(98% - 1px),#000 calc(100% - 1px) 98%,#0000) -10px -10px,
-      linear-gradient(90deg,#000 2px,#0000 0) -1px 50% /100% calc(100% - 20px + 1px) repeat-x,
-      linear-gradient(      #000 2px,#0000 0) 50% -1px/calc(100% - 20px + 1px) 100% repeat-y;
-  }
-}
-
-.link-poly--notch {
-  &::before {
-    clip-path: polygon(
-      0 10px,
-      10px 10px,
-      10px 0,
-      calc(100% - 10px) 0,
-      calc(100% - 10px) 10px,
-      100% 10px,
-      100% calc(100% - 10px),
-      calc(100% - 10px) calc(100% - 10px),
-      calc(100% - 10px) 100%,
-      10px 100%,
-      10px calc(100% - 10px),
-      0 calc(100% - 10px)
-    );
-  }
-  &::after {
-    clip-path: polygon(
-      0 10px,
-      10px 10px,
-      10px 0,
-      calc(100% - 10px) 0,
-      calc(100% - 10px) 10px,
-      100% 10px,
-      100% calc(100% - 10px),
-      calc(100% - 10px) calc(100% - 10px),
-      calc(100% - 10px) 100%,
-      10px 100%,
-      10px calc(100% - 10px),
-      0 calc(100% - 10px),
-      0 10px,
-      1px calc(10px + 1px),
-      1px calc(100% - 10px - 1px),
-      calc(10px + 1px) calc(100% - 10px - 1px),
-      calc(10px + 1px) calc(100% - 1px),
-      calc(100% - 10px - 1px) calc(100% - 1px),
-      calc(100% - 10px - 1px) calc(100% - 10px - 1px),
-      calc(100% - 1px) calc(100% - 10px - 1px),
-      calc(100% - 1px) calc(10px + 1px),
-      calc(100% - 10px - 1px) calc(10px + 1px),
-      calc(100% - 10px - 1px) 1px,
-      calc(10px + 1px) 1px,
-      calc(10px + 1px) calc(10px + 1px),
-      1px calc(10px + 1px)
-    );
-  }
+  /* Shape: square inset notches */
+  .link-poly--notch { @apply shape-notch; }
 }
 
 

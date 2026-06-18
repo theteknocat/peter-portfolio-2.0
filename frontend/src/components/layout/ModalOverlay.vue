@@ -125,9 +125,9 @@ onUnmounted(() => {
 .modal-container {
   flex: 1;
   padding: 2.5rem;
-  --cove-fill: rgba(21, 21, 29, 0.92);
-  --cove-border: var(--color-accent);
-  @apply cove-corners cove-r-[17px];
+  --shape-fill: rgba(21, 21, 29, 0.92);
+  --shape-border: var(--color-accent);
+  @apply shape-cove cove-r-[17px];
 }
 
 /* Backdrop fades independently of the panel */

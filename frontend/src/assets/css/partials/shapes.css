@@ -1,21 +1,31 @@
-/* ─── Reusable polygon / corner shapes ──────────────────────────────────── */
+/* ─── Shape colour tokens ─────────────────────────────────────────────────── */
+
+@utility shape-bg-* {
+  --shape-fill: --value([color]);
+}
+
+@utility shape-border-* {
+  --shape-border: --value([color]);
+}
+
+@utility shape-inset-* {
+  --shape-inset: --value([length-percentage], [length]);
+}
+
+/* ─── Shared pseudo-element scaffolding ───────────────────────────────────── */
 
 /**
- * Cove corners: concave quarter-circle cuts at all four corners.
+ * Base scaffolding for two-layer pseudo-element shapes.
  *
- * ::before carries the filled background, ::after carries the border outline.
- * Remove background-color and border from the host element and set these vars:
- *
- *   --cove-fill    fill colour   (default: var(--color-primary-dark))
- *   --cove-border  border colour (default: var(--color-accent))
- *   --cove-r       corner radius (default: 10px — override via cove-r-[size])
- *
- * Compose with cove-r-* to change corner size: cove-corners cove-r-[16px]
+ * ::before carries the fill layer, ::after carries the border/outline layer.
+ * Colours default to --color-primary-dark (fill) and --color-accent (border);
+ * override with shape-bg-[color] / shape-border-[color] or set the CSS vars
+ * directly on the host element.
  *
  * isolation: isolate keeps z-index: -1 pseudo-elements inside the host's
  * stacking context so they don't bleed behind ancestor backgrounds.
  */
-@utility cove-corners {
+@utility shape-base {
   position: relative;
   isolation: isolate;
 
@@ -23,13 +33,33 @@
   &::after {
     content: '';
     position: absolute;
-    inset: 0;
+    inset: var(--shape-inset, 0);
     pointer-events: none;
-    z-index: -1;
   }
 
   &::before {
-    background: var(--cove-fill, var(--color-primary-dark));
+    z-index: -2;
+    background: var(--shape-fill, var(--color-primary-dark));
+  }
+
+  &::after {
+    z-index: -1;
+    background: var(--shape-border, var(--color-accent));
+  }
+}
+
+/* ─── Shape: cove corners ─────────────────────────────────────────────────── */
+
+/**
+ * Concave quarter-circle cuts at all four corners.
+ *
+ * ::before carries the filled background, ::after carries the border outline.
+ * Compose with cove-r-[size] to override the corner radius (default: 10px).
+ */
+@utility shape-cove {
+  @apply shape-base;
+
+  &::before {
     mask:
       radial-gradient(
         var(--cove-r, 10px) at var(--cove-r, 10px) var(--cove-r, 10px),
@@ -39,7 +69,6 @@
   }
 
   &::after {
-    background: var(--cove-border, var(--color-accent));
     mask:
       radial-gradient(
         var(--cove-r, 10px) at var(--cove-r, 10px) var(--cove-r, 10px),
@@ -53,7 +82,122 @@
   }
 }
 
-/** Sets the corner radius used by cove-corners. Usage: cove-r-[16px] */
+/** Sets the corner radius for shape-cove. Usage: cove-r-[16px] */
 @utility cove-r-* {
   --cove-r: --value([length]);
+}
+
+/* ─── Shape: slash ────────────────────────────────────────────────────────── */
+
+/** Irregular parallelogram slash polygon. */
+@utility shape-slash {
+  @apply shape-base;
+
+  &::before {
+    clip-path: polygon(
+      100% 0%,
+      calc(100% - 15px) calc(100% - 15px),
+      100% calc(100% - 10px),
+      0% 100%,
+      15px 15px,
+      0% 10px
+    );
+  }
+
+  &::after {
+    clip-path: polygon(
+      100% 0%,
+      calc(100% - 15px) calc(100% - 15px),
+      100% calc(100% - 10px),
+      0% 100%,
+      15px 15px,
+      0% 10px,
+      2px 10px,
+      16px 14.5px,
+      1px calc(100% - 1px),
+      calc(100% - 3.5px) calc(100% - 10.5px),
+      calc(100% - 16px) calc(100% - 14.5px),
+      calc(100% - 1px) 1px,
+      3.5px 10.5px,
+      0% 10px
+    );
+  }
+}
+
+/* ─── Shape: chamfer ──────────────────────────────────────────────────────── */
+
+/** Bevelled corner box. */
+@utility shape-chamfer {
+  @apply shape-base;
+
+  &::before {
+    clip-path: polygon(
+      10px 0%, calc(100% - 10px) 0%,
+      100% 10px, 100% calc(100% - 10px),
+      calc(100% - 10px) 100%, 10px 100%,
+      0% calc(100% - 10px), 0% 10px
+    );
+  }
+
+  &::after {
+    clip-path: polygon(
+      10px 0%, calc(100% - 10px) 0%,
+      100% 10px, 100% calc(100% - 10px),
+      calc(100% - 10px) 100%, 10px 100%,
+      0% calc(100% - 10px), 0% 10px,
+      1px 10px,
+      1px calc(100% - 10px),
+      10px calc(100% - 1px),
+      calc(100% - 10px) calc(100% - 1px),
+      calc(100% - 1px) calc(100% - 10px),
+      calc(100% - 1px) 10px,
+      calc(100% - 10px) 1px,
+      10px 1px,
+      1px 10px,
+      0 10px
+    );
+  }
+}
+
+/* ─── Shape: notch ────────────────────────────────────────────────────────── */
+
+/** Square inset notches at all four corners. */
+@utility shape-notch {
+  @apply shape-base;
+
+  &::before {
+    clip-path: polygon(
+      0 10px, 10px 10px, 10px 0,
+      calc(100% - 10px) 0, calc(100% - 10px) 10px,
+      100% 10px, 100% calc(100% - 10px),
+      calc(100% - 10px) calc(100% - 10px), calc(100% - 10px) 100%,
+      10px 100%, 10px calc(100% - 10px),
+      0 calc(100% - 10px)
+    );
+  }
+
+  &::after {
+    clip-path: polygon(
+      0 10px, 10px 10px, 10px 0,
+      calc(100% - 10px) 0, calc(100% - 10px) 10px,
+      100% 10px, 100% calc(100% - 10px),
+      calc(100% - 10px) calc(100% - 10px), calc(100% - 10px) 100%,
+      10px 100%, 10px calc(100% - 10px),
+      0 calc(100% - 10px),
+      0 10px,
+      1px calc(10px + 1px),
+      1px calc(100% - 10px - 1px),
+      calc(10px + 1px) calc(100% - 10px - 1px),
+      calc(10px + 1px) calc(100% - 1px),
+      calc(100% - 10px - 1px) calc(100% - 1px),
+      calc(100% - 10px - 1px) calc(100% - 10px - 1px),
+      calc(100% - 1px) calc(100% - 10px - 1px),
+      calc(100% - 1px) calc(10px + 1px),
+      calc(100% - 10px - 1px) calc(10px + 1px),
+      calc(100% - 10px - 1px) 1px,
+      calc(10px + 1px) 1px,
+      calc(10px + 1px) calc(10px + 1px),
+      1px calc(10px + 1px)
+    );
+  }
 }
