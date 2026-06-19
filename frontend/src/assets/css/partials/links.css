@@ -23,8 +23,8 @@ a {
 
 /* ─── Chevron decorators ─────────────────────────────────────────────────── */
 
-/* Default for all links without .btn or .link-poly */
-a:not(.btn, .link-poly) {
+/* Default for all links except with specific classes */
+a:not(.btn, .link-poly, .card-link) {
   margin: 0 15px;
 
   /* Shared pseudo-element scaffolding; mask-image defines the shape, background-color:
