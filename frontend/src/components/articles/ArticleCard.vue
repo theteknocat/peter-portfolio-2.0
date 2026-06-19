@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-  <RouterLink :to="`/articles/${item.slug}`" class="card-link">
+  <RouterLink :to="`/articles/${item.slug}`" class="card-link shape-chamfer shape-jitter">
     <div class="card-header">
       <h2 class="card-title">{{ item.title }}</h2>
       <p v-if="item.date" class="card-date">{{ formatDate(item.date) }}</p>

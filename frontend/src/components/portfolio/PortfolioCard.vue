@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <RouterLink :to="`/portfolio/${item.slug}`" class="card-link">
+  <RouterLink :to="`/portfolio/${item.slug}`" class="card-link shape-chamfer shape-jitter">
     <h2 class="card-title">{{ item.title }}</h2>
     <p v-if="item.summary" class="card-summary">{{ item.summary }}</p>
     <ul v-if="item.tags?.length" class="tag-list">

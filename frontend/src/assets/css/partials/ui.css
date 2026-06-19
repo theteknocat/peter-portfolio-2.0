@@ -11,15 +11,23 @@
 .card-link {
   display: block;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--color-border);
   color: inherit;
   text-decoration: none;
   transition: border-color 0.2s ease;
+  --shape-fill: var(--color-primary-dark);
+  --shape-border: var(--color-primary-light);
+  &::before,
+  &::after {
+    opacity: 0.2;
+  }
 }
 
 .card-link:hover,
 .card-link:focus-visible {
-  border-color: var(--color-accent);
+  &::before,
+  &::after {
+    opacity: 0.6;
+  }
 }
 
 /* Card heading — display font, accent colour, used in article and portfolio cards */

@@ -19,12 +19,12 @@ const currentYear = computed(() => new Date().getFullYear())
         Copyright &copy; {{ currentYear }} Peter Epp
       </p>
       <nav class="social-links" aria-label="Social links">
-        <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash link-poly--jitter" target="_blank" rel="noopener noreferrer">
+        <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash shape-jitter" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Drupal.org Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-html="stripTitle(siDrupal.svg)" class="social-icon" />
         </a>
-        <a v-tooltip="'Github Profile'" href="https://github.com/teknocat" class="social-link link-poly link-poly--slash link-poly--jitter" target="_blank" rel="noopener noreferrer">
+        <a v-tooltip="'Github Profile'" href="https://github.com/teknocat" class="social-link link-poly link-poly--slash shape-jitter" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Github Profile</span>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-html="stripTitle(siGithub.svg)" class="social-icon" />

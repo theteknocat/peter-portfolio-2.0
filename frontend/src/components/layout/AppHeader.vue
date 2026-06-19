@@ -11,16 +11,16 @@ const { isScrolled } = useScrolled()
 <template>
   <header :class="{ scrolled: isScrolled }">
     <div class="header-inner">
-      <RouterLink to="/" class="site-brand link-poly link-poly--notch link-poly--jitter">
+      <RouterLink to="/" class="site-brand link-poly link-poly--notch shape-jitter">
         <span class="brand-logo-wrapper">
           <img :src="logoSrc" alt="Peter Epp" class="brand-logo" />
         </span>
         <span class="brand-name" data-text="Peter Epp"><span class="brand-name__text">Peter Epp</span></span>
       </RouterLink>
       <nav aria-label="Main navigation" class="flex gap-2">
-        <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash link-poly--jitter">Portfolio</RouterLink>
-        <RouterLink to="/articles" class="nav-link link-poly link-poly--slash link-poly--jitter">Articles</RouterLink>
-        <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash link-poly--jitter">Job History</RouterLink>
+        <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash shape-jitter">Portfolio</RouterLink>
+        <RouterLink to="/articles" class="nav-link link-poly link-poly--slash shape-jitter">Articles</RouterLink>
+        <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash shape-jitter">Job History</RouterLink>
       </nav>
     </div>
   </header>
