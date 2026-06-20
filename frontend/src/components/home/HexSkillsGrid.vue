@@ -3,6 +3,7 @@
  * Interactive hexagonal grid of skill icons.
  * Row widths follow a diamond shape (widest in centre, tapering outward).
  * Mouse position tilts the whole grid away from the cursor in 3D.
+ * Icons spin on hover (velocity-based). Hexes can be drag-reordered.
  */
 import { computed, reactive, ref, onUnmounted, type Component } from 'vue'
 import type { Tag } from '@/types/portfolio'
@@ -23,8 +24,8 @@ const HEX_H = 2 * R             // vertex-to-vertex height = 120px
 const ROW_SPACING = 1.5 * R     // row centre-to-centre = 90px
 
 // ─── Mouse interaction parameters ────────────────────────────────────────────
-const TILT_MAX = 18   // degrees — max tilt at the grid edge
-const SIGMA = 110     // Gaussian falloff radius for per-hex scale (px)
+const TILT_MAX = 18     // degrees — max tilt at the grid edge
+const SIGMA = 110       // Gaussian falloff radius for per-hex scale (px)
 const SCALE_MIN = 0.80  // scale of hexes furthest from mouse
 
 // ─── Row distribution: full diamond [1..W..1] trimmed from the bottom ────────
@@ -51,14 +52,26 @@ function computeRows(n: number): number[] {
 // ─── Hex position data ────────────────────────────────────────────────────────
 interface HexItem {
   skill: Tag
-  x: number  // centre x relative to grid centre
-  y: number  // centre y relative to grid centre
-  index: number
+  x: number        // centre x relative to grid centre
+  y: number        // centre y relative to grid centre
+  index: number    // localSkills index — stable across drag, keys iconAnims/iconRotations
   siIcon: { svg: string; title: string } | null
   lucideIcon: Component | null
 }
 
-const rows = computed(() => computeRows(props.skills.length))
+// Local copy of skills — reordered by drag-and-drop
+const originalSkillsOrder = [...props.skills]
+const localSkills = ref<Tag[]>([...props.skills])
+
+const isReordered = computed(() =>
+  localSkills.value.some((s, i) => s.label !== originalSkillsOrder[i]?.label)
+)
+
+function resetOrder() {
+  localSkills.value = [...originalSkillsOrder]
+}
+
+const rows = computed(() => computeRows(localSkills.value.length))
 
 const hexItems = computed<HexItem[]>(() => {
   const r = rows.value
@@ -73,7 +86,7 @@ const hexItems = computed<HexItem[]>(() => {
     // adjacent rows of width W and W-1 are automatically offset by HEX_W/2.
     for (let col = 0; col < rowWidth; col++) {
       const x = (col - (rowWidth - 1) / 2) * HEX_W
-      const skill = props.skills[skillIdx++]
+      const skill = localSkills.value[skillIdx++]
       items.push({
         skill,
         x, y,
@@ -107,6 +120,8 @@ function onMouseMove(event: MouseEvent) {
 }
 
 function onMouseLeave() {
+  // Suppressed during drag — mousePos is managed by the window mousemove handler
+  if (isDragging.value) return
   mousePos.value = null
 }
 
@@ -142,10 +157,9 @@ function hexCellStyle(hex: HexItem) {
 // ─── Per-hex icon spin (velocity-based, not transition-based) ─────────────────
 // On hover: omega accelerates toward SPIN_MAX (like spinning a top).
 // On leave: two paths depending on how fast the icon is spinning:
-//   High speed → adjust omega so the natural sqrt-drag coast stops exactly on a
-//                multiple of 360°. The icon holds near max speed then brakes hard.
-//   Low speed  → didn't build enough momentum to reach the next boundary naturally;
-//                ease-out to nearest multiple with duration proportional to distance/speed.
+//   High speed → coast naturally under sqrt drag; stop at the first 360° boundary
+//               crossing where less than one full turn of momentum remains.
+//   Low speed  → ease-out to nearest multiple with duration proportional to distance/speed.
 //
 // Decay model: sqrt drag (dω/dt = -k·√ω).
 // Unlike exponential, this holds near max speed for longer then drops sharply to zero.
@@ -224,7 +238,6 @@ function spinTick(now: number) {
         anim.settleElapsed = 0
         anim.phase = 'settling'
       } else if (anim.omega <= 0) {
-        // Safety fallback — snap rotation to 0 (imperceptible if guided correctly)
         anim.rotation = 0
         anim.phase = 'idle'
       } else {
@@ -250,6 +263,7 @@ function spinTick(now: number) {
 }
 
 function startSpin(index: number) {
+  if (isDragging.value) return
   const anim = getIconAnim(index)
   anim.phase = 'spinup'
   anim.lastTime = performance.now()
@@ -277,27 +291,21 @@ function releaseSpin(index: number) {
 }
 
 function stopSpin(index: number) {
+  if (isDragging.value) return
   const anim = getIconAnim(index)
   if (anim.phase === 'held') { releaseSpin(index); return }
   if (anim.phase !== 'spinup') return
 
-  // How far to the next clean multiple of 360° from current position
   const remainder = anim.rotation % 360
   const distToNextBoundary = remainder < 0.01 ? 360 : (360 - remainder)
-
-  // Total rotation under sqrt drag: 2/(3k)·ω^1.5
   const naturalRemaining = (2 / (3 * SPIN_DECAY)) * Math.pow(anim.omega, 1.5)
 
   if (naturalRemaining >= distToNextBoundary) {
-    // Enough momentum to cross at least one boundary — coast naturally.
-    // spinTick will stop at the first crossing where < 1 full turn of momentum remains.
     anim.phase = 'spindown'
   } else {
-    // Not enough momentum to reach next boundary — ease-out to nearest multiple.
-    // Duration scales with distance/speed so the motion feels like continued momentum.
     const nearest = remainder <= 180
-      ? anim.rotation - remainder            // backward: closer to previous multiple
-      : anim.rotation + distToNextBoundary   // forward: closer to next multiple
+      ? anim.rotation - remainder
+      : anim.rotation + distToNextBoundary
     anim.settleFrom = anim.rotation
     anim.settleTarget = nearest
     const distance = Math.abs(nearest - anim.rotation)
@@ -307,37 +315,161 @@ function stopSpin(index: number) {
   }
 }
 
+// ─── Drag-to-reorder ──────────────────────────────────────────────────────────
+const isDragging = ref(false)
+const dragSourceIdx = ref<number | null>(null)
+const dragTargetIdx = ref<number | null>(null)
+const dragX = ref(0)
+const dragY = ref(0)
+
+// Finds the slot index whose centre is nearest to (mx, my) in grid-relative coords.
+function nearestHexIndex(mx: number, my: number): number {
+  let best = 0, bestDist = Infinity
+  hexItems.value.forEach((hex, i) => {
+    const dx = hex.x - mx, dy = hex.y - my
+    const d = dx * dx + dy * dy
+    if (d < bestDist) { bestDist = d; best = i }
+  })
+  return best
+}
+
+// During drag, real items are kept in stable localSkills order so Vue never needs to
+// insertBefore any DOM node — only left/top styles change, so CSS transitions always fire.
+// The ghost is rendered as a separate element (not in this list) for the same reason.
+const stableItems = computed<HexItem[]>(() => {
+  if (!isDragging.value || dragSourceIdx.value === null || dragTargetIdx.value === null) {
+    return hexItems.value
+  }
+  const src = dragSourceIdx.value
+  const tgt = dragTargetIdx.value
+  const slots = hexItems.value
+  const result: HexItem[] = []
+  let filteredIdx = 0
+  for (let localIdx = 0; localIdx < localSkills.value.length; localIdx++) {
+    if (localIdx === src) continue
+    // Map position in the without-source list to a visual slot, skipping the ghost slot.
+    const slot = filteredIdx < tgt ? filteredIdx : filteredIdx + 1
+    result.push({ ...slots[localIdx], x: slots[slot].x, y: slots[slot].y })
+    filteredIdx++
+  }
+  return result
+})
+
+// Ghost: the slot where the dragged item will land — rendered as a lone v-if div.
+const ghostHex = computed(() =>
+  isDragging.value && dragTargetIdx.value !== null
+    ? hexItems.value[dragTargetIdx.value]
+    : null
+)
+
+// The item being dragged — used to render the floating hex following the cursor.
+const dragSkill = computed(() =>
+  dragSourceIdx.value !== null ? hexItems.value[dragSourceIdx.value] : null
+)
+
+const floatingStyle = computed(() => ({
+  width: `${HEX_W}px`,
+  height: `${HEX_H}px`,
+  left: `${dragX.value - HEX_W / 2}px`,
+  top: `${dragY.value - HEX_H / 2}px`,
+}))
+
+function startDrag(index: number, event: MouseEvent) {
+  holdSpin(index)
+  dragSourceIdx.value = index
+  dragTargetIdx.value = index
+  isDragging.value = true
+  dragX.value = event.clientX
+  dragY.value = event.clientY
+  window.addEventListener('mousemove', onDragMove)
+  window.addEventListener('mouseup', onDragEnd)
+}
+
+function onDragMove(event: MouseEvent) {
+  dragX.value = event.clientX
+  dragY.value = event.clientY
+  if (!containerRef.value) return
+  const rect = containerRef.value.getBoundingClientRect()
+  const mx = event.clientX - rect.left - rect.width / 2
+  const my = event.clientY - rect.top - rect.height / 2
+  const inBounds =
+    mx >= -containerWidth.value / 2 - HEX_W &&
+    mx <= containerWidth.value / 2 + HEX_W &&
+    my >= -containerHeight.value / 2 - HEX_H &&
+    my <= containerHeight.value / 2 + HEX_H
+  if (inBounds) {
+    mousePos.value = { x: mx, y: my }
+    dragTargetIdx.value = nearestHexIndex(mx, my)
+  }
+  // Outside grid bounds: mousePos and dragTargetIdx stay frozen at last in-grid values
+}
+
+function onDragEnd(event: MouseEvent) {
+  if (!isDragging.value) return
+  const src = dragSourceIdx.value!
+  const tgt = dragTargetIdx.value!
+  if (src !== tgt) {
+    const skills = [...localSkills.value]
+    const [item] = skills.splice(src, 1)
+    skills.splice(tgt, 0, item)
+    localSkills.value = skills
+  }
+  // Clear all animation state — localSkills indices shift after reorder, so stale
+  // entries at old indices must not be inherited by items that land there.
+  iconAnims.clear()
+  if (spinRafId !== null) { cancelAnimationFrame(spinRafId); spinRafId = null }
+  Object.keys(iconRotations).forEach(k => { iconRotations[+k] = 0 })
+  Object.keys(iconHeld).forEach(k => { iconHeld[+k] = false })
+  isDragging.value = false
+  dragSourceIdx.value = null
+  dragTargetIdx.value = null
+  if (containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect()
+    const inside = event.clientX >= rect.left && event.clientX <= rect.right &&
+                   event.clientY >= rect.top  && event.clientY <= rect.bottom
+    if (!inside) mousePos.value = null
+  }
+  window.removeEventListener('mousemove', onDragMove)
+  window.removeEventListener('mouseup', onDragEnd)
+}
+
 onUnmounted(() => {
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
+  window.removeEventListener('mousemove', onDragMove)
+  window.removeEventListener('mouseup', onDragEnd)
 })
+
+defineExpose({ isReordered, resetOrder })
 </script>
 
 <template>
   <div
     ref="containerRef"
     class="hex-grid"
+    :class="{ dragging: isDragging }"
     :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px` }, gridStyle]"
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"
   >
+    <!-- Ghost: separate element so real items never move in the DOM -->
+    <div v-if="ghostHex" class="hex-cell hex-cell--ghost" :style="hexCellStyle(ghostHex)">
+      <div class="hex-border" />
+      <div class="hex-face" />
+    </div>
+
     <div
-      v-for="hex in hexItems"
-      :key="hex.index"
+      v-for="hex in stableItems"
+      :key="hex.skill.label"
       class="hex-cell"
       :style="hexCellStyle(hex)"
     >
-      <!--
-        hex-border: ring clip-path (outer hex CW + inner hex CCW) — draws a thin green
-        outline only; the centre is transparent.
-        hex-face: solid semi-transparent fill that sits inside the ring.
-      -->
       <div class="hex-border" />
       <div
         class="hex-face"
         :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
         @mouseenter="startSpin(hex.index)"
         @mouseleave="stopSpin(hex.index)"
-        @mousedown="holdSpin(hex.index)"
+        @mousedown="(e: MouseEvent) => startDrag(hex.index, e)"
         @mouseup="releaseSpin(hex.index)"
       >
         <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
@@ -357,6 +489,36 @@ onUnmounted(() => {
       </div>
     </div>
   </div>
+
+  <!--
+    Floating hex follows the cursor during drag.
+    Teleported to <body> to escape the grid's CSS transform, which would otherwise
+    break position:fixed for any child element.
+  -->
+  <Teleport to="body">
+    <div v-if="isDragging && dragSkill" class="hex-floating" :style="floatingStyle">
+      <div class="hex-border" />
+      <div class="hex-face">
+        <div
+          class="hex-icon-wrap"
+          :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)` }"
+        >
+          <span
+            v-if="dragSkill.siIcon"
+            class="hex-icon"
+            v-html="stripTitle(dragSkill.siIcon.svg)"
+            aria-hidden="true"
+          />
+          <component
+            v-else-if="dragSkill.lucideIcon"
+            :is="dragSkill.lucideIcon"
+            class="hex-icon"
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -368,7 +530,7 @@ onUnmounted(() => {
 
 .hex-cell {
   position: absolute;
-  transition: transform 200ms ease-out;
+  transition: left 200ms ease-out, top 200ms ease-out, transform 200ms ease-out;
 }
 
 .hex-border,
@@ -410,6 +572,19 @@ onUnmounted(() => {
   cursor: grab;
 }
 
+/* Ghost slot: faint placeholder showing where the dragged hex will land */
+.hex-cell--ghost .hex-border,
+.hex-cell--ghost .hex-face {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Disable all hex hover events while a drag is in progress */
+.hex-grid.dragging .hex-face {
+  pointer-events: none;
+  cursor: default;
+}
+
 /* Wrapper receives the JS-driven rotateY transform */
 .hex-icon-wrap {
   display: flex;
@@ -436,5 +611,13 @@ svg.hex-icon {
   height: 3rem;
   stroke: currentColor;
   fill: none;
+}
+
+/* Floating hex: follows cursor during drag; position:fixed via teleport to body */
+.hex-floating {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  cursor: grabbing;
 }
 </style>
