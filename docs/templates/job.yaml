@@ -1,0 +1,9 @@
+title: Job Title
+company: Company Name
+start: "YYYY-MM"
+end: "YYYY-MM"   # or: present
+summary: One or two sentence description of the role and responsibilities.
+skills:
+  - si: php
+    label: PHP
+  - label: DDEV

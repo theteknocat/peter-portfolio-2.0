@@ -1,0 +1,88 @@
+title: Project Title
+summary: One or two sentence description of what the project is and what problem it solves.
+featured: false
+
+# ─── Tags ─────────────────────────────────────────────────────────────────────
+# Each tag has a required `label` and an optional icon from one of two sources:
+#   si: <slug>      Simple Icons slug (brand/tech logos)
+#   lucide: <Name>  Lucide component name (generic/concept icons)
+# Omit both for a text-only tag.
+#
+# ── Simple Icons (si:) ────────────────────────────────────────────────────────
+#   php           alpinedotjs    vuedotjs
+#   drupal        javascript     typescript
+#   laravel       jquery         vite
+#   symfony       html5          git
+#   mysql         css            github
+#   python        bootstrap      tailwindcss
+#   docker        markdown       yaml
+#   linux         wordpress
+#
+# ── Lucide (lucide:) ──────────────────────────────────────────────────────────
+#   Plug          REST APIs / integrations
+#   Database      Generic databases / data stores
+#   Terminal      Shell / CLI / scripting
+#   Server        Infrastructure / DevOps / hosting
+#   RefreshCw     Sync / automation / background jobs
+#   Smartphone    Mobile / responsive
+# ──────────────────────────────────────────────────────────────────────────────
+
+tags:
+  - si: php
+    label: PHP
+  - si: drupal
+    label: Drupal
+  - si: laravel
+    label: Laravel
+  - si: symfony
+    label: Symfony
+  - si: mysql
+    label: MySQL
+  - si: python
+    label: Python
+  - si: docker
+    label: Docker
+  - si: alpinedotjs
+    label: Alpine.js
+  - si: vuedotjs
+    label: "Vue 3"
+  - si: typescript
+    label: TypeScript
+  - si: javascript
+    label: JavaScript
+  - si: jquery
+    label: jQuery
+  - si: html5
+    label: HTML5
+  - si: css
+    label: CSS
+  - si: bootstrap
+    label: Bootstrap
+  - si: tailwindcss
+    label: Tailwind CSS
+  - si: vite
+    label: Vite
+  - si: git
+    label: Git
+  - si: github
+    label: GitHub
+  - si: markdown
+    label: Markdown
+  - si: yaml
+    label: YAML
+  - lucide: Plug
+    label: REST APIs
+  - lucide: Database
+    label: Database
+  - lucide: Terminal
+    label: Bash
+  - lucide: Server
+    label: DevOps
+  - lucide: RefreshCw
+    label: Automation
+  - lucide: Smartphone
+    label: Mobile
+  - label: Twig
+  - label: SCSS
+  - label: "Slim 4"
+  - label: DDEV
