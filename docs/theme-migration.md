@@ -181,9 +181,27 @@ clip-path: polygon(10% 0%, 90% 0%, 100% 8%, 100% 92%, 90% 100%, 10% 100%, 0% 92%
     bouncy cubic-bezier curve
   - Icon: `rotateY(720deg)` over 3s ease-out (full spin)
 
-**Current technology list (14 items, hardcoded in Drupal template):**
-Drupal, Laravel, PHP, MySQL/MariaDB, HTML5, CSS3, JavaScript, jQuery, VueJS,
-Bootstrap, Agile/Scrum, Responsive Design, REST APIs, Symfony
+**Old site icon mappings (14 items, Font Awesome → new library):**
+
+| Label             | FA icon                | New library  | Slug / component |
+| ----------------- | ---------------------- | ------------ | ---------------- |
+| Drupal            | `fab fa-drupal`        | Simple Icons | `drupal`         |
+| Laravel           | `fab fa-laravel`       | Simple Icons | `laravel`        |
+| PHP               | `fab fa-php`           | Simple Icons | `php`            |
+| MySQL / MariaDB   | `fas fa-database`      | Lucide       | `Database`       |
+| HTML5             | `fab fa-html5`         | Simple Icons | `html5`          |
+| CSS3              | `fab fa-css3-alt`      | Simple Icons | `css3`           |
+| JavaScript        | `fab fa-js-square`     | Simple Icons | `javascript`     |
+| jQuery            | `fab fa-js-square`     | Simple Icons | `jquery`         |
+| VueJS             | `fab fa-vuejs`         | Simple Icons | `vuedotjs`       |
+| Bootstrap         | `fas fa-th`            | Simple Icons | `bootstrap`      |
+| Agile / Scrum     | `fas fa-sync-alt`      | Lucide       | `RefreshCw`      |
+| Responsive Design | `fas fa-mobile-alt`    | Lucide       | `Smartphone`     |
+| REST APIs         | `fas fa-plug`          | Lucide       | `Plug`           |
+| Symfony           | `fa-brands fa-symfony` | Simple Icons | `symfony`        |
+
+Simple Icons slugs match the package's own slug field (e.g. `vuedotjs` not `vuejs`).
+Lucide component names are PascalCase imports (`import { Plug } from '@lucide/vue'`).
 
 **Action needed:** The new `TechBadge.vue` component must map technology slugs
 (from YAML content) to icons. The planning doc lists new skills to add.
