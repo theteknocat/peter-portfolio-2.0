@@ -5,7 +5,7 @@
  * Mouse position tilts the whole grid away from the cursor in 3D.
  * Icons spin on hover (velocity-based). Hexes can be drag-reordered.
  */
-import { computed, reactive, ref, onUnmounted, type Component } from 'vue'
+import { computed, reactive, ref, watch, onUnmounted, type Component } from 'vue'
 import type { Tag } from '@/types/portfolio'
 import { siIcons } from '@/utils/techIcons'
 import { stripTitle } from '@/utils/svg'
@@ -67,9 +67,25 @@ const isReordered = computed(() =>
   localSkills.value.some((s, i) => s.label !== originalSkillsOrder[i]?.label)
 )
 
+let isResetting = false
+
 function resetOrder() {
+  isResetting = true
   localSkills.value = [...originalSkillsOrder]
+  // Flag cleared after Vue flushes — watch fires synchronously on assignment above
+  Promise.resolve().then(() => { isResetting = false })
 }
+
+const victoryActive = ref(false)
+let victoryTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(isReordered, (nowReordered, wasReordered) => {
+  if (wasReordered && !nowReordered && !isResetting) {
+    if (victoryTimer) clearTimeout(victoryTimer)
+    victoryActive.value = true
+    victoryTimer = setTimeout(() => { victoryActive.value = false }, 1400)
+  }
+})
 
 const rows = computed(() => computeRows(localSkills.value.length))
 
@@ -140,11 +156,13 @@ const gridStyle = computed(() => {
 })
 
 function hexCellStyle(hex: HexItem) {
-  const base = {
+  const base: Record<string, string> = {
     left: `${containerWidth.value / 2 + hex.x - HEX_W / 2}px`,
     top: `${containerHeight.value / 2 + hex.y - HEX_H / 2}px`,
     width: `${HEX_W}px`,
     height: `${HEX_H}px`,
+    '--vx': `${(hex.x * 0.52).toFixed(1)}px`,
+    '--vy': `${(hex.y * 0.52).toFixed(1)}px`,
   }
   if (!mousePos.value) return base
   const dx = hex.x - mousePos.value.x
@@ -375,6 +393,8 @@ const floatingStyle = computed(() => ({
 }))
 
 function startDrag(index: number, event: MouseEvent) {
+  if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
+  victoryActive.value = false
   holdSpin(index)
   dragSourceIdx.value = index
   dragTargetIdx.value = index
@@ -461,6 +481,7 @@ defineExpose({ isReordered, resetOrder })
       v-for="hex in stableItems"
       :key="hex.skill.label"
       class="hex-cell"
+      :class="{ 'hex-cell--victory': victoryActive }"
       :style="hexCellStyle(hex)"
     >
       <div class="hex-border" />
@@ -619,5 +640,52 @@ svg.hex-icon {
   pointer-events: none;
   z-index: 1000;
   cursor: grabbing;
+}
+
+/* Victory animation — triggered when user drags skills back to original order.
+ * Glow is on .hex-cell (not .hex-face) so drop-shadow can escape the clip-path. */
+.hex-cell--victory {
+  animation:
+    hex-victory-spread 1.4s linear forwards,
+    hex-victory-glow   1.4s ease-out forwards;
+}
+
+@keyframes hex-victory-spread {
+  /* Spread: ease-in-out so translate/scale decelerate into the peak — builds anticipation.
+   * Jiggle keyframes distributed across 0–45% (spread) then 45–66% (slam). */
+  0%   { translate: 0px 0px; scale: 1;    rotate:   0deg; animation-timing-function: ease-in-out; }
+  10%  {                                  rotate:   5deg; }
+  17%  {                                  rotate:  -6deg; }
+  23%  {                                  rotate:   8deg; }
+  29%  {                                  rotate:  -8deg; }
+  34%  {                                  rotate:  10deg; }
+  38%  {                                  rotate: -10deg; }
+  42%  {                                  rotate:  10deg; }
+  /* Peak — translate/scale float to a stop here, jiggle continues uninterrupted.
+   * ease-out on slam so it slams fast then eases into settle. */
+  45%  { translate: var(--vx) var(--vy); scale: 1.32;    animation-timing-function: ease-out; }
+  /* Slam: peak-frequency jiggle holds through impact */
+  47%  {                                  rotate: -10deg; }
+  50%  {                                  rotate:  10deg; }
+  53%  {                                  rotate: -10deg; }
+  56%  {                                  rotate:  10deg; }
+  59%  {                                  rotate: -10deg; }
+  62%  {                                  rotate:  10deg; }
+  64%  {                                  rotate:  -5deg; }
+  /* Impact: jiggle snaps to zero, slight overshoot */
+  66%  { translate: calc(var(--vx) * -0.07) calc(var(--vy) * -0.07); scale: 0.94; rotate: 0deg; animation-timing-function: ease-out; }
+  100% { translate: 0px 0px; scale: 1;    rotate: 0deg; }
+}
+
+@keyframes hex-victory-glow {
+  0%   { filter: none; }
+  45%  { filter: brightness(1.7) drop-shadow(0 0 8px var(--color-accent)); }
+  /* inner glow dims as hexes slam home */
+  64%  { filter: brightness(1.2) drop-shadow(0 0 3px var(--color-accent)); }
+  /* impact: outer green splash fires near-instantly */
+  66%  { filter: brightness(1.15) drop-shadow(0 0 42px #3dff7a) drop-shadow(0 0 14px var(--color-accent)); }
+  /* hold briefly so it reads, then slow retract */
+  78%  { filter: brightness(1.05) drop-shadow(0 0 28px #3dff7a) drop-shadow(0 0 8px var(--color-accent)); }
+  100% { filter: none; }
 }
 </style>

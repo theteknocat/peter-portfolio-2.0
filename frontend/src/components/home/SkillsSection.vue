@@ -42,8 +42,8 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <style scoped>
 .reset-order-btn {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 2rem;
+  right: 2rem;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
