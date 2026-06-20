@@ -68,6 +68,7 @@ const isReordered = computed(() =>
 )
 
 let isResetting = false
+let justDropped = false
 
 function resetOrder() {
   isResetting = true
@@ -281,7 +282,7 @@ function spinTick(now: number) {
 }
 
 function startSpin(index: number) {
-  if (isDragging.value) return
+  if (isDragging.value || justDropped) return
   const anim = getIconAnim(index)
   anim.phase = 'spinup'
   anim.lastTime = performance.now()
@@ -339,6 +340,8 @@ const dragSourceIdx = ref<number | null>(null)
 const dragTargetIdx = ref<number | null>(null)
 const dragX = ref(0)
 const dragY = ref(0)
+const dragOffsetX = ref(0)
+const dragOffsetY = ref(0)
 
 // Finds the slot index whose centre is nearest to (mx, my) in grid-relative coords.
 function nearestHexIndex(mx: number, my: number): number {
@@ -388,11 +391,12 @@ const dragSkill = computed(() =>
 const floatingStyle = computed(() => ({
   width: `${HEX_W}px`,
   height: `${HEX_H}px`,
-  left: `${dragX.value - HEX_W / 2}px`,
-  top: `${dragY.value - HEX_H / 2}px`,
+  left: `${dragX.value - dragOffsetX.value - HEX_W / 2}px`,
+  top: `${dragY.value - dragOffsetY.value - HEX_H / 2}px`,
 }))
 
 function startDrag(index: number, event: MouseEvent) {
+  if (event.button !== 0) return
   if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
   victoryActive.value = false
   holdSpin(index)
@@ -401,6 +405,11 @@ function startDrag(index: number, event: MouseEvent) {
   isDragging.value = true
   dragX.value = event.clientX
   dragY.value = event.clientY
+  // Use the element's actual rendered rect so the offset is correct under any 3D tilt.
+  const hexEl = event.currentTarget as HTMLElement
+  const hexRect = hexEl.getBoundingClientRect()
+  dragOffsetX.value = event.clientX - (hexRect.left + hexRect.width  / 2)
+  dragOffsetY.value = event.clientY - (hexRect.top  + hexRect.height / 2)
   window.addEventListener('mousemove', onDragMove)
   window.addEventListener('mouseup', onDragEnd)
 }
@@ -443,6 +452,8 @@ function onDragEnd(event: MouseEvent) {
   isDragging.value = false
   dragSourceIdx.value = null
   dragTargetIdx.value = null
+  justDropped = true
+  setTimeout(() => { justDropped = false }, 150)
   if (containerRef.value) {
     const rect = containerRef.value.getBoundingClientRect()
     const inside = event.clientX >= rect.left && event.clientX <= rect.right &&
