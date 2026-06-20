@@ -98,10 +98,6 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
 </template>
 
 <style scoped>
-.page-scene {
-  perspective: 1000px;
-}
-
 .page-layer {
   display: flex;
   flex-direction: column;
@@ -113,7 +109,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
 }
 
 .page-layer.is-modal-open {
-  transform: translate(calc(35vw - 5rem), calc(-35vh + 2rem)) scale(0.30) rotateY(-5deg) rotateX(-2deg);
+  transform: perspective(1000px) translate(calc(35vw - 5rem), calc(-35vh + 2rem)) scale(0.30) rotateY(-5deg) rotateX(-2deg);
   filter: brightness(0.65);
   box-shadow: 0 0 2px 1px var(--color-border);
   /* Exit transition — applied when .is-modal-open is added */
