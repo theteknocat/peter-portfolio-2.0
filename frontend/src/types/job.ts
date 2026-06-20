@@ -1,3 +1,5 @@
+import type { Tag } from '@/types/portfolio'
+
 export interface Job {
   slug: string
   title: string
@@ -5,5 +7,5 @@ export interface Job {
   start: string
   end: string
   summary?: string
-  skills?: string[]
+  skills?: Tag[]
 }

@@ -1,0 +1,94 @@
+<script setup lang="ts">
+/**
+ * Pill-style skill tag with an optional icon to the left of the label.
+ * Renders as a <li> so it drops directly into a .tag-list <ul>.
+ *
+ * Icon resolution order:
+ *   1. tag.si   — Simple Icons slug (e.g. 'php', 'vuedotjs') → SVG via v-html
+ *   2. tag.lucide — Lucide component name (e.g. 'Plug') → <component :is>
+ *   3. Neither  — label only
+ */
+import { computed, type Component } from 'vue'
+import type { Tag } from '@/types/portfolio'
+import { siIcons } from '@/utils/techIcons'
+import { stripTitle } from '@/utils/svg'
+import { Plug, RefreshCw, Smartphone, Database, Terminal, Server } from '@lucide/vue'
+
+const props = defineProps<{ tag: Tag }>()
+
+// Lucide components available for use in YAML (lucide: ComponentName).
+// Add imports above and entries here when new generic icons are needed.
+const lucideComponents: Record<string, Component> = {
+  Plug,
+  RefreshCw,
+  Smartphone,
+  Database,
+  Terminal,
+  Server,
+}
+
+const siIcon = computed(() =>
+  props.tag.si ? (siIcons[props.tag.si] ?? null) : null
+)
+
+const lucideComponent = computed(() =>
+  props.tag.lucide ? (lucideComponents[props.tag.lucide] ?? null) : null
+)
+</script>
+
+<template>
+  <li class="tech-badge">
+    <span
+      v-if="siIcon"
+      class="tech-badge__icon"
+      v-html="stripTitle(siIcon.svg)"
+      aria-hidden="true"
+    />
+    <component
+      v-else-if="lucideComponent"
+      :is="lucideComponent"
+      class="tech-badge__icon"
+      aria-hidden="true"
+    />
+    <span class="tech-badge__label">{{ tag.label }}</span>
+  </li>
+</template>
+
+<style scoped>
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0; /* override .tag-list li — each zone manages its own padding */
+}
+
+.tech-badge__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0.125rem 0.2rem 0.125rem 0.375rem;
+}
+
+/* SI icons: SVG is a child of the icon span */
+.tech-badge__icon :deep(svg) {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+/* Lucide icons: component renders the SVG as the root element with this class */
+svg.tech-badge__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tech-badge__label {
+  padding: 0.125rem 0.5rem 0.125rem 0.25rem;
+  line-height: 1;
+}
+
+/* Text-only badge — label is first child, restore full left padding */
+.tech-badge__label:first-child {
+  padding-inline-start: 0.5rem;
+}
+</style>

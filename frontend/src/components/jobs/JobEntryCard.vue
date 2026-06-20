@@ -4,6 +4,7 @@
  */
 import type { Job } from '@/types/job'
 import { formatJobDate } from '@/utils/date'
+import TechBadge from '@/components/ui/TechBadge.vue'
 
 defineProps<{
   item: Job
@@ -19,7 +20,7 @@ defineProps<{
     </div>
     <p v-if="item.summary" class="job-summary">{{ item.summary }}</p>
     <ul v-if="item.skills?.length" class="tag-list">
-      <li v-for="skill in item.skills" :key="skill">{{ skill }}</li>
+      <TechBadge v-for="skill in item.skills" :key="skill.label" :tag="skill" />
     </ul>
   </div>
 </template>

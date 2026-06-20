@@ -5,6 +5,7 @@
  */
 import { RouterLink } from 'vue-router'
 import type { PortfolioItem } from '@/types/portfolio'
+import TechBadge from '@/components/ui/TechBadge.vue'
 
 defineProps<{
   item: PortfolioItem
@@ -16,7 +17,7 @@ defineProps<{
     <h2 class="card-title">{{ item.title }}</h2>
     <p v-if="item.summary" class="card-summary">{{ item.summary }}</p>
     <ul v-if="item.tags?.length" class="tag-list">
-      <li v-for="tag in item.tags" :key="tag">{{ tag }}</li>
+      <TechBadge v-for="tag in item.tags" :key="tag.label" :tag="tag" />
     </ul>
   </RouterLink>
 </template>
