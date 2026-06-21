@@ -123,6 +123,15 @@ function resetOrder() {
   Promise.resolve().then(() => { isResetting = false })
 }
 
+function shuffleOrder() {
+  const arr = [...localSkills.value]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  localSkills.value = arr
+}
+
 const victoryActive = ref(false)
 let victoryTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -668,7 +677,7 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', onDragEnd)
 })
 
-defineExpose({ isReordered, resetOrder })
+defineExpose({ isReordered, resetOrder, shuffleOrder })
 </script>
 
 <template>

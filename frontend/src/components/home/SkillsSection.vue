@@ -4,7 +4,7 @@
  * Expects section.content from 'pages/skills.yaml'.
  */
 import { ref, computed } from 'vue'
-import { RotateCcw } from '@lucide/vue'
+import { RotateCcw, Shuffle } from '@lucide/vue'
 import type { ResolvedSection } from '@/types/page'
 import type { Tag } from '@/types/portfolio'
 import ContentCard from '@/components/ui/ContentCard.vue'
@@ -26,24 +26,39 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
       <h2 class="text-center">{{ content?.title ?? 'Skills' }}</h2>
       <HexSkillsGrid ref="gridRef" v-if="content?.skills?.length" :skills="content.skills" />
       <p v-else>Skills content not yet loaded.</p>
-      <button
-        v-if="gridRef?.isReordered"
-        class="reset-order-btn"
-        title="Reset order"
-        aria-label="Reset skill order"
-        @click="gridRef?.resetOrder()"
-      >
-        <RotateCcw :size="18" />
-      </button>
+      <div v-if="content?.skills?.length" class="skills-actions">
+        <button
+          class="skill-action-btn"
+          title="Shuffle skills"
+          aria-label="Shuffle skill order"
+          @click="gridRef?.shuffleOrder()"
+        >
+          <Shuffle :size="18" />
+        </button>
+        <button
+          v-if="gridRef?.isReordered"
+          class="skill-action-btn"
+          title="Reset order"
+          aria-label="Reset skill order"
+          @click="gridRef?.resetOrder()"
+        >
+          <RotateCcw :size="18" />
+        </button>
+      </div>
     </ContentCard>
   </section>
 </template>
 
 <style scoped>
-.reset-order-btn {
+.skills-actions {
   position: absolute;
   top: 2rem;
   right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.skill-action-btn {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -57,15 +72,15 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.reset-order-btn:hover,
-.reset-order-btn:focus-visible {
+.skill-action-btn:hover,
+.skill-action-btn:focus-visible {
   outline: none;
   color: var(--color-primary-light);
   border-color: var(--color-primary-light);
 }
 
-.reset-order-btn:hover svg,
-.reset-order-btn:focus-visible svg {
+.skill-action-btn:hover svg,
+.skill-action-btn:focus-visible svg {
   animation: icon-glitch 4s linear infinite;
 }
 </style>
