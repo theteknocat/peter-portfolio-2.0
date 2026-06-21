@@ -202,6 +202,79 @@ const mousePos = ref<{ x: number; y: number } | null>(null)
 // so victory animation end can restore tilt without waiting for a mousemove.
 const lastKnownMousePos = ref<{ x: number; y: number } | null>(null)
 
+// ─── Keyboard focus interaction ───────────────────────────────────────────────
+// Last-used wins: whichever of mouse/keyboard acted most recently controls tilt/scale.
+const controlSource = ref<'mouse' | 'keyboard' | null>(null)
+const focusedHexPos = ref<{ x: number; y: number } | null>(null)
+
+// Resolves to the position that should drive tilt and per-hex scaling.
+const effectivePos = computed(() =>
+  controlSource.value === 'keyboard' ? focusedHexPos.value : mousePos.value
+)
+
+// DOM refs for each rendered hex cell — populated by :ref callback in v-for.
+const hexCellEls = ref<(HTMLElement | null)[]>([])
+
+function blurFocusedHex() {
+  const el = document.activeElement as HTMLElement | null
+  if (el?.classList.contains('hex-cell')) el.blur()
+}
+
+function onHexFocus(hex: HexItem) {
+  focusedHexPos.value = { x: hex.x, y: hex.y }
+  controlSource.value = 'keyboard'
+}
+
+function onHexBlur() {
+  focusedHexPos.value = null
+  // Defer the controlSource clear so that tabbing to the next hex cell (which fires
+  // focus synchronously after this blur) can claim keyboard control first — if it did,
+  // focusedHexPos will already be non-null again and we leave controlSource alone.
+  Promise.resolve().then(() => {
+    if (focusedHexPos.value === null && controlSource.value === 'keyboard') {
+      controlSource.value = null
+    }
+  })
+}
+
+function onHexKeydown(event: KeyboardEvent, fromIdx: number) {
+  if (isDragging.value) return
+  const arrows = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
+  if (!arrows.includes(event.key)) return
+  event.preventDefault()
+
+  const items = hexItems.value
+  const n = items.length
+  if (n === 0) return
+
+  const current = items[fromIdx]
+  let targetIdx: number
+
+  if (event.key === 'ArrowLeft') {
+    targetIdx = (fromIdx - 1 + n) % n
+  } else if (event.key === 'ArrowRight') {
+    targetIdx = (fromIdx + 1) % n
+  } else {
+    const isUp = event.key === 'ArrowUp'
+    const targetY = current.y + (isUp ? -ROW_SPACING : ROW_SPACING)
+    const targetX = current.x + (isUp ? -HEX_W / 2 : HEX_W / 2)
+
+    const rowCandidates = items.filter(h => Math.abs(h.y - targetY) < ROW_SPACING / 2)
+
+    if (rowCandidates.length === 0) {
+      // No row above/below — wrap to last (up) or first (down)
+      targetIdx = isUp ? n - 1 : 0
+    } else {
+      const best = rowCandidates.reduce((a, b) =>
+        Math.abs(a.x - targetX) <= Math.abs(b.x - targetX) ? a : b
+      )
+      targetIdx = items.indexOf(best)
+    }
+  }
+
+  hexCellEls.value[targetIdx]?.focus()
+}
+
 function onMouseMove(event: MouseEvent) {
   if (!containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()
@@ -211,6 +284,7 @@ function onMouseMove(event: MouseEvent) {
   }
   mousePos.value = pos
   lastKnownMousePos.value = pos
+  controlSource.value = 'mouse'
 }
 
 function onMouseLeave() {
@@ -218,17 +292,18 @@ function onMouseLeave() {
   if (isDragging.value) return
   mousePos.value = null
   lastKnownMousePos.value = null
+  if (controlSource.value === 'mouse') controlSource.value = null
 }
 
 // Returns 3D tilt for the whole grid, tilting away from the mouse position.
 // nx/ny are normalised to [-1, 1] across the grid's half-dimensions.
 // rotateX(+θ) → top toward viewer / bottom away; rotateY(+θ) → right away / left toward.
 const gridStyle = computed(() => {
-  if (!mousePos.value) return { transform: 'perspective(900px)' }
+  if (!effectivePos.value) return { transform: 'perspective(900px)' }
   const halfW = containerWidth.value / 2
   const halfH = containerHeight.value / 2
-  const nx = halfW > 0 ? Math.max(-1, Math.min(1, mousePos.value.x / halfW)) : 0
-  const ny = halfH > 0 ? Math.max(-1, Math.min(1, mousePos.value.y / halfH)) : 0
+  const nx = halfW > 0 ? Math.max(-1, Math.min(1, effectivePos.value.x / halfW)) : 0
+  const ny = halfH > 0 ? Math.max(-1, Math.min(1, effectivePos.value.y / halfH)) : 0
   const rotX = (ny * TILT_MAX).toFixed(2)
   const rotY = (-nx * TILT_MAX).toFixed(2)
   return { transform: `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg)` }
@@ -243,9 +318,9 @@ function hexCellStyle(hex: HexItem) {
     '--vx': `${(hex.x * 0.52).toFixed(1)}px`,
     '--vy': `${(hex.y * 0.52).toFixed(1)}px`,
   }
-  if (!mousePos.value) return base
-  const dx = hex.x - mousePos.value.x
-  const dy = hex.y - mousePos.value.y
+  if (!effectivePos.value) return base
+  const dx = hex.x - effectivePos.value.x
+  const dy = hex.y - effectivePos.value.y
   const weight = Math.exp(-(dx * dx + dy * dy) / (2 * SIGMA * SIGMA))
   const scale = SCALE_MIN + (1.0 - SCALE_MIN) * weight
   return { ...base, transform: `scale(${scale.toFixed(3)})` }
@@ -538,6 +613,7 @@ function onDragMove(event: MouseEvent) {
   if (inBounds) {
     mousePos.value = { x: mx, y: my }
     lastKnownMousePos.value = { x: mx, y: my }
+    controlSource.value = 'mouse'
     dragTargetIdx.value = nearestHexIndex(mx, my)
   }
   // Outside grid bounds: mousePos and dragTargetIdx stay frozen at last in-grid values
@@ -612,12 +688,17 @@ defineExpose({ isReordered, resetOrder })
       </div>
 
       <div
-        v-for="hex in stableItems"
+        v-for="(hex, i) in stableItems"
         :key="hex.skill.label"
+        :ref="(el) => { hexCellEls[i] = el as HTMLElement | null }"
         class="hex-cell"
         tabindex="0"
         :class="{ 'hex-cell--victory': victoryActive }"
         :style="hexCellStyle(hex)"
+        @mouseenter="blurFocusedHex"
+        @focus="onHexFocus(hex)"
+        @blur="onHexBlur"
+        @keydown="(e) => onHexKeydown(e, i)"
       >
         <div class="hex-border" />
         <div
