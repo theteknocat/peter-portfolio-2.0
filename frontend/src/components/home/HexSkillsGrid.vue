@@ -297,6 +297,12 @@ function holdSpin(index: number) {
   iconHeld[index] = true
 }
 
+function resetSpin(index: number) {
+  iconAnims.delete(index)
+  iconRotations[index] = 0
+  iconHeld[index] = false
+}
+
 function releaseSpin(index: number) {
   const anim = getIconAnim(index)
   if (anim.phase !== 'held') return
@@ -395,23 +401,48 @@ const floatingStyle = computed(() => ({
   top: `${dragY.value - dragOffsetY.value - HEX_H / 2}px`,
 }))
 
-function startDrag(index: number, event: MouseEvent) {
-  if (event.button !== 0) return
+let dragPendingTimer: ReturnType<typeof setTimeout> | null = null
+let pendingDragCancelFn: (() => void) | null = null
+
+function startDrag(index: number, hexEl: HTMLElement, clientX: number, clientY: number) {
   if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
   victoryActive.value = false
-  holdSpin(index)
   dragSourceIdx.value = index
   dragTargetIdx.value = index
   isDragging.value = true
-  dragX.value = event.clientX
-  dragY.value = event.clientY
+  dragX.value = clientX
+  dragY.value = clientY
   // Use the element's actual rendered rect so the offset is correct under any 3D tilt.
-  const hexEl = event.currentTarget as HTMLElement
   const hexRect = hexEl.getBoundingClientRect()
-  dragOffsetX.value = event.clientX - (hexRect.left + hexRect.width  / 2)
-  dragOffsetY.value = event.clientY - (hexRect.top  + hexRect.height / 2)
+  dragOffsetX.value = clientX - (hexRect.left + hexRect.width  / 2)
+  dragOffsetY.value = clientY - (hexRect.top  + hexRect.height / 2)
   window.addEventListener('mousemove', onDragMove)
   window.addEventListener('mouseup', onDragEnd)
+}
+
+function onHexMouseDown(index: number, event: MouseEvent) {
+  if (event.button !== 0) return
+  // Capture element and coords now — event.currentTarget is nulled after this handler returns.
+  const hexEl = event.currentTarget as HTMLElement
+  const { clientX, clientY } = event
+
+  holdSpin(index)
+
+  const cancel = () => {
+    if (dragPendingTimer) { clearTimeout(dragPendingTimer); dragPendingTimer = null }
+    pendingDragCancelFn = null
+    resetSpin(index)
+  }
+  pendingDragCancelFn = cancel
+
+  dragPendingTimer = setTimeout(() => {
+    dragPendingTimer = null
+    pendingDragCancelFn = null
+    window.removeEventListener('mouseup', cancel)
+    startDrag(index, hexEl, clientX, clientY)
+  }, 150)
+
+  window.addEventListener('mouseup', cancel, { once: true })
 }
 
 function onDragMove(event: MouseEvent) {
@@ -466,6 +497,8 @@ function onDragEnd(event: MouseEvent) {
 
 onUnmounted(() => {
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
+  if (dragPendingTimer) clearTimeout(dragPendingTimer)
+  if (pendingDragCancelFn) window.removeEventListener('mouseup', pendingDragCancelFn)
   window.removeEventListener('mousemove', onDragMove)
   window.removeEventListener('mouseup', onDragEnd)
 })
@@ -501,7 +534,8 @@ defineExpose({ isReordered, resetOrder })
         :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
         @mouseenter="startSpin(hex.index)"
         @mouseleave="stopSpin(hex.index)"
-        @mousedown="(e: MouseEvent) => startDrag(hex.index, e)"
+        @mousedown="(e: MouseEvent) => onHexMouseDown(hex.index, e)"
+        @dragstart.prevent
         @mouseup="releaseSpin(hex.index)"
       >
         <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
