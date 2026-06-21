@@ -615,6 +615,7 @@ defineExpose({ isReordered, resetOrder })
         v-for="hex in stableItems"
         :key="hex.skill.label"
         class="hex-cell"
+        tabindex="0"
         :class="{ 'hex-cell--victory': victoryActive }"
         :style="hexCellStyle(hex)"
       >
@@ -793,8 +794,10 @@ defineExpose({ isReordered, resetOrder })
   clip-path: polygon(0% 50%, 10px 100%, calc(100% - 10px) 100%, 100% 50%, calc(100% - 10px) 0%, 10px 0%);
 }
 
-.hex-cell:hover {
+.hex-cell:hover,
+.hex-cell:focus-visible {
   z-index: 100;
+  outline: none;
   & .hex-border {
     background: var(--color-accent-light);
     transition: background 80ms ease-in;
@@ -806,6 +809,7 @@ defineExpose({ isReordered, resetOrder })
 }
 
 .hex-cell:hover,
+.hex-cell:focus-visible,
 .hex-floating {
   & .hex-label {
     opacity: 1;
