@@ -579,11 +579,11 @@ function startDrag(index: number, hexEl: HTMLElement, clientX: number, clientY: 
   const hexRect = hexEl.getBoundingClientRect()
   dragOffsetX.value = clientX - (hexRect.left + hexRect.width  / 2)
   dragOffsetY.value = clientY - (hexRect.top  + hexRect.height / 2)
-  window.addEventListener('mousemove', onDragMove)
-  window.addEventListener('mouseup', onDragEnd)
+  window.addEventListener('pointermove', onDragMove)
+  window.addEventListener('pointerup', onDragEnd)
 }
 
-function onHexMouseDown(index: number, event: MouseEvent) {
+function onHexPointerDown(index: number, event: PointerEvent) {
   if (event.button !== 0) return
   // Capture element and coords now — event.currentTarget is nulled after this handler returns.
   const hexEl = event.currentTarget as HTMLElement
@@ -601,14 +601,15 @@ function onHexMouseDown(index: number, event: MouseEvent) {
   dragPendingTimer = setTimeout(() => {
     dragPendingTimer = null
     pendingDragCancelFn = null
-    window.removeEventListener('mouseup', cancel)
+    window.removeEventListener('pointerup', cancel)
     startDrag(index, hexEl, clientX, clientY)
   }, 150)
 
-  window.addEventListener('mouseup', cancel, { once: true })
+  window.addEventListener('pointerup', cancel, { once: true })
 }
 
-function onDragMove(event: MouseEvent) {
+function onDragMove(event: PointerEvent) {
+  event.preventDefault()
   dragX.value = event.clientX
   dragY.value = event.clientY
   if (!containerRef.value) return
@@ -629,7 +630,7 @@ function onDragMove(event: MouseEvent) {
   // Outside grid bounds: mousePos and dragTargetIdx stay frozen at last in-grid values
 }
 
-function onDragEnd(event: MouseEvent) {
+function onDragEnd(event: PointerEvent) {
   if (!isDragging.value) return
   const src = dragSourceIdx.value!
   const tgt = dragTargetIdx.value!
@@ -656,8 +657,8 @@ function onDragEnd(event: MouseEvent) {
                    event.clientY >= rect.top  && event.clientY <= rect.bottom
     if (!inside) mousePos.value = null
   }
-  window.removeEventListener('mousemove', onDragMove)
-  window.removeEventListener('mouseup', onDragEnd)
+  window.removeEventListener('pointermove', onDragMove)
+  window.removeEventListener('pointerup', onDragEnd)
 }
 
 onMounted(() => {
@@ -673,9 +674,9 @@ onUnmounted(() => {
   resizeObserver?.disconnect()
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
   if (dragPendingTimer) clearTimeout(dragPendingTimer)
-  if (pendingDragCancelFn) window.removeEventListener('mouseup', pendingDragCancelFn)
-  window.removeEventListener('mousemove', onDragMove)
-  window.removeEventListener('mouseup', onDragEnd)
+  if (pendingDragCancelFn) window.removeEventListener('pointerup', pendingDragCancelFn)
+  window.removeEventListener('pointermove', onDragMove)
+  window.removeEventListener('pointerup', onDragEnd)
 })
 
 defineExpose({ isReordered, resetOrder, shuffleOrder })
@@ -716,7 +717,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
           :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
           @mouseenter="startSpin(hex.index)"
           @mouseleave="stopSpin(hex.index)"
-          @mousedown="(e: MouseEvent) => onHexMouseDown(hex.index, e)"
+          @pointerdown="(e: PointerEvent) => onHexPointerDown(hex.index, e)"
           @dragstart.prevent
           @mouseup="releaseSpin(hex.index)"
         >
