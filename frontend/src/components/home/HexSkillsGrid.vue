@@ -291,8 +291,9 @@ function onMouseMove(event: MouseEvent) {
     x: event.clientX - rect.left - rect.width / 2,
     y: event.clientY - rect.top - rect.height / 2,
   }
-  mousePos.value = pos
   lastKnownMousePos.value = pos
+  if (victoryActive.value) return
+  mousePos.value = pos
   controlSource.value = 'mouse'
 }
 
