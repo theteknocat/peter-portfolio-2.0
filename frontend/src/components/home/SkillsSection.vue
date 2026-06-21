@@ -57,6 +57,10 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 </template>
 
 <style scoped>
+.home-skills {
+  overflow: hidden;
+}
+
 .skill-action-btn {
   display: flex;
   align-items: center;

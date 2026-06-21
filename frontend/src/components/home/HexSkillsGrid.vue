@@ -92,7 +92,10 @@ function computeRows(n: number, maxWidth: number): number[] {
     if (rows[rows.length - 1] !== 1) return rows
   }
 
-  return [n]
+  // No orphan-free layout found — accept W=2 with an orphan rather than one overflow row
+  if (maxWidth >= 2) return buildBrickRows(n, 2)
+  // maxWidth === 1: single column
+  return Array(n).fill(1)
 }
 
 // ─── Hex position data ────────────────────────────────────────────────────────
@@ -216,9 +219,16 @@ const lastKnownMousePos = ref<{ x: number; y: number } | null>(null)
 const controlSource = ref<'mouse' | 'keyboard' | null>(null)
 const focusedHexPos = ref<{ x: number; y: number } | null>(null)
 
+// Keyboard-driven tilt only on devices with a fine pointer (mouse/trackpad).
+// On touch screens, tab-focus still moves the grid visually via the focus ring
+// but shouldn't tilt the whole grid unexpectedly.
+const keyboardTiltEnabled = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
 // Resolves to the position that should drive tilt and per-hex scaling.
 const effectivePos = computed(() =>
-  controlSource.value === 'keyboard' ? focusedHexPos.value : mousePos.value
+  controlSource.value === 'keyboard'
+    ? (keyboardTiltEnabled ? focusedHexPos.value : null)
+    : mousePos.value
 )
 
 // DOM refs for each rendered hex cell — populated by :ref callback in v-for.
@@ -284,7 +294,8 @@ function onHexKeydown(event: KeyboardEvent, fromIdx: number) {
   hexCellEls.value[targetIdx]?.focus()
 }
 
-function onMouseMove(event: MouseEvent) {
+function onMouseMove(event: PointerEvent) {
+  if (event.pointerType !== 'mouse') return
   if (!containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()
   const pos = {
@@ -622,9 +633,11 @@ function onDragMove(event: PointerEvent) {
     my >= -containerHeight.value / 2 - HEX_H &&
     my <= containerHeight.value / 2 + HEX_H
   if (inBounds) {
-    mousePos.value = { x: mx, y: my }
-    lastKnownMousePos.value = { x: mx, y: my }
-    controlSource.value = 'mouse'
+    if (event.pointerType === 'mouse') {
+      mousePos.value = { x: mx, y: my }
+      lastKnownMousePos.value = { x: mx, y: my }
+      controlSource.value = 'mouse'
+    }
     dragTargetIdx.value = nearestHexIndex(mx, my)
   }
   // Outside grid bounds: mousePos and dragTargetIdx stay frozen at last in-grid values
@@ -689,7 +702,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
       class="hex-grid"
       :class="{ dragging: isDragging }"
       :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px` }, gridStyle]"
-      @mousemove="onMouseMove"
+      @pointermove="onMouseMove"
       @mouseleave="onMouseLeave"
     >
       <!-- Ghost: separate element so real items never move in the DOM -->
@@ -787,6 +800,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 
 .hex-cell {
   position: absolute;
+  touch-action: none;
   transition: left 200ms ease-out, top 200ms ease-out, transform 200ms ease-out;
 }
 
@@ -887,7 +901,8 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 }
 
 .hex-cell:hover,
-.hex-cell:focus-visible {
+.hex-cell:focus-visible,
+.hex-floating {
   z-index: 100;
   outline: none;
   & .hex-border {
