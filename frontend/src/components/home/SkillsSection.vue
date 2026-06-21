@@ -23,51 +23,50 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <template>
   <section class="home-skills">
     <ContentCard>
-      <h2 class="text-center">{{ content?.title ?? 'Skills' }}</h2>
-      <HexSkillsGrid ref="gridRef" v-if="content?.skills?.length" :skills="content.skills" />
+      <h2 class="text-center relative">
+        {{ content?.title ?? 'Skills' }}
+        <div v-if="content?.skills?.length" class="skills-actions flex gap-2 items-center justify-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
+          <button
+            class="skill-action-btn"
+            title="Shuffle skills"
+            aria-label="Shuffle skill order"
+            @click="gridRef?.shuffleOrder()"
+          >
+            <Shuffle :size="18" />
+            <span class="text-sm pr-1">Shuffle</span>
+          </button>
+          <button
+            :disabled="!gridRef?.isReordered"
+            class="skill-action-btn"
+            title="Reset order"
+            aria-label="Reset skill order"
+            @click="gridRef?.resetOrder()"
+          >
+            <RotateCcw :size="18" />
+            <span class="text-sm pr-1">Reset</span>
+          </button>
+        </div>
+      </h2>
+      <template v-if="content?.skills?.length">
+        <p class="text-center text-sm">Try shuffling/re-ordering the skills then see if you can restore their original order.</p>
+        <HexSkillsGrid ref="gridRef" v-if="content?.skills?.length" :skills="content.skills" />
+      </template>
       <p v-else>Skills content not yet loaded.</p>
-      <div v-if="content?.skills?.length" class="skills-actions">
-        <button
-          class="skill-action-btn"
-          title="Shuffle skills"
-          aria-label="Shuffle skill order"
-          @click="gridRef?.shuffleOrder()"
-        >
-          <Shuffle :size="18" />
-        </button>
-        <button
-          v-if="gridRef?.isReordered"
-          class="skill-action-btn"
-          title="Reset order"
-          aria-label="Reset skill order"
-          @click="gridRef?.resetOrder()"
-        >
-          <RotateCcw :size="18" />
-        </button>
-      </div>
     </ContentCard>
   </section>
 </template>
 
 <style scoped>
-.skills-actions {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
 .skill-action-btn {
-  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.33rem;
   color: var(--color-accent);
   background: transparent;
   border: 0.06rem solid var(--color-accent);
-  border-radius: 50%;
+  border-radius: 50em;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
 }
