@@ -3,6 +3,7 @@
  * Portfolio item detail — rendered in the modal outlet.
  * Fetches the full item (including markdown body) by slug from the API.
  */
+import { watch, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useContent } from '@/composables/useContent'
 import type { PortfolioItem } from '@/types/portfolio'
@@ -13,6 +14,9 @@ const route = useRoute()
 const slug = route.params.slug as string
 
 const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
+
+const signalModalReady = inject<() => void>('signalModalReady', () => {})
+watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
 </script>
 
 <template>

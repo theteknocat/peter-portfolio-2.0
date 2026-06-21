@@ -3,15 +3,24 @@
  * Full-viewport overlay wrapper for second-level (detail) routes.
  * Renders the named "modal" RouterView, locks background scroll,
  * and handles close via button, backdrop click, or Escape key.
+ *
+ * Provides 'signalModalReady' for inner views to call once their content
+ * has loaded — the backdrop appears immediately, the panel only animates
+ * in after the signal fires.
  */
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, provide } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
-import { X } from '@lucide/vue'
+import { X, LoaderCircle } from '@lucide/vue'
 import { closeModal } from '@/composables/useModalNavigation'
 
 const route        = useRoute()
 const router       = useRouter()
 const modalWrapper = ref<HTMLElement | null>(null)
+const contentReady = ref(false)
+
+provide('signalModalReady', () => {
+  contentReady.value = true
+})
 
 let savedScrollY = 0
 let savedFocus: HTMLElement | null = null
@@ -31,6 +40,7 @@ watch(
   (isModal, wasModal) => {
     document.body.classList.toggle('modal-open', Boolean(isModal))
     if (isModal) {
+      contentReady.value = false
       savedScrollY = window.scrollY
       savedFocus   = document.activeElement as HTMLElement | null
       nextTick(() => {
@@ -54,8 +64,13 @@ onUnmounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="route.meta.modal" class="modal-backdrop" @click.self="close">
-      <div ref="modalWrapper" class="modal-wrapper" role="dialog" aria-modal="true" tabindex="-1">
-        <button class="modal-close" aria-label="Close" @click="close">
+      <Transition name="modal-spinner">
+        <div v-if="!contentReady" class="modal-loading">
+          <LoaderCircle :size="20" />
+        </div>
+      </Transition>
+      <div ref="modalWrapper" class="modal-wrapper" :class="{ 'panel-visible': contentReady }" role="dialog" aria-modal="true" tabindex="-1">
+        <button v-if="contentReady" class="modal-close" aria-label="Close" @click="close">
           <X :size="18" />
         </button>
         <div class="modal-container">
@@ -92,6 +107,17 @@ onUnmounted(() => {
   min-height: calc(100vh - 6rem);
   padding: 1.5rem 0;
   outline: none;
+  /* Starts in the panel-enter-from state — off-screen and invisible */
+  opacity: 0;
+  pointer-events: none;
+  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+.modal-wrapper.panel-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
 }
 
 .modal-close {
@@ -141,21 +167,38 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Panel sweeps in from bottom-left, rotating to flat as it settles */
-.modal-enter-active .modal-wrapper {
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.modal-enter-from .modal-wrapper {
-  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
-}
-
-/* Panel retreats to bottom-left — reverse of the entrance */
+/* Panel retreats to bottom-left when the backdrop closes.
+   Defined after .panel-visible so these win at equal specificity. */
 .modal-leave-active .modal-wrapper {
-  transition: transform 0.35s ease-in;
+  transition: transform 0.35s ease-in, opacity 0.35s ease;
 }
 
 .modal-leave-to .modal-wrapper {
   transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  opacity: 0;
+}
+
+/* Loading spinner — fixed to match the close button position */
+.modal-loading {
+  position: fixed;
+  top: 2.1rem;
+  right: calc(max(1.5rem, (100vw - 72rem) / 2) - 0.9rem);
+  z-index: 101;
+  color: var(--color-accent);
+  animation: spin 1s linear infinite;
+}
+
+.modal-spinner-enter-active,
+.modal-spinner-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-spinner-enter-from,
+.modal-spinner-leave-to {
+  opacity: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
