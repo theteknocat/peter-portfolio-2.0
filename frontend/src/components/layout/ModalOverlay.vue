@@ -62,7 +62,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Transition name="modal">
+  <Transition name="modal" @before-leave="(el: Element) => { el.scrollTop = 0 }">
     <div v-if="route.meta.modal" class="modal-backdrop" @click.self="close">
       <Transition name="modal-spinner">
         <div v-if="!contentReady" class="modal-loading">
@@ -110,7 +110,8 @@ onUnmounted(() => {
   /* Starts in the panel-enter-from state — off-screen and invisible */
   opacity: 0;
   pointer-events: none;
-  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  transform-origin: 0 100vh;
+  transform: perspective(1000px) translateX(-20vw) scale(0.30) rotateY(-5deg) rotateX(-2deg);
   transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
 }
 
@@ -162,6 +163,10 @@ onUnmounted(() => {
   transition: opacity 0.35s ease;
 }
 
+.modal-leave-active {
+  transition: opacity 0.5s ease 0.15s;
+}
+
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
@@ -170,11 +175,11 @@ onUnmounted(() => {
 /* Panel retreats to bottom-left when the backdrop closes.
    Defined after .panel-visible so these win at equal specificity. */
 .modal-leave-active .modal-wrapper {
-  transition: transform 0.35s ease-in, opacity 0.35s ease;
+  transition: transform 0.5s ease-in, opacity 0.35s ease 0.15;
 }
 
 .modal-leave-to .modal-wrapper {
-  transform: perspective(1200px) translate(-50vw, 50vh) scale(0.30) rotateX(-30deg) rotateY(-45deg);
+  transform: perspective(1000px) translateX(-20vw) scale(0.30) rotateY(-5deg) rotateX(-2deg);
   opacity: 0;
 }
 
