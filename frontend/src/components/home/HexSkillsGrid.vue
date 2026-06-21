@@ -632,6 +632,7 @@ defineExpose({ isReordered, resetOrder })
             />
           </div>
         </div>
+        <div class="hex-label">{{ hex.skill.label }}</div>
       </div>
     </div>
 
@@ -662,6 +663,7 @@ defineExpose({ isReordered, resetOrder })
             />
           </div>
         </div>
+        <div class="hex-label">{{ dragSkill.skill.label }}</div>
       </div>
     </Teleport>
   </div>
@@ -670,6 +672,7 @@ defineExpose({ isReordered, resetOrder })
 <style scoped>
 .hex-grid-wrapper {
   width: 100%;
+  user-select: none;
 }
 
 .hex-grid {
@@ -684,10 +687,44 @@ defineExpose({ isReordered, resetOrder })
 }
 
 .hex-border,
-.hex-face {
+.hex-face
+ {
   position: absolute;
   inset: 0;
   will-change: transform;
+}
+
+.hex-label {
+  position: absolute;
+  z-index: 10;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  will-change: opacity;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--color-primary-light);
+  white-space: nowrap;
+  padding: 0.25rem 1rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease-out 200ms;
+}
+
+.hex-label::before,
+.hex-label::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+.hex-label::after {
+  z-index: -1;
+}
+
+.hex-label::before {
+  z-index: -2;
 }
 
 /*
@@ -710,6 +747,22 @@ defineExpose({ isReordered, resetOrder })
   );
 }
 
+.hex-label::after {
+  background: var(--color-primary);
+  clip-path: polygon(
+    0%     50%,   10px              100%, calc(100% - 10px) 100%,
+    100%   50%,   calc(100% - 10px) 0%,   10px 0%,
+    11px   2px,
+    calc(100% - 11px) 2px,
+    calc(100% - 2px) 50%,
+    calc(100% - 11px) calc(100% - 2px),
+    11px calc(100% - 2px),
+    2px 50%,
+    11px 2px,
+    10px 0
+  );
+}
+
 /* Solid fill hex sits inside the border ring */
 .hex-face {
   transform: scale(0.95);
@@ -724,7 +777,13 @@ defineExpose({ isReordered, resetOrder })
   transition: background 6s ease-out 200ms;
 }
 
+.hex-label::before {
+  background: rgba(0, 29, 14, 0.95);
+  clip-path: polygon(0% 50%, 10px 100%, calc(100% - 10px) 100%, 100% 50%, calc(100% - 10px) 0%, 10px 0%);
+}
+
 .hex-cell:hover {
+  z-index: 100;
   & .hex-border {
     background: var(--color-accent-light);
     transition: background 80ms ease-in;
@@ -732,6 +791,19 @@ defineExpose({ isReordered, resetOrder })
   & .hex-face {
     background: rgba(255, 213, 43, 0.222);
     transition: background 80ms ease-in;
+  }
+}
+
+.hex-cell:hover,
+.hex-floating {
+  & .hex-label {
+    opacity: 1;
+    transition: opacity 80ms ease-in;
+    animation: nav-text-glitch 4s linear infinite;
+    &::before,
+    &::after {
+      animation: shape-glitch 5s linear infinite;
+    }
   }
 }
 
