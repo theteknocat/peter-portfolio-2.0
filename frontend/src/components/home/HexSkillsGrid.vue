@@ -699,6 +699,7 @@ defineExpose({ isReordered, resetOrder })
 .hex-border {
   transform: scale(0.95);
   background: var(--color-primary);
+  transition: background 6s ease-out 200ms;
   clip-path: polygon(
     50%    0%,    100%   25%,   100%   75%,
     50%    100%,  0%     75%,   0%     25%,
@@ -720,6 +721,18 @@ defineExpose({ isReordered, resetOrder })
   color: var(--color-primary-light);
   perspective: 100px;
   cursor: grab;
+  transition: background 6s ease-out 200ms;
+}
+
+.hex-cell:hover {
+  & .hex-border {
+    background: var(--color-accent-light);
+    transition: background 80ms ease-in;
+  }
+  & .hex-face {
+    background: rgba(255, 213, 43, 0.222);
+    transition: background 80ms ease-in;
+  }
 }
 
 /* Ghost slot: faint placeholder showing where the dragged hex will land */
