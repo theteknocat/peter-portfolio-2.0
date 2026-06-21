@@ -158,13 +158,12 @@ onUnmounted(() => {
 }
 
 /* Backdrop fades independently of the panel */
-.modal-enter-active,
-.modal-leave-active {
+.modal-enter-active {
   transition: opacity 0.35s ease;
 }
 
 .modal-leave-active {
-  transition: opacity 0.5s ease 0.15s;
+  transition: opacity 0.35s ease 0.15s;
 }
 
 .modal-enter-from,
