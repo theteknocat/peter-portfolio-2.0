@@ -18,7 +18,7 @@ const items = (props.section.items ?? []) as unknown as Article[]
     <ContentCard>
       <h2 class="text-center">Recent Writing</h2>
       <p v-if="items.length === 0">Articles will appear here once content is loaded.</p>
-      <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <ArticleCard v-for="item in items" :key="item.slug" :item="item" />
       </div>
     </ContentCard>
