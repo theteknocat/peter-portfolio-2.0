@@ -129,8 +129,12 @@ let victoryTimer: ReturnType<typeof setTimeout> | null = null
 watch(isReordered, (nowReordered, wasReordered) => {
   if (wasReordered && !nowReordered && !isResetting) {
     if (victoryTimer) clearTimeout(victoryTimer)
+    mousePos.value = null   // freeze tilt/scale to neutral for the duration
     victoryActive.value = true
-    victoryTimer = setTimeout(() => { victoryActive.value = false }, 1400)
+    victoryTimer = setTimeout(() => {
+      victoryActive.value = false
+      mousePos.value = lastKnownMousePos.value
+    }, 1400)
   }
 })
 
@@ -194,20 +198,26 @@ const containerHeight = computed(() => {
 // ─── Mouse interaction ────────────────────────────────────────────────────────
 const containerRef = ref<HTMLElement | null>(null)
 const mousePos = ref<{ x: number; y: number } | null>(null)
+// Tracks the last position the mouse was seen over the grid — never nulled,
+// so victory animation end can restore tilt without waiting for a mousemove.
+const lastKnownMousePos = ref<{ x: number; y: number } | null>(null)
 
 function onMouseMove(event: MouseEvent) {
   if (!containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()
-  mousePos.value = {
+  const pos = {
     x: event.clientX - rect.left - rect.width / 2,
     y: event.clientY - rect.top - rect.height / 2,
   }
+  mousePos.value = pos
+  lastKnownMousePos.value = pos
 }
 
 function onMouseLeave() {
   // Suppressed during drag — mousePos is managed by the window mousemove handler
   if (isDragging.value) return
   mousePos.value = null
+  lastKnownMousePos.value = null
 }
 
 // Returns 3D tilt for the whole grid, tilting away from the mouse position.
@@ -527,6 +537,7 @@ function onDragMove(event: MouseEvent) {
     my <= containerHeight.value / 2 + HEX_H
   if (inBounds) {
     mousePos.value = { x: mx, y: my }
+    lastKnownMousePos.value = { x: mx, y: my }
     dragTargetIdx.value = nearestHexIndex(mx, my)
   }
   // Outside grid bounds: mousePos and dragTargetIdx stay frozen at last in-grid values
