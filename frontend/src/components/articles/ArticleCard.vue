@@ -13,12 +13,12 @@ defineProps<{
 </script>
 
 <template>
-  <RouterLink :to="`/articles/${item.slug}`" class="card-link shape-chamfer shape-jitter">
+  <RouterLink :to="`/articles/${item.slug}`" class="card-link flex flex-col shape-chamfer shape-jitter">
     <div class="card-header">
       <h2 class="card-title">{{ item.title }}</h2>
-      <p v-if="item.date" class="card-date">{{ formatDate(item.date) }}</p>
     </div>
-    <p v-if="item.summary" class="card-summary">{{ item.summary }}</p>
+    <p class="card-summary flex-1">{{ item.summary || '&nbsp;' }}</p>
+    <p v-if="item.date" class="card-date">{{ formatDate(item.date) }}</p>
   </RouterLink>
 </template>
 
@@ -39,6 +39,6 @@ defineProps<{
   font-size: 0.75rem;
   font-family: var(--font-mono);
   color: var(--color-primary-light);
-  margin-left: auto;
+  text-align: right;
 }
 </style>

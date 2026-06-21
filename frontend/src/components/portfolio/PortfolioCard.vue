@@ -13,10 +13,10 @@ defineProps<{
 </script>
 
 <template>
-  <RouterLink :to="`/portfolio/${item.slug}`" class="card-link shape-chamfer shape-jitter">
+  <RouterLink :to="`/portfolio/${item.slug}`" class="card-link flex flex-col shape-chamfer shape-jitter">
     <h2 class="card-title">{{ item.title }}</h2>
-    <p v-if="item.summary" class="card-summary">{{ item.summary }}</p>
-    <ul v-if="item.tags?.length" class="tag-list">
+    <p class="card-summary grow">{{ item.summary || '&nbsp;' }}</p>
+    <ul v-if="item.tags?.length" class="tag-list justify-center">
       <TechBadge v-for="tag in item.tags" :key="tag.label" :tag="tag" />
     </ul>
   </RouterLink>
