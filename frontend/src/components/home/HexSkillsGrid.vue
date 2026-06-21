@@ -1,11 +1,13 @@
 <script setup lang="ts">
 /**
  * Interactive hexagonal grid of skill icons.
- * Row widths follow a diamond shape (widest in centre, tapering outward).
+ * Wide containers: hex/Catan shape (grows from top, peaks in middle, tapers to bottom).
+ * Narrow containers: brick pattern (alternating row widths, rectangular overall).
+ * Responds to container width changes via ResizeObserver.
  * Mouse position tilts the whole grid away from the cursor in 3D.
  * Icons spin on hover (velocity-based). Hexes can be drag-reordered.
  */
-import { computed, reactive, ref, watch, onUnmounted, type Component } from 'vue'
+import { computed, onMounted, reactive, ref, watch, onUnmounted, type Component } from 'vue'
 import type { Tag } from '@/types/portfolio'
 import { siIcons } from '@/utils/techIcons'
 import { stripTitle } from '@/utils/svg'
@@ -28,25 +30,69 @@ const TILT_MAX = 18     // degrees — max tilt at the grid edge
 const SIGMA = 110       // Gaussian falloff radius for per-hex scale (px)
 const SCALE_MIN = 0.80  // scale of hexes furthest from mouse
 
-// ─── Row distribution: full diamond [1..W..1] trimmed from the bottom ────────
-// For N skills, W = ceil(√N). Diamond sums to W²; surplus rows removed bottom-up
-// so narrower rows appear at the top, widest row radiates near centre.
-function computeRows(n: number): number[] {
-  if (n === 0) return []
-  const W = Math.ceil(Math.sqrt(n))
-  const diamond: number[] = []
-  for (let i = 1; i <= W; i++) diamond.push(i)
-  for (let i = W - 1; i >= 1; i--) diamond.push(i)
+// ─── Row distribution ─────────────────────────────────────────────────────────
+// Wide containers (maxWidth ≥ 5): hex/Catan shape — grows from top, peaks at W,
+//   tapers back down, with any remainder in a short final row.
+// Narrow containers (maxWidth < 5): brick — alternating [W, W-1] rows.
+// Adjacent rows always differ by ≤ 1, so hex nesting holds throughout.
 
-  let surplus = W * W - n
-  let hi = diamond.length - 1
-  while (surplus > 0) {
-    const take = Math.min(diamond[hi], surplus)
-    diamond[hi] -= take
-    surplus -= take
-    if (diamond[hi] === 0) hi--
+function buildHexRows(n: number, W: number): number[] {
+  const top: number[] = []
+  const bottom: number[] = []
+  let remaining = n - W
+  for (let w = W - 1; w >= 2 && remaining > 0; w--) {
+    if (remaining >= 2 * w) {
+      top.unshift(w)
+      bottom.push(w)
+      remaining -= 2 * w
+    } else if (remaining > w) {
+      top.unshift(w)
+      bottom.push(remaining - w)
+      remaining = 0
+    } else {
+      bottom.push(remaining)
+      remaining = 0
+    }
   }
-  return diamond.slice(0, hi + 1)
+  if (remaining > 0) bottom.push(remaining)
+  return [...top, W, ...bottom]
+}
+
+function buildBrickRows(n: number, W: number): number[] {
+  const rows: number[] = []
+  let remaining = n
+  let wide = false  // start with the shorter row (W-1) so the grid opens narrow
+  while (remaining > 0) {
+    const w = wide ? W : W - 1
+    rows.push(Math.min(w, remaining))
+    remaining -= Math.min(w, remaining)
+    wide = !wide
+  }
+  return rows
+}
+
+function computeRows(n: number, maxWidth: number): number[] {
+  if (n === 0 || maxWidth < 1) return []
+
+  if (maxWidth >= 5) {
+    // Hex mode: try W from maxWidth down, take first that gives ≥ 5 rows and no orphan
+    for (let W = maxWidth; W >= 5; W--) {
+      const rows = buildHexRows(n, W)
+      const last = rows.length - 1
+      // Also reject if the overflow dump is wider than the row above it — that means
+      // buildHexRows pushed too many remaining items into one bottom row, producing a
+      // shape that flares out instead of tapering. Try a larger W instead.
+      if (rows.length >= 5 && rows[last] !== 1 && rows[last] <= rows[last - 1]) return rows
+    }
+  }
+
+  // Brick mode fallback: alternating W / W-1, avoid single-item last row
+  for (let W = maxWidth; W >= 2; W--) {
+    const rows = buildBrickRows(n, W)
+    if (rows[rows.length - 1] !== 1) return rows
+  }
+
+  return [n]
 }
 
 // ─── Hex position data ────────────────────────────────────────────────────────
@@ -88,7 +134,18 @@ watch(isReordered, (nowReordered, wasReordered) => {
   }
 })
 
-const rows = computed(() => computeRows(localSkills.value.length))
+// ─── Responsive max row width (drives computeRows) ───────────────────────────
+const wrapperRef = ref<HTMLElement | null>(null)
+const availableWidth = ref(0)
+let resizeObserver: ResizeObserver | null = null
+
+const maxRowWidth = computed(() =>
+  availableWidth.value > 0
+    ? Math.max(1, Math.floor(availableWidth.value / HEX_W))
+    : Math.max(2, Math.ceil(Math.sqrt(localSkills.value.length)))
+)
+
+const rows = computed(() => computeRows(localSkills.value.length, maxRowWidth.value))
 
 const hexItems = computed<HexItem[]>(() => {
   const r = rows.value
@@ -99,10 +156,10 @@ const hexItems = computed<HexItem[]>(() => {
 
   r.forEach((rowWidth, rowIdx) => {
     const y = firstY + rowIdx * ROW_SPACING
-    // Centering each row gives natural hex stagger:
-    // adjacent rows of width W and W-1 are automatically offset by HEX_W/2.
+    const isLastRow = rowIdx === r.length - 1
     for (let col = 0; col < rowWidth; col++) {
       const x = (col - (rowWidth - 1) / 2) * HEX_W
+        - (isLastRow && lastRowNeedsOffset.value ? HEX_W / 2 : 0)
       const skill = localSkills.value[skillIdx++]
       items.push({
         skill,
@@ -117,6 +174,17 @@ const hexItems = computed<HexItem[]>(() => {
 })
 
 const containerWidth = computed(() => Math.max(...rows.value, 0) * HEX_W)
+
+// The centering formula staggers two adjacent rows by (W1 - W2) / 2 * HEX_W.
+// That lands on a half-hex boundary (proper hex nesting) only when W1 and W2 have
+// different parity. When both are odd or both are even, the shift is a whole-hex
+// multiple and the rows column-align instead of nesting. Interior rows are always
+// ±1 apart (guaranteed different parity), so only the last row can have this issue.
+const lastRowNeedsOffset = computed(() => {
+  const r = rows.value
+  if (r.length < 2) return false
+  return r[r.length - 2] % 2 === r[r.length - 1] % 2
+})
 
 const containerHeight = computed(() => {
   const r = rows.value
@@ -495,7 +563,17 @@ function onDragEnd(event: MouseEvent) {
   window.removeEventListener('mouseup', onDragEnd)
 }
 
+onMounted(() => {
+  if (wrapperRef.value) {
+    resizeObserver = new ResizeObserver(([entry]) => {
+      availableWidth.value = entry.contentRect.width
+    })
+    resizeObserver.observe(wrapperRef.value)
+  }
+})
+
 onUnmounted(() => {
+  resizeObserver?.disconnect()
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
   if (dragPendingTimer) clearTimeout(dragPendingTimer)
   if (pendingDragCancelFn) window.removeEventListener('mouseup', pendingDragCancelFn)
@@ -507,87 +585,93 @@ defineExpose({ isReordered, resetOrder })
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    class="hex-grid"
-    :class="{ dragging: isDragging }"
-    :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px` }, gridStyle]"
-    @mousemove="onMouseMove"
-    @mouseleave="onMouseLeave"
-  >
-    <!-- Ghost: separate element so real items never move in the DOM -->
-    <div v-if="ghostHex" class="hex-cell hex-cell--ghost" :style="hexCellStyle(ghostHex)">
-      <div class="hex-border" />
-      <div class="hex-face" />
-    </div>
-
+  <div ref="wrapperRef" class="hex-grid-wrapper">
     <div
-      v-for="hex in stableItems"
-      :key="hex.skill.label"
-      class="hex-cell"
-      :class="{ 'hex-cell--victory': victoryActive }"
-      :style="hexCellStyle(hex)"
+      ref="containerRef"
+      class="hex-grid"
+      :class="{ dragging: isDragging }"
+      :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px` }, gridStyle]"
+      @mousemove="onMouseMove"
+      @mouseleave="onMouseLeave"
     >
-      <div class="hex-border" />
-      <div
-        class="hex-face"
-        :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
-        @mouseenter="startSpin(hex.index)"
-        @mouseleave="stopSpin(hex.index)"
-        @mousedown="(e: MouseEvent) => onHexMouseDown(hex.index, e)"
-        @dragstart.prevent
-        @mouseup="releaseSpin(hex.index)"
-      >
-        <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
-          <span
-            v-if="hex.siIcon"
-            class="hex-icon"
-            v-html="stripTitle(hex.siIcon.svg)"
-            aria-hidden="true"
-          />
-          <component
-            v-else-if="hex.lucideIcon"
-            :is="hex.lucideIcon"
-            class="hex-icon"
-            aria-hidden="true"
-          />
-        </div>
+      <!-- Ghost: separate element so real items never move in the DOM -->
+      <div v-if="ghostHex" class="hex-cell hex-cell--ghost" :style="hexCellStyle(ghostHex)">
+        <div class="hex-border" />
+        <div class="hex-face" />
       </div>
-    </div>
-  </div>
 
-  <!--
-    Floating hex follows the cursor during drag.
-    Teleported to <body> to escape the grid's CSS transform, which would otherwise
-    break position:fixed for any child element.
-  -->
-  <Teleport to="body">
-    <div v-if="isDragging && dragSkill" class="hex-floating" :style="floatingStyle">
-      <div class="hex-border" />
-      <div class="hex-face">
+      <div
+        v-for="hex in stableItems"
+        :key="hex.skill.label"
+        class="hex-cell"
+        :class="{ 'hex-cell--victory': victoryActive }"
+        :style="hexCellStyle(hex)"
+      >
+        <div class="hex-border" />
         <div
-          class="hex-icon-wrap"
-          :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)` }"
+          class="hex-face"
+          :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
+          @mouseenter="startSpin(hex.index)"
+          @mouseleave="stopSpin(hex.index)"
+          @mousedown="(e: MouseEvent) => onHexMouseDown(hex.index, e)"
+          @dragstart.prevent
+          @mouseup="releaseSpin(hex.index)"
         >
-          <span
-            v-if="dragSkill.siIcon"
-            class="hex-icon"
-            v-html="stripTitle(dragSkill.siIcon.svg)"
-            aria-hidden="true"
-          />
-          <component
-            v-else-if="dragSkill.lucideIcon"
-            :is="dragSkill.lucideIcon"
-            class="hex-icon"
-            aria-hidden="true"
-          />
+          <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
+            <span
+              v-if="hex.siIcon"
+              class="hex-icon"
+              v-html="stripTitle(hex.siIcon.svg)"
+              aria-hidden="true"
+            />
+            <component
+              v-else-if="hex.lucideIcon"
+              :is="hex.lucideIcon"
+              class="hex-icon"
+              aria-hidden="true"
+            />
+          </div>
         </div>
       </div>
     </div>
-  </Teleport>
+
+    <!--
+      Floating hex follows the cursor during drag.
+      Teleported to <body> to escape the grid's CSS transform, which would otherwise
+      break position:fixed for any child element.
+    -->
+    <Teleport to="body">
+      <div v-if="isDragging && dragSkill" class="hex-floating" :style="floatingStyle">
+        <div class="hex-border" />
+        <div class="hex-face">
+          <div
+            class="hex-icon-wrap"
+            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)` }"
+          >
+            <span
+              v-if="dragSkill.siIcon"
+              class="hex-icon"
+              v-html="stripTitle(dragSkill.siIcon.svg)"
+              aria-hidden="true"
+            />
+            <component
+              v-else-if="dragSkill.lucideIcon"
+              :is="dragSkill.lucideIcon"
+              class="hex-icon"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
 </template>
 
 <style scoped>
+.hex-grid-wrapper {
+  width: 100%;
+}
+
 .hex-grid {
   position: relative;
   margin-inline: auto;
