@@ -206,12 +206,14 @@
 
 /** Glitches pseudo-element shapes intermittently while hovered/focused.
  *  Compose with any shape utility. Runs continuously while hover is held. */
-.shape-jitter {
-  &:hover::before,
-  &:focus-visible::before,
-  &:hover::after,
-  &:focus-visible::after {
-    animation: shape-glitch 5s linear infinite;
+@layer components {
+  .shape-jitter {
+    &:hover::before,
+    &:focus-visible::before,
+    &:hover::after,
+    &:focus-visible::after {
+      animation: shape-glitch 5s linear infinite;
+    }
   }
 }
 

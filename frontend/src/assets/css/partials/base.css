@@ -1,5 +1,7 @@
 /* ─── Base element styles ────────────────────────────────────────────────── */
 
+@layer base {
+
 strong, b {
   font-weight: 600;
 }
@@ -68,4 +70,6 @@ li + li {
 hr {
   border-color: var(--color-accent-light);
   opacity: 1;
+}
+
 }

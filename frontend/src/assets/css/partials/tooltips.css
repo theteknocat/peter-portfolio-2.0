@@ -1,5 +1,7 @@
 /* ─── Tooltips (v-tooltip directive) ─────────────────────────────────────── */
 
+@layer components {
+
 .tooltip-popup {
   position: fixed;
   z-index: 9999;
@@ -45,4 +47,6 @@
   &[data-side="top"]::before    { top:  2px; left: 2px; }
   &[data-side="right"]::before  { top:  2px; left: -4px; }
   &[data-side="left"]::before   { top:  2px; left:  2px; }
+}
+
 }

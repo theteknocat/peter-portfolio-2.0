@@ -115,6 +115,30 @@ Bootstrap's RFS system, colours become resolved hex values, etc. The SCSS source
   `<style scoped>` blocks in each `.vue` file
 - No Bootstrap. No utility-only approach — Tailwind for layout/spacing, scoped CSS for decoration.
 
+### CSS Cascade Layer Order
+
+```text
+scoped <style> in .vue files        ← always wins (unlayered + attribute specificity)
+unlayered global CSS                ← beats all layers (transitions, body state rules, @keyframes)
+@layer utilities                    ← Tailwind utilities (flex, p-4, text-xl…)
+@layer components                   ← reusable class patterns (.card-link, .nav-link…)
+@layer base                         ← element defaults (a, body, h1–h6, p…)
+```
+
+### Where to put new styles
+
+| Style type | Where |
+| --- | --- |
+| CSS custom properties, `@property`, `@font-face` | `tokens.css` or `fonts.css` — unlayered, no layer wrapper |
+| Element defaults (`a`, `body`, headings, margins) | `base.css` inside `@layer base` |
+| Reusable component classes (`.card-*`, `.btn`, `.tag-list`) | `ui.css` inside `@layer components` |
+| One-off component decoration, pseudo-elements, animations | `<style scoped>` in the `.vue` file |
+| Page transition classes (`.page-enter-active` etc.) | `transitions.css` — unlayered so they always win |
+| JS-toggled body state (`body.modal-open`) | unlayered in the relevant partial |
+| `@keyframes` | unlayered (layers don't affect keyframe registration) |
+
+**Tailwind utility override rule:** if a Tailwind utility class isn't winning over a global style, the global style is probably unlayered. Move it to the appropriate `@layer`, or use the `!` prefix (`!flex`) as a last resort.
+
 ---
 
 ## Icon Conventions

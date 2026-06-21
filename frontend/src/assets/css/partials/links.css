@@ -1,5 +1,7 @@
 /* ─── Base link styles ───────────────────────────────────────────────────── */
 
+@layer base {
+
 a {
   display: inline-block;
   position: relative;
@@ -67,6 +69,8 @@ a:not(.btn, .link-poly, .card-link) {
     &::before { transform: translateY(-50%) translateX(-180%); }
     &::after  { transform: translateY(-50%) translateX(180%); }
   }
+}
+
 }
 
 /* ─── Poly link shapes (.link-poly + shape modifier + optional transition) ─── */

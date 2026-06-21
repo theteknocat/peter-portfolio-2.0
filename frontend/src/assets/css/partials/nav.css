@@ -1,16 +1,15 @@
 /* ─── Nav links ──────────────────────────────────────────────────────────── */
 
-.nav-link {
-  @apply px-3 py-2 font-medium;
-  color: var(--color-accent);
-}
+@layer components {
+  .nav-link {
+    @apply px-3 py-2 font-medium;
+    color: var(--color-accent);
 
-/* Colour override — specificity needs element selector to beat a:not(.btn):hover */
-a.nav-link {
-  &:hover,
-  &:focus-visible,
-  &.router-link-active {
-    color: var(--color-primary-light);
+    &:hover,
+    &:focus-visible,
+    &.router-link-active {
+      color: var(--color-primary-light);
+    }
   }
 }
 

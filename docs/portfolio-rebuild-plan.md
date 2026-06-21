@@ -11,7 +11,7 @@
 
 **Done — visual system (substantially exceeds original plan):**
 
-- CSS architecture: Tailwind 4 + custom property tokens + scoped component styles
+- CSS architecture: Tailwind 4 + custom property tokens + scoped component styles; global partials organised into `@layer base` / `@layer components` / unlayered so Tailwind utilities override predictably (see CLAUDE.md § CSS Architecture)
 - Animated SVG tile background with `bg-scroll` CSS keyframe (replaced porting the PNG)
 - Glitch spot overlay (`useBackgroundGlitch.ts`): SVG turbulence masks, radial-gradient soft edges
 - Lightning streak overlay (`useBackgroundStreaks.ts`): lattice-following glow pulses with forking at turn vertices
