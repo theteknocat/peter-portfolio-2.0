@@ -47,6 +47,7 @@ footer {
     position: sticky;
     bottom: 0;
     z-index: 40;
+    height: var(--footer-height);
   }
 }
 

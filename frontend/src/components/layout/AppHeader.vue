@@ -75,6 +75,10 @@ header {
   z-index: 50;
   background-color: var(--color-primary-dark);
   border-bottom: 1px solid var(--color-primary);
+  /* Fixed height (desktop) so the home left panel can size against it. */
+  @media (min-width: 768px) {
+    height: var(--header-height);
+  }
   transition:
     background-color 0.3s cubic-bezier(0.19, 1, 0.22, 1),
     box-shadow 0.3s cubic-bezier(0.19, 1, 0.22, 1);

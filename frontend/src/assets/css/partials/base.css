@@ -2,6 +2,14 @@
 
 @layer base {
 
+/* Smooth in-page scrolling for hash nav (home section links). Respect
+   reduced-motion. scroll-margin-top on targets keeps the sticky header clear. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 strong, b {
   font-weight: 600;
 }

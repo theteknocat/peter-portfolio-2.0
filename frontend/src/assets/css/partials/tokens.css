@@ -21,6 +21,18 @@
   --color-link-hover:     var(--color-primary-light);
 }
 
+/* ─── Layout tokens ──────────────────────────────────────────────────────── */
+
+/* Fixed chrome heights — single source of truth for the sticky home left panel
+   to compute its height between header and footer. Only enforced at min-width
+   768px (see AppHeader/AppFooter); the values match the natural desktop height.
+   ponytail: hardcoded — header height never changes. Add a ResizeObserver that
+   writes these vars only if the chrome ever becomes dynamically sized. */
+:root {
+  --header-height: 4.95rem;
+  --footer-height: 4.25rem;
+}
+
 /* ─── Typography tokens ──────────────────────────────────────────────────── */
 
 :root {

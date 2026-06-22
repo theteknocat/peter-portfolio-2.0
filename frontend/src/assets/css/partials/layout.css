@@ -11,8 +11,14 @@ body.modal-open {
     flex-direction: column;
     max-width: 72rem;
     margin-inline: auto;
-    padding: 0 1.5rem 2rem;
+    padding: 0 1rem 2rem;
     /* Shared perspective context for 3D card flip transitions */
     perspective: 1200px;
+  }
+
+  @media (min-width: 768px) {
+    .view-container {
+      padding-inline: 1.5rem;
+    }
   }
 }
