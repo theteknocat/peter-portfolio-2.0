@@ -40,6 +40,16 @@ footer {
   background-color: var(--color-primary-dark);
 }
 
+/* Pin to viewport bottom on non-mobile; content scrolls behind the opaque bg.
+   z-index sits below the header (50). */
+@media (min-width: 768px) {
+  footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+  }
+}
+
 .footer-inner {
   display: flex;
   align-items: center;
