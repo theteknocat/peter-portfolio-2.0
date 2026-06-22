@@ -560,6 +560,67 @@ The site is a client-side Vue 3 SPA — crawlers get a near-empty `index.html` u
 - `sitemap.xml` — can be generated at build time by a `vite-ssg` hook
 - Per-route `<title>` and `<meta description>` tags via `useHead` (bundled with `vite-ssg`)
 
+### Gaps to resolve before implementing
+
+- **Social / discovery metadata not yet scoped.** `useHead` can emit it, but the
+  list above omits Open Graph + Twitter Card tags (link previews when a page is
+  shared), `<link rel="canonical">`, and JSON-LD structured data
+  (`Person` for the home page, `Article` / `BlogPosting` for articles,
+  `CreativeWork` for portfolio items). These are worth adding for a portfolio.
+- **Build-time content access for dynamic routes.** `vite-ssg` pre-renders at
+  *build time*, but routes like `/portfolio/{slug}` and `/articles/{slug}` get
+  their data from the PHP API at runtime. Two things need deciding:
+  1. *Route enumeration* — `vite-ssg`'s `includedRoutes` hook must be given the
+     full slug list so it knows which pages to generate. That list has to come
+     from the flat-file content (read the content dir, or hit a manifest
+     endpoint) during the build.
+  2. *Data availability* — the content must be present and readable when
+     `npm run build` runs (API reachable, or read the YAML/Markdown files
+     directly at build time). Decide which, since content lives outside the repo
+     and is rsynced separately.
+
+### Client-side animation vs. SSG (hydration + SEO)
+
+Anything that renders differently on the server than on the client's *first*
+paint causes a **hydration mismatch** (Vue warns and patches the DOM). Known
+offenders here:
+
+- `IntroTerminal`'s typewriter (`Math.random()` timing, growing string)
+- Any `Date`-based or random rendering added later
+
+Rules to follow:
+
+1. **Server output must contain the full text** — crawlers read the SSG HTML, so
+   the complete subtitle/body must be present in the static file (not an empty
+   string the typewriter fills in later). This is also what makes the content
+   count for SEO.
+2. **First client render must equal the server render** — so the typewriter must
+   *not* start during render/hydration. Start it in `onMounted` (runs only in the
+   browser, after hydration), reading the already-present full text.
+3. **Avoid the flash** — if the full text renders visibly and then `onMounted`
+   clears it to begin typing, the user sees a flash of complete text first. Fix:
+   the to-be-typed text is in the DOM for SEO but visually hidden by default
+   (e.g. `opacity: 0` / `visibility: hidden`), and `onMounted` controls
+   visibility — reveal-and-type on the animated first load, reveal-in-full
+   otherwise. No-JS visitors and crawlers still get the real content; the only
+   thing CSS hides is the pre-animation flash. Keep the hidden text identical to
+   the visible copy (mirrored, not keyword-stuffed) so it reads as legitimate.
+
+### Build output & deploy workflow
+
+The generated static HTML is a **build artifact, not source** — output it to a
+gitignored folder (e.g. `frontend/dist/`) and never commit it. Because the pages
+are rendered from content at build time, the deploy flow for a **content-only**
+change is:
+
+1. rsync the updated content into place (it lives outside the repo).
+2. Re-run `npm run build` so `vite-ssg` regenerates every static page from the
+   new content.
+3. Deploy the freshly built `dist/` output.
+
+i.e. a content edit alone is not enough — it only goes live after a rebuild
+regenerates the affected static pages.
+
 ---
 
 ## Bot & LLM Mitigation
