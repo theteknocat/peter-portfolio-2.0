@@ -58,7 +58,7 @@ const navItems = computed(() =>
     <p v-else-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <div class="home-grid">
-        <div class="home-left">
+        <div class="home-left md:pb-4">
           <PageTitle>{{ introTitle }}</PageTitle>
           <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
             <a
@@ -118,6 +118,7 @@ const navItems = computed(() =>
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-block: 0.75rem 1.25rem;
 }
 
 /* Keep section tops clear of the sticky header when scrolled to via hash. */
