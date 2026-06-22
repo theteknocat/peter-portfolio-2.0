@@ -307,8 +307,10 @@ function onHexKeydown(event: KeyboardEvent, fromIdx: number) {
 
 function onMouseMove(event: PointerEvent) {
   if (event.pointerType !== 'mouse') return
-  if (!containerRef.value) return
-  const rect = containerRef.value.getBoundingClientRect()
+  if (!wrapperRef.value) return
+  // Wrapper is the hit area (full container width); grid is centred within it on
+  // both axes, so wrapper-centre == grid-centre and pos stays in hex coordinates.
+  const rect = wrapperRef.value.getBoundingClientRect()
   const pos = {
     x: event.clientX - rect.left - rect.width / 2,
     y: event.clientY - rect.top - rect.height / 2,
@@ -708,14 +710,17 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 </script>
 
 <template>
-  <div ref="wrapperRef" class="hex-grid-wrapper">
+  <div
+    ref="wrapperRef"
+    class="hex-grid-wrapper"
+    @pointermove="onMouseMove"
+    @mouseleave="onMouseLeave"
+  >
     <div
       ref="containerRef"
       class="hex-grid"
       :class="{ dragging: isDragging }"
       :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px`, '--hex-r': R }, gridStyle]"
-      @pointermove="onMouseMove"
-      @mouseleave="onMouseLeave"
     >
       <!-- Ghost: separate element so real items never move in the DOM -->
       <div v-if="ghostHex" class="hex-cell hex-cell--ghost" :style="hexCellStyle(ghostHex)">
