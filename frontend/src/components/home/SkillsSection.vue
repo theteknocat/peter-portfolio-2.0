@@ -27,7 +27,7 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
         {{ content?.title ?? 'Skills' }}
         <div v-if="content?.skills?.length" class="skills-actions flex gap-2 items-center justify-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
           <button
-            class="skill-action-btn"
+            class="btn shape-chamfer shape-jitter"
             title="Shuffle skills"
             aria-label="Shuffle skill order"
             @click="gridRef?.shuffleOrder()"
@@ -37,7 +37,7 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
           </button>
           <button
             :disabled="!gridRef?.isReordered"
-            class="skill-action-btn"
+            class="btn shape-chamfer shape-jitter"
             title="Reset order"
             aria-label="Reset skill order"
             @click="gridRef?.resetOrder()"
@@ -59,31 +59,5 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <style scoped>
 .home-skills {
   overflow: hidden;
-}
-
-.skill-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.33rem;
-  color: var(--color-accent);
-  background: transparent;
-  border: 0.06rem solid var(--color-accent);
-  border-radius: 50em;
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-
-.skill-action-btn:hover,
-.skill-action-btn:focus-visible {
-  outline: none;
-  color: var(--color-primary-light);
-  border-color: var(--color-primary-light);
-}
-
-.skill-action-btn:hover svg,
-.skill-action-btn:focus-visible svg {
-  animation: icon-glitch 4s linear infinite;
 }
 </style>
