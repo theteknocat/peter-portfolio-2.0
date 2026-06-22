@@ -22,6 +22,11 @@
     &:nth-child(5) { animation-delay: 0.4s; }
     &:nth-child(6) { animation-delay: 0.5s; }
   }
+
+  /* Home left panel (nav + terminal): mobile default = scale + opacity. */
+  .home-intro-group {
+    animation: left-panel-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 /* Leaves flow so entering page can occupy the same space during cross-fade.
@@ -42,6 +47,24 @@
   .content-card {
     animation: card-flip-out 0.25s ease both;
     transform-origin: top center;
+  }
+
+  /* Home left panel (nav + terminal): mobile default = scale + opacity. */
+  .home-intro-group {
+    animation: left-panel-leave 0.3s ease both;
+  }
+}
+
+/* Desktop: the left panel flips along its left edge instead, mirroring the
+   content-card flip but hinged on the vertical axis. */
+@media (width >= theme(--breakpoint-md)) {
+  .page-enter-active .home-intro-group {
+    animation: left-panel-flip-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: left center;
+  }
+  .page-leave-active .home-intro-group {
+    animation: left-panel-flip-out 0.25s ease both;
+    transform-origin: left center;
   }
 }
 
@@ -72,4 +95,26 @@
 @keyframes card-flip-out {
   from { opacity: 1; transform: rotateX(0deg); }
   to   { opacity: 0; transform: rotateX(-90deg); }
+}
+
+/* Left panel — mobile: scale + opacity (opacity in early, out late). */
+@keyframes left-panel-enter {
+  from { opacity: 0; transform: scale(0); }
+  25%  { opacity: 1; }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes left-panel-leave {
+  from { opacity: 1; transform: scale(1); }
+  75%  { opacity: 1; }
+  to   { opacity: 0; transform: scale(0); }
+}
+
+/* Left panel — desktop: flip in/out hinged on the left edge. */
+@keyframes left-panel-flip-in {
+  from { opacity: 0; transform: rotateY(-90deg); }
+  to   { opacity: 1; transform: rotateY(0deg); }
+}
+@keyframes left-panel-flip-out {
+  from { opacity: 1; transform: rotateY(0deg); }
+  to   { opacity: 0; transform: rotateY(90deg); }
 }

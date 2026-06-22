@@ -60,22 +60,24 @@ const navItems = computed(() =>
       <div class="home-grid">
         <div class="home-left md:pb-4">
           <PageTitle class="home-title">{{ introTitle }}</PageTitle>
-          <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
-            <a
-              v-for="item in navItems"
-              :key="item.type"
-              :href="`#${item.type}`"
-              class="btn shape-chamfer shape-jitter"
-            >
-              <component :is="item.icon" :size="18" />
-              <span class="text-sm">{{ item.label }}</span>
-            </a>
-          </nav>
-          <component
-            v-if="introSection"
-            :is="resolveSection('intro')"
-            :section="introSection"
-          />
+          <div class="home-intro-group">
+            <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
+              <a
+                v-for="item in navItems"
+                :key="item.type"
+                :href="`#${item.type}`"
+                class="btn shape-chamfer shape-jitter"
+              >
+                <component :is="item.icon" :size="18" />
+                <span class="text-sm">{{ item.label }}</span>
+              </a>
+            </nav>
+            <component
+              v-if="introSection"
+              :is="resolveSection('intro')"
+              :section="introSection"
+            />
+          </div>
         </div>
         <div class="home-right">
           <component
@@ -150,11 +152,21 @@ const navItems = computed(() =>
     font-size: 1.925rem;
   }
 
-  /* Sticky panel filling the gap between sticky header and footer. */
+  /* Sticky panel filling the gap between sticky header and footer.
+     perspective: shared 3D context for the intro group's left-edge flip. */
   .home-left {
     position: sticky;
     top: var(--header-height);
     height: calc(100svh - var(--header-height) - var(--footer-height));
+    display: flex;
+    flex-direction: column;
+    perspective: 1200px;
+  }
+
+  /* Intro group carries the flex sizing the terminal relies on to fill height. */
+  .home-intro-group {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
   }
