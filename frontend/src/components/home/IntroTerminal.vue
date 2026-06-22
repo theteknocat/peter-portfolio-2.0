@@ -95,10 +95,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Old-terminal look: transparent fill (the dark body bg shows through), green
-   chamfer border ring, monospace text in bright green with a soft green glow. */
+/* Old-terminal look: glass fill matching the content cards, green chamfer border
+   ring, monospace text in bright green with a soft green glow. */
 .intro-terminal {
-  --shape-fill: transparent;
+  --shape-fill: var(--color-bg-glass);
   --shape-border: var(--color-primary);
   font-family: var(--font-mono);
   font-size: 0.9rem;

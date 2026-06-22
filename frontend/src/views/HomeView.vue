@@ -59,7 +59,7 @@ const navItems = computed(() =>
     <template v-else-if="data">
       <div class="home-grid">
         <div class="home-left md:pb-4">
-          <PageTitle>{{ introTitle }}</PageTitle>
+          <PageTitle class="home-title">{{ introTitle }}</PageTitle>
           <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
             <a
               v-for="item in navItems"
@@ -117,8 +117,15 @@ const navItems = computed(() =>
 .section-nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   margin-block: 0.75rem 1.25rem;
+}
+
+/* Home title sits in the narrow left pane — drop it from h1 to h3 scale.
+   Class arrives on PageTitle's root via attribute fallthrough. */
+.home-title {
+  font-size: calc(1.3175rem + 0.81vw);
 }
 
 /* Keep section tops clear of the sticky header when scrolled to via hash. */
@@ -132,6 +139,10 @@ const navItems = computed(() =>
     display: grid;
     grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
     align-items: start;
+  }
+
+  .home-title {
+    font-size: 1.925rem;
   }
 
   /* Sticky panel filling the gap between sticky header and footer. */
