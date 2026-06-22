@@ -23,7 +23,7 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <template>
   <section class="home-skills">
     <ContentCard>
-      <h2 class="text-center relative">
+      <h2 class="relative">
         {{ content?.title ?? 'Skills' }}
         <div v-if="content?.skills?.length" class="skills-actions flex gap-2 items-center justify-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
           <button
@@ -48,7 +48,7 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
         </div>
       </h2>
       <template v-if="content?.skills?.length">
-        <p class="text-center text-sm">Try shuffling/re-ordering the skills then see if you can restore their original order.</p>
+        <p class="text-center text-sm mb-8">Try shuffling/re-ordering the skills then see if you can restore their original order.</p>
         <HexSkillsGrid ref="gridRef" v-if="content?.skills?.length" :skills="content.skills" />
       </template>
       <p v-else>Skills content not yet loaded.</p>

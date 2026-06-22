@@ -13,7 +13,7 @@ defineProps<{
 <template>
   <div v-specular-highlight class="content-card">
     <div class="card-endcap top"></div>
-    <div class="content-card-inner">
+    <div class="content-card-inner p-5 lg:p-8">
       <slot />
     </div>
     <div class="card-endcap bottom"></div>
@@ -31,10 +31,6 @@ defineProps<{
   /* 3D transforms will be applied to this element during page transitions */
   transform-style: preserve-3d;
   backface-visibility: hidden;
-}
-
-.content-card .content-card-inner {
-  padding: 2rem;
 }
 
 /* Placeholder corner brackets — will be replaced with endcap divs matching

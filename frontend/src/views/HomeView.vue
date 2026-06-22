@@ -96,6 +96,9 @@ const navItems = computed(() =>
 
 .view-container {
   gap: 1.5rem;
+  /* Home gets more room than the standard 72rem; capped so it stays sane on
+     wide displays (90rem ≈ 1440px, safe for high-DPI/scaled laptops). */
+  max-width: 90rem;
 }
 
 /* Mobile: single stacked column (unchanged behaviour). */

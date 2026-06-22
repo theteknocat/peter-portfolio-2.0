@@ -20,14 +20,25 @@ const lucideComponents: Record<string, Component> = {
 }
 
 // ─── Pointy-top hex geometry (px) ────────────────────────────────────────────
-const R = 60
-const HEX_W = R * Math.sqrt(3)  // flat-to-flat width  ≈ 103.9px
-const HEX_H = 2 * R             // vertex-to-vertex height = 120px
-const ROW_SPACING = 1.5 * R     // row centre-to-centre = 90px
+// R (circumradius) scales with the container so hexes shrink on narrow screens
+// (~4-5 across on mobile) and cap at MAX_R on wide ones. Everything below derives
+// from R, so the whole grid scales from this one value.
+const MAX_R = 60        // hex size on wide containers (current/desktop size)
+const MIN_R = 30        // floor so very narrow screens stay legible
+// ponytail: linear scale; 0.13 keeps ~4-5 across in the shrink band. Tune here.
+const R = computed(() => {
+  const w = availableWidth.value
+  if (w <= 0) return MAX_R
+  return Math.max(MIN_R, Math.min(MAX_R, w * 0.13))
+})
+const HEX_W = computed(() => R.value * Math.sqrt(3))  // flat-to-flat width
+const HEX_H = computed(() => R.value * 2)             // vertex-to-vertex height
+const ROW_SPACING = computed(() => R.value * 1.5)     // row centre-to-centre
 
 // ─── Mouse interaction parameters ────────────────────────────────────────────
 const TILT_MAX = 18     // degrees — max tilt at the grid edge
-const SIGMA = 110       // Gaussian falloff radius for per-hex scale (px)
+// Gaussian falloff radius for per-hex scale; proportional to R (110px at MAX_R).
+const SIGMA = computed(() => R.value * (110 / 60))
 const SCALE_MIN = 0.80  // scale of hexes furthest from mouse
 
 // ─── Row distribution ─────────────────────────────────────────────────────────
@@ -157,7 +168,7 @@ let resizeObserver: ResizeObserver | null = null
 
 const maxRowWidth = computed(() =>
   availableWidth.value > 0
-    ? Math.max(1, Math.floor(availableWidth.value / HEX_W))
+    ? Math.max(1, Math.floor(availableWidth.value / HEX_W.value))
     : Math.max(2, Math.ceil(Math.sqrt(localSkills.value.length)))
 )
 
@@ -165,17 +176,17 @@ const rows = computed(() => computeRows(localSkills.value.length, maxRowWidth.va
 
 const hexItems = computed<HexItem[]>(() => {
   const r = rows.value
-  const totalHeight = (r.length - 1) * ROW_SPACING
+  const totalHeight = (r.length - 1) * ROW_SPACING.value
   const firstY = -totalHeight / 2
   const items: HexItem[] = []
   let skillIdx = 0
 
   r.forEach((rowWidth, rowIdx) => {
-    const y = firstY + rowIdx * ROW_SPACING
+    const y = firstY + rowIdx * ROW_SPACING.value
     const isLastRow = rowIdx === r.length - 1
     for (let col = 0; col < rowWidth; col++) {
-      const x = (col - (rowWidth - 1) / 2) * HEX_W
-        - (isLastRow && lastRowNeedsOffset.value ? HEX_W / 2 : 0)
+      const x = (col - (rowWidth - 1) / 2) * HEX_W.value
+        - (isLastRow && lastRowNeedsOffset.value ? HEX_W.value / 2 : 0)
       const skill = localSkills.value[skillIdx++]
       items.push({
         skill,
@@ -189,7 +200,7 @@ const hexItems = computed<HexItem[]>(() => {
   return items
 })
 
-const containerWidth = computed(() => Math.max(...rows.value, 0) * HEX_W)
+const containerWidth = computed(() => Math.max(...rows.value, 0) * HEX_W.value)
 
 // The centering formula staggers two adjacent rows by (W1 - W2) / 2 * HEX_W.
 // That lands on a half-hex boundary (proper hex nesting) only when W1 and W2 have
@@ -204,7 +215,7 @@ const lastRowNeedsOffset = computed(() => {
 
 const containerHeight = computed(() => {
   const r = rows.value
-  return r.length === 0 ? 0 : (r.length - 1) * ROW_SPACING + HEX_H
+  return r.length === 0 ? 0 : (r.length - 1) * ROW_SPACING.value + HEX_H.value
 })
 
 // ─── Mouse interaction ────────────────────────────────────────────────────────
@@ -275,10 +286,10 @@ function onHexKeydown(event: KeyboardEvent, fromIdx: number) {
     targetIdx = (fromIdx + 1) % n
   } else {
     const isUp = event.key === 'ArrowUp'
-    const targetY = current.y + (isUp ? -ROW_SPACING : ROW_SPACING)
-    const targetX = current.x + (isUp ? -HEX_W / 2 : HEX_W / 2)
+    const targetY = current.y + (isUp ? -ROW_SPACING.value : ROW_SPACING.value)
+    const targetX = current.x + (isUp ? -HEX_W.value / 2 : HEX_W.value / 2)
 
-    const rowCandidates = items.filter(h => Math.abs(h.y - targetY) < ROW_SPACING / 2)
+    const rowCandidates = items.filter(h => Math.abs(h.y - targetY) < ROW_SPACING.value / 2)
 
     if (rowCandidates.length === 0) {
       // No row above/below — wrap to last (up) or first (down)
@@ -332,17 +343,17 @@ const gridStyle = computed(() => {
 
 function hexCellStyle(hex: HexItem) {
   const base: Record<string, string> = {
-    left: `${containerWidth.value / 2 + hex.x - HEX_W / 2}px`,
-    top: `${containerHeight.value / 2 + hex.y - HEX_H / 2}px`,
-    width: `${HEX_W}px`,
-    height: `${HEX_H}px`,
+    left: `${containerWidth.value / 2 + hex.x - HEX_W.value / 2}px`,
+    top: `${containerHeight.value / 2 + hex.y - HEX_H.value / 2}px`,
+    width: `${HEX_W.value}px`,
+    height: `${HEX_H.value}px`,
     '--vx': `${(hex.x * 0.52).toFixed(1)}px`,
     '--vy': `${(hex.y * 0.52).toFixed(1)}px`,
   }
   if (!effectivePos.value) return base
   const dx = hex.x - effectivePos.value.x
   const dy = hex.y - effectivePos.value.y
-  const weight = Math.exp(-(dx * dx + dy * dy) / (2 * SIGMA * SIGMA))
+  const weight = Math.exp(-(dx * dx + dy * dy) / (2 * SIGMA.value * SIGMA.value))
   const scale = SCALE_MIN + (1.0 - SCALE_MIN) * weight
   return { ...base, transform: `scale(${scale.toFixed(3)})` }
 }
@@ -569,10 +580,11 @@ const dragSkill = computed(() =>
 )
 
 const floatingStyle = computed(() => ({
-  width: `${HEX_W}px`,
-  height: `${HEX_H}px`,
-  left: `${dragX.value - dragOffsetX.value - HEX_W / 2}px`,
-  top: `${dragY.value - dragOffsetY.value - HEX_H / 2}px`,
+  '--hex-r': R.value,
+  width: `${HEX_W.value}px`,
+  height: `${HEX_H.value}px`,
+  left: `${dragX.value - dragOffsetX.value - HEX_W.value / 2}px`,
+  top: `${dragY.value - dragOffsetY.value - HEX_H.value / 2}px`,
 }))
 
 let dragPendingTimer: ReturnType<typeof setTimeout> | null = null
@@ -628,10 +640,10 @@ function onDragMove(event: PointerEvent) {
   const mx = event.clientX - rect.left - rect.width / 2
   const my = event.clientY - rect.top - rect.height / 2
   const inBounds =
-    mx >= -containerWidth.value / 2 - HEX_W &&
-    mx <= containerWidth.value / 2 + HEX_W &&
-    my >= -containerHeight.value / 2 - HEX_H &&
-    my <= containerHeight.value / 2 + HEX_H
+    mx >= -containerWidth.value / 2 - HEX_W.value &&
+    mx <= containerWidth.value / 2 + HEX_W.value &&
+    my >= -containerHeight.value / 2 - HEX_H.value &&
+    my <= containerHeight.value / 2 + HEX_H.value
   if (inBounds) {
     if (event.pointerType === 'mouse') {
       mousePos.value = { x: mx, y: my }
@@ -701,7 +713,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
       ref="containerRef"
       class="hex-grid"
       :class="{ dragging: isDragging }"
-      :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px` }, gridStyle]"
+      :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px`, '--hex-r': R }, gridStyle]"
       @pointermove="onMouseMove"
       @mouseleave="onMouseLeave"
     >
@@ -819,7 +831,8 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
   left: 50%;
   transform: translateX(-50%);
   will-change: opacity;
-  font-size: 0.75rem;
+  /* Scales with hex size (12px ≙ 0.75rem at MAX_R 60). */
+  font-size: calc(var(--hex-r, 60) * 0.2px);
   font-family: var(--font-mono);
   color: var(--color-primary-light);
   white-space: nowrap;
@@ -957,15 +970,16 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 }
 
 .hex-icon :deep(svg) {
-  width: 3rem;
-  height: 3rem;
+  /* Scales with hex size (48px ≙ 3rem at MAX_R 60). */
+  width: calc(var(--hex-r, 60) * 0.8px);
+  height: calc(var(--hex-r, 60) * 0.8px);
   fill: currentColor;
 }
 
 /* Lucide: component renders SVG as the root element, gets class directly */
 svg.hex-icon {
-  width: 3rem;
-  height: 3rem;
+  width: calc(var(--hex-r, 60) * 0.8px);
+  height: calc(var(--hex-r, 60) * 0.8px);
   stroke: currentColor;
   fill: none;
 }
