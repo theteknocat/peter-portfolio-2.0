@@ -1,11 +1,25 @@
 <script setup lang="ts">
 // Sticky site header. Picks up scroll position from useScrolled and
 // applies the .scrolled class to trigger blur + transparency.
-import { RouterLink } from 'vue-router'
+import { ref, watch, onUnmounted } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import { LayoutGrid, X } from '@lucide/vue'
 import { useScrolled } from '@/composables/useScrolled'
 import logoSrc from '@/assets/logo.jpg'
 
 const { isScrolled } = useScrolled()
+
+const isMenuOpen = ref(false)
+const route = useRoute()
+
+watch(route, () => { isMenuOpen.value = false })
+
+// ponytail: matchMedia at setup — no resize listener needed, MQL fires on change
+const mq = window.matchMedia('(max-width: 767px)')
+const isMobile = ref(mq.matches)
+const onMqChange = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
+mq.addEventListener('change', onMqChange)
+onUnmounted(() => mq.removeEventListener('change', onMqChange))
 </script>
 
 <template>
@@ -17,11 +31,39 @@ const { isScrolled } = useScrolled()
         </span>
         <span class="brand-name" data-text="Peter Epp"><span class="brand-name__text">Peter Epp</span></span>
       </RouterLink>
-      <nav aria-label="Main navigation" class="flex gap-2">
-        <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash shape-jitter">Portfolio</RouterLink>
-        <RouterLink to="/articles" class="nav-link link-poly link-poly--slash shape-jitter">Articles</RouterLink>
-        <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash shape-jitter">Job History</RouterLink>
-      </nav>
+
+      <button
+        class="btn menu-toggle shape-chamfer shape-jitter"
+        :aria-expanded="isMenuOpen"
+        aria-controls="main-nav"
+        aria-label="Open navigation menu"
+        @click="isMenuOpen = true"
+      >
+        <LayoutGrid :size="24" />
+      </button>
+
+      <Teleport to="body" :disabled="!isMobile">
+        <Transition name="nav-slide">
+          <div v-if="isMenuOpen" class="nav-backdrop" @click="isMenuOpen = false" />
+        </Transition>
+
+        <nav
+          id="main-nav"
+          aria-label="Main navigation"
+          :class="{ 'nav-open': isMenuOpen }"
+        >
+          <button
+            class="btn nav-close shape-chamfer shape-jitter"
+            aria-label="Close navigation menu"
+            @click="isMenuOpen = false"
+          >
+            <X :size="20" />
+          </button>
+          <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash shape-jitter">Portfolio</RouterLink>
+          <RouterLink to="/articles" class="nav-link link-poly link-poly--slash shape-jitter">Articles</RouterLink>
+          <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash shape-jitter">Job History</RouterLink>
+        </nav>
+      </Teleport>
     </div>
   </header>
 </template>
@@ -82,6 +124,14 @@ header.scrolled::before {
   padding: 0 0.625rem;
 }
 
+@media (max-width: 767px) {
+  .site-brand {
+    padding: 0;
+    transform-origin: left center;
+    transform: scale(0.8);
+  }
+}
+
 .brand-logo-wrapper {
   width: 54px;
   height: 54px;
@@ -140,6 +190,90 @@ header.scrolled::before {
 .brand-name::after {
   color: #9500ff;
   animation: glitch-brand-after 10s linear infinite;
+}
+
+/* ─── Mobile menu toggle ──────────────────────────────────────────────────── */
+
+.menu-toggle {
+  display: none;
+}
+
+/* ─── Mobile nav panel ────────────────────────────────────────────────────── */
+
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.nav-slide-enter-active,
+.nav-slide-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.nav-slide-enter-from,
+.nav-slide-leave-to {
+  opacity: 0;
+}
+
+nav {
+  transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.nav-close {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: min(280px, 80vw);
+    height: 100dvh;
+    padding: 1rem;
+    background-color: rgba(0, 45, 22, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--color-accent);
+    transform: translateX(100%);
+  }
+
+  nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url('/images/green-marble-texture.jpg');
+    background-repeat: repeat;
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+  }
+
+  nav.nav-open {
+    transform: translateX(0);
+  }
+
+  .nav-close {
+    display: flex;
+    align-self: flex-end;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-link {
+    width: 100%;
+  }
 }
 
 /* 10s cycle: 5 bursts of varying length (100ms–480ms) scattered unevenly across the cycle.
