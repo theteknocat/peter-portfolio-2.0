@@ -126,80 +126,98 @@
 
 /* ─── Shape: chamfer ──────────────────────────────────────────────────────── */
 
-/** Bevelled corner box. */
+/**
+ * Bevelled corner box.
+ *
+ * Compose with chamfer-[size] to override the bevel size (default: 10px).
+ */
 @utility shape-chamfer {
   @apply shape-base;
 
   &::before {
     clip-path: polygon(
-      10px 0%, calc(100% - 10px) 0%,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) 100%, 10px 100%,
-      0% calc(100% - 10px), 0% 10px
+      var(--chamfer, 10px) 0%, calc(100% - var(--chamfer, 10px)) 0%,
+      100% var(--chamfer, 10px), 100% calc(100% - var(--chamfer, 10px)),
+      calc(100% - var(--chamfer, 10px)) 100%, var(--chamfer, 10px) 100%,
+      0% calc(100% - var(--chamfer, 10px)), 0% var(--chamfer, 10px)
     );
   }
 
   &::after {
     clip-path: polygon(
-      10px 0%, calc(100% - 10px) 0%,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) 100%, 10px 100%,
-      0% calc(100% - 10px), 0% 10px,
-      1px 10px,
-      1px calc(100% - 10px),
-      10px calc(100% - 1px),
-      calc(100% - 10px) calc(100% - 1px),
-      calc(100% - 1px) calc(100% - 10px),
-      calc(100% - 1px) 10px,
-      calc(100% - 10px) 1px,
-      10px 1px,
-      1px 10px,
-      0 10px
+      var(--chamfer, 10px) 0%, calc(100% - var(--chamfer, 10px)) 0%,
+      100% var(--chamfer, 10px), 100% calc(100% - var(--chamfer, 10px)),
+      calc(100% - var(--chamfer, 10px)) 100%, var(--chamfer, 10px) 100%,
+      0% calc(100% - var(--chamfer, 10px)), 0% var(--chamfer, 10px),
+      1px var(--chamfer, 10px),
+      1px calc(100% - var(--chamfer, 10px)),
+      var(--chamfer, 10px) calc(100% - 1px),
+      calc(100% - var(--chamfer, 10px)) calc(100% - 1px),
+      calc(100% - 1px) calc(100% - var(--chamfer, 10px)),
+      calc(100% - 1px) var(--chamfer, 10px),
+      calc(100% - var(--chamfer, 10px)) 1px,
+      var(--chamfer, 10px) 1px,
+      1px var(--chamfer, 10px),
+      0 var(--chamfer, 10px)
     );
   }
 }
 
+/** Sets the bevel size for shape-chamfer. Usage: chamfer-[6px] */
+@utility chamfer-* {
+  --chamfer: --value([length]);
+}
+
 /* ─── Shape: notch ────────────────────────────────────────────────────────── */
 
-/** Square inset notches at all four corners. */
+/**
+ * Square inset notches at all four corners.
+ *
+ * Compose with notch-[size] to override the notch size (default: 10px).
+ */
 @utility shape-notch {
   @apply shape-base;
 
   &::before {
     clip-path: polygon(
-      0 10px, 10px 10px, 10px 0,
-      calc(100% - 10px) 0, calc(100% - 10px) 10px,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) calc(100% - 10px), calc(100% - 10px) 100%,
-      10px 100%, 10px calc(100% - 10px),
-      0 calc(100% - 10px)
+      0 var(--notch, 10px), var(--notch, 10px) var(--notch, 10px), var(--notch, 10px) 0,
+      calc(100% - var(--notch, 10px)) 0, calc(100% - var(--notch, 10px)) var(--notch, 10px),
+      100% var(--notch, 10px), 100% calc(100% - var(--notch, 10px)),
+      calc(100% - var(--notch, 10px)) calc(100% - var(--notch, 10px)), calc(100% - var(--notch, 10px)) 100%,
+      var(--notch, 10px) 100%, var(--notch, 10px) calc(100% - var(--notch, 10px)),
+      0 calc(100% - var(--notch, 10px))
     );
   }
 
   &::after {
     clip-path: polygon(
-      0 10px, 10px 10px, 10px 0,
-      calc(100% - 10px) 0, calc(100% - 10px) 10px,
-      100% 10px, 100% calc(100% - 10px),
-      calc(100% - 10px) calc(100% - 10px), calc(100% - 10px) 100%,
-      10px 100%, 10px calc(100% - 10px),
-      0 calc(100% - 10px),
-      0 10px,
-      1px calc(10px + 1px),
-      1px calc(100% - 10px - 1px),
-      calc(10px + 1px) calc(100% - 10px - 1px),
-      calc(10px + 1px) calc(100% - 1px),
-      calc(100% - 10px - 1px) calc(100% - 1px),
-      calc(100% - 10px - 1px) calc(100% - 10px - 1px),
-      calc(100% - 1px) calc(100% - 10px - 1px),
-      calc(100% - 1px) calc(10px + 1px),
-      calc(100% - 10px - 1px) calc(10px + 1px),
-      calc(100% - 10px - 1px) 1px,
-      calc(10px + 1px) 1px,
-      calc(10px + 1px) calc(10px + 1px),
-      1px calc(10px + 1px)
+      0 var(--notch, 10px), var(--notch, 10px) var(--notch, 10px), var(--notch, 10px) 0,
+      calc(100% - var(--notch, 10px)) 0, calc(100% - var(--notch, 10px)) var(--notch, 10px),
+      100% var(--notch, 10px), 100% calc(100% - var(--notch, 10px)),
+      calc(100% - var(--notch, 10px)) calc(100% - var(--notch, 10px)), calc(100% - var(--notch, 10px)) 100%,
+      var(--notch, 10px) 100%, var(--notch, 10px) calc(100% - var(--notch, 10px)),
+      0 calc(100% - var(--notch, 10px)),
+      0 var(--notch, 10px),
+      1px calc(var(--notch, 10px) + 1px),
+      1px calc(100% - var(--notch, 10px) - 1px),
+      calc(var(--notch, 10px) + 1px) calc(100% - var(--notch, 10px) - 1px),
+      calc(var(--notch, 10px) + 1px) calc(100% - 1px),
+      calc(100% - var(--notch, 10px) - 1px) calc(100% - 1px),
+      calc(100% - var(--notch, 10px) - 1px) calc(100% - var(--notch, 10px) - 1px),
+      calc(100% - 1px) calc(100% - var(--notch, 10px) - 1px),
+      calc(100% - 1px) calc(var(--notch, 10px) + 1px),
+      calc(100% - var(--notch, 10px) - 1px) calc(var(--notch, 10px) + 1px),
+      calc(100% - var(--notch, 10px) - 1px) 1px,
+      calc(var(--notch, 10px) + 1px) 1px,
+      calc(var(--notch, 10px) + 1px) calc(var(--notch, 10px) + 1px),
+      1px calc(var(--notch, 10px) + 1px)
     );
   }
+}
+
+/** Sets the notch size for shape-notch. Usage: notch-[6px] */
+@utility notch-* {
+  --notch: --value([length]);
 }
 
 /* ─── Animation: jitter ───────────────────────────────────────────────────── */

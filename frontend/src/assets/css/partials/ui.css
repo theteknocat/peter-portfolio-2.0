@@ -25,6 +25,44 @@
   }
 }
 
+/* Shared button base — colour + interaction only, border-agnostic.
+   Pair with a shape utility (shape-chamfer + shape-jitter) for the bordered
+   look, the same way .card-link / .link-poly work. Buttons that need a plain
+   geometric border (e.g. the circular modal close) keep that in their own
+   scoped CSS on top of this base. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  color: var(--color-accent);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  /* Smaller default bevel for shape variants; tweak per-button with chamfer-[size] */
+  --chamfer: 6px;
+  --shape-fill: transparent;
+  --shape-border: var(--color-accent);
+
+  &::before,
+  &::after {
+    transition: background 0.2s ease;
+  }
+}
+
+.btn:hover,
+.btn:focus-visible {
+  outline: none;
+  color: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+  --shape-border: var(--color-primary-light);
+
+  & svg {
+    animation: icon-glitch 4s linear infinite;
+  }
+}
+
 /* Card heading — display font, accent colour, used in article and portfolio cards */
 .card-title {
   font-family: var(--font-display);
