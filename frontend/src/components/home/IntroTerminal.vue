@@ -1,3 +1,10 @@
+<script lang="ts">
+// True module scope: evaluated once on import, shared across all mounts. The
+// typewriter runs once per full page load and never again on in-SPA navigation
+// back to home (remounts read the same flag). A hard refresh resets it.
+let hasAutoTyped = false
+</script>
+
 <script setup lang="ts">
 /**
  * Intro terminal — the home page's introductory text, styled as a terminal.
@@ -15,11 +22,6 @@ const content = computed(() => props.section.content as {
   subtitle?: string
   body?: string
 } | null | undefined)
-
-// Module-level: the typewriter runs once per full page load and never again on
-// in-SPA navigation back to home (remounts read the same flag). A hard refresh
-// resets it.
-let hasAutoTyped = false
 
 const displaySubtitle = ref('')
 const displayBody = ref('')
