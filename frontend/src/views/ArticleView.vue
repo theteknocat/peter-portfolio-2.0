@@ -35,6 +35,8 @@ watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+
 .modal-content {
   color: var(--color-text);
 }
@@ -62,7 +64,7 @@ watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
   margin: 0;
 }
 
-@media (min-width: 75rem) {
+@media (width >= theme(--breakpoint-xl)) {
   .modal-title { font-size: 2.5rem; }
 }
 

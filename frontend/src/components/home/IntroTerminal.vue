@@ -95,6 +95,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+
 /* Old-terminal look: glass fill matching the content cards, green chamfer border
    ring, monospace text in bright green with a soft green glow. */
 .intro-terminal {
@@ -129,7 +131,7 @@ onMounted(async () => {
 /* Desktop: the shape stays put while an inner element scrolls — the chamfer ring
    is an absolutely-positioned pseudo-element, so it must NOT scroll. Mobile:
    natural height flow (unchanged). */
-@media (min-width: 768px) {
+@media (width >= theme(--breakpoint-md)) {
   .intro-terminal {
     flex: 1;
     min-height: 0;

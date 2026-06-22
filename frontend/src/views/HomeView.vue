@@ -92,6 +92,8 @@ const navItems = computed(() =>
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+
 .view-container {
   gap: 1.5rem;
 }
@@ -134,7 +136,7 @@ const navItems = computed(() =>
 }
 
 /* Desktop: intro left, sections scroll right. */
-@media (min-width: 768px) {
+@media (width >= theme(--breakpoint-md)) {
   .home-grid {
     display: grid;
     grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);

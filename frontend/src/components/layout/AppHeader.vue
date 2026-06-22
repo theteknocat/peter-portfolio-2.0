@@ -69,6 +69,8 @@ onUnmounted(() => mq.removeEventListener('change', onMqChange))
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+
 header {
   position: sticky;
   top: 0;
@@ -76,7 +78,7 @@ header {
   background-color: var(--color-primary-dark);
   border-bottom: 1px solid var(--color-primary);
   /* Fixed height (desktop) so the home left panel can size against it. */
-  @media (min-width: 768px) {
+  @media (width >= theme(--breakpoint-md)) {
     height: var(--header-height);
   }
   transition:
@@ -128,7 +130,7 @@ header.scrolled::before {
   padding: 0 0.625rem;
 }
 
-@media (max-width: 767px) {
+@media (width < theme(--breakpoint-md)) {
   .site-brand {
     padding: 0;
     transform-origin: left center;
@@ -229,7 +231,7 @@ nav {
   display: none;
 }
 
-@media (max-width: 767px) {
+@media (width < theme(--breakpoint-md)) {
   .menu-toggle {
     display: flex;
   }

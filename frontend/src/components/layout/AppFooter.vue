@@ -35,6 +35,8 @@ const currentYear = computed(() => new Date().getFullYear())
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+
 footer {
   border-top: 1px solid var(--color-primary);
   background-color: var(--color-primary-dark);
@@ -42,7 +44,7 @@ footer {
 
 /* Pin to viewport bottom on non-mobile; content scrolls behind the opaque bg.
    z-index sits below the header (50). */
-@media (min-width: 768px) {
+@media (width >= theme(--breakpoint-md)) {
   footer {
     position: sticky;
     bottom: 0;

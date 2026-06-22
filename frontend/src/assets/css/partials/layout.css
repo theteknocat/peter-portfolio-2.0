@@ -16,7 +16,7 @@ body.modal-open {
     perspective: 1200px;
   }
 
-  @media (min-width: 768px) {
+  @media (width >= theme(--breakpoint-md)) {
     .view-container {
       padding-inline: 1.5rem;
     }
