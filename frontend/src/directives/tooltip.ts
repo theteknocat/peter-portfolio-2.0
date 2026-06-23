@@ -1,7 +1,7 @@
 /**
- * v-tooltip directive.
+ * v-tooltip directive (+ standalone attachTooltip for v-html content).
  *
- * Usage:
+ * Directive usage:
  *   v-tooltip                  — reads the element's `title` attribute
  *   v-tooltip="'Custom text'"  — uses the provided string directly
  *
@@ -9,6 +9,9 @@
  * window/tab" is automatically appended (or used alone when there is no
  * other text). The native `title` attribute is removed on mount so the
  * browser's own tooltip does not appear alongside.
+ *
+ * For elements not compiled by Vue (e.g. anchors injected via v-html), use
+ * attachTooltip(el, resolveTooltipText(el)) directly — it returns a detach fn.
  */
 
 import { computePosition, flip, shift, offset, arrow, autoUpdate } from '@floating-ui/dom'
@@ -18,27 +21,17 @@ import type { DirectiveBinding } from 'vue'
 const HALF_DIAG = 6
 const FULL_DIAG = 12
 
-interface TooltipState {
-  tooltipEl: HTMLElement | null
-  onEnter: () => void
-  onLeave: () => void
-  onFocus: () => void
-  onBlur: () => void
-  getTooltipEl: () => HTMLElement | null
-  getCleanup: () => (() => void) | null
-}
-
-const stateMap = new WeakMap<HTMLElement, TooltipState>()
+const detachMap = new WeakMap<HTMLElement, () => void>()
 
 /**
- * Composes the tooltip text from the directive binding and element attributes.
+ * Composes the tooltip text from an element and an optional explicit value.
  *
- * @param el - The element the directive is bound to.
- * @param binding - The Vue directive binding (value is an optional string).
+ * @param el - The element the tooltip is for.
+ * @param value - An optional explicit string; falls back to the `title` attribute.
  * @returns The composed tooltip string, or empty string if nothing to show.
  */
-function resolveText(el: HTMLElement, binding: DirectiveBinding<string | undefined>): string {
-  let text = binding.value ?? el.getAttribute('title') ?? ''
+export function resolveTooltipText(el: HTMLElement, value?: string): string {
+  let text = value ?? el.getAttribute('title') ?? ''
 
   if (el.getAttribute('target') === '_blank') {
     text = text ? `${text} - Open link in a new window/tab` : 'Open link in a new window/tab'
@@ -121,91 +114,95 @@ async function createTooltip(
   return { el: tooltipEl, cleanup }
 }
 
-export const vTooltip = {
-  mounted(el: HTMLElement, binding: DirectiveBinding<string | undefined>) {
-    const text = resolveText(el, binding)
-    if (!text) return
+/**
+ * Attaches hover/focus tooltip behaviour to any element, Vue-compiled or not.
+ *
+ * Use this for anchors injected via v-html, where the v-tooltip directive can't
+ * bind. The native `title` attribute is removed to prevent a duplicate browser
+ * tooltip.
+ *
+ * @param el - The element to attach the tooltip to.
+ * @param text - The tooltip text (see resolveTooltipText).
+ * @returns A detach function that tears down listeners and removes any live tooltip.
+ */
+export function attachTooltip(el: HTMLElement, text: string): () => void {
+  if (!text) return () => {}
 
-    // Remove native title to prevent the browser tooltip appearing alongside.
-    if (el.hasAttribute('title')) {
-      el.removeAttribute('title')
-    }
+  // Remove native title to prevent the browser tooltip appearing alongside.
+  if (el.hasAttribute('title')) {
+    el.removeAttribute('title')
+  }
 
-    let tooltipEl: HTMLElement | null = null
-    let tooltipCleanup: (() => void) | null = null
-    let cancelled = false
-    let pending = false
+  let tooltipEl: HTMLElement | null = null
+  let tooltipCleanup: (() => void) | null = null
+  let cancelled = false
+  let pending = false
 
-    const onEnter = () => {
-      if (tooltipEl || pending) return
-      cancelled = false
-      pending = true
-      createTooltip(el, text).then(({ el: tip, cleanup }) => {
-        pending = false
-        // mouseleave/blur fired before the async position calculation finished — discard.
-        if (cancelled) {
-          cleanup()
-          tip.remove()
-          return
-        }
-        tooltipEl = tip
-        tooltipCleanup = cleanup
-        requestAnimationFrame(() => tip.classList.add('is-visible'))
-      })
-    }
-
-    const onLeave = () => {
-      if (!tooltipEl) {
-        // Still resolving — mark cancelled so the .then() discards it.
-        cancelled = true
+  const onEnter = () => {
+    if (tooltipEl || pending) return
+    cancelled = false
+    pending = true
+    createTooltip(el, text).then(({ el: tip, cleanup }) => {
+      pending = false
+      // mouseleave/blur fired before the async position calculation finished — discard.
+      if (cancelled) {
+        cleanup()
+        tip.remove()
         return
       }
-      const tip = tooltipEl
-      const cleanup = tooltipCleanup
-      tooltipEl = null
-      tooltipCleanup = null
-      // Stop position tracking before beginning the exit transition.
-      cleanup?.()
-      tip.classList.remove('is-visible')
-      tip.addEventListener('transitionend', () => tip.remove(), { once: true })
-    }
-
-    const onFocus = () => {
-      if (el.matches(':focus-visible')) onEnter()
-    }
-
-    const onBlur = () => onLeave()
-
-    // focus/blur only fire on natively focusable elements (<a>, <button> etc.).
-    // If this directive is applied to a <div> or <span>, add tabindex="0" on that
-    // element so keyboard users can trigger the tooltip.
-    el.addEventListener('mouseenter', onEnter)
-    el.addEventListener('mouseleave', onLeave)
-    el.addEventListener('focus', onFocus)
-    el.addEventListener('blur', onBlur)
-
-    // getTooltipEl / getCleanup let unmounted reach the live closure variables.
-    stateMap.set(el, {
-      tooltipEl: null,
-      onEnter,
-      onLeave,
-      onFocus,
-      onBlur,
-      getTooltipEl: () => tooltipEl,
-      getCleanup: () => tooltipCleanup,
+      tooltipEl = tip
+      tooltipCleanup = cleanup
+      requestAnimationFrame(() => tip.classList.add('is-visible'))
     })
+  }
+
+  const onLeave = () => {
+    if (!tooltipEl) {
+      // Still resolving — mark cancelled so the .then() discards it.
+      cancelled = true
+      return
+    }
+    const tip = tooltipEl
+    const cleanup = tooltipCleanup
+    tooltipEl = null
+    tooltipCleanup = null
+    // Stop position tracking before beginning the exit transition.
+    cleanup?.()
+    tip.classList.remove('is-visible')
+    tip.addEventListener('transitionend', () => tip.remove(), { once: true })
+  }
+
+  const onFocus = () => {
+    if (el.matches(':focus-visible')) onEnter()
+  }
+
+  const onBlur = () => onLeave()
+
+  // focus/blur only fire on natively focusable elements (<a>, <button> etc.).
+  // If applied to a <div> or <span>, add tabindex="0" on that element so
+  // keyboard users can trigger the tooltip.
+  el.addEventListener('mouseenter', onEnter)
+  el.addEventListener('mouseleave', onLeave)
+  el.addEventListener('focus', onFocus)
+  el.addEventListener('blur', onBlur)
+
+  return () => {
+    tooltipCleanup?.()
+    tooltipEl?.remove()
+    el.removeEventListener('mouseenter', onEnter)
+    el.removeEventListener('mouseleave', onLeave)
+    el.removeEventListener('focus', onFocus)
+    el.removeEventListener('blur', onBlur)
+  }
+}
+
+export const vTooltip = {
+  mounted(el: HTMLElement, binding: DirectiveBinding<string | undefined>) {
+    detachMap.set(el, attachTooltip(el, resolveTooltipText(el, binding.value)))
   },
 
   unmounted(el: HTMLElement) {
-    const state = stateMap.get(el)
-    if (!state) return
-
-    state.getCleanup()?.()
-    state.getTooltipEl()?.remove()
-    el.removeEventListener('mouseenter', state.onEnter)
-    el.removeEventListener('mouseleave', state.onLeave)
-    el.removeEventListener('focus', state.onFocus)
-    el.removeEventListener('blur', state.onBlur)
-    stateMap.delete(el)
+    detachMap.get(el)?.()
+    detachMap.delete(el)
   },
 }
