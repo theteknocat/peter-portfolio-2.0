@@ -5,6 +5,7 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LoadingScreen from '@/components/layout/LoadingScreen.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
+import ClippyCompanion from '@/components/clippy/ClippyCompanion.vue'
 import { useBackgroundGlitch } from '@/composables/useBackgroundGlitch'
 import { useBackgroundStreaks } from '@/composables/useBackgroundStreaks'
 import { setNonModalPath } from '@/composables/useModalNavigation'
@@ -95,6 +96,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
        and sits outside the page recede transform entirely. -->
   <ModalOverlay />
   <LoadingScreen />
+  <ClippyCompanion />
 </template>
 
 <style scoped>
