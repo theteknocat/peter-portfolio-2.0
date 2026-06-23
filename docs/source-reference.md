@@ -121,7 +121,7 @@ Corrected token values (from compiled SCSS, not estimates):
 
 ---
 
-## Section Heading (`SectionHeading` component)
+## Section Heading (`h2.title`)
 
 ### SCSS source (`scss/custom.scss` lines 61–128)
 

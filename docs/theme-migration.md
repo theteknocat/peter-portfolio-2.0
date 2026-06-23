@@ -142,8 +142,8 @@ Portfolio entries, job entries, and article list rows each have:
 `hr` elements use the same pattern. The last item in a list removes the border and hides
 the squares.
 
-**Vue implementation:** A CSS utility class or applied via `SectionHeading.vue` /
-content list components. Simple enough to be a `--divider` modifier on a shared class.
+**Vue implementation:** A CSS utility class applied by the content list /
+section components directly. Simple enough to be a `--divider` modifier on a shared class.
 
 ---
 
@@ -159,8 +159,9 @@ Used for named page sections (e.g. "Portfolio", "Skills"). Distinctive style:
   CSS border triangles in `$primary-shade` green, with a slightly smaller inner triangle
   in `$primary-dark` to create a layered effect
 
-**Vue implementation:** Becomes `SectionHeading.vue`. The arrows can be CSS-only using
-`::before`/`::after` on the text span, matching the Drupal implementation.
+**Vue implementation:** Built inline where section headings are needed (no dedicated
+component). The arrows are CSS-only using `::before`/`::after` on the text span,
+matching the Drupal implementation.
 
 ---
 

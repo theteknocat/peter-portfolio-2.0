@@ -1,32 +1,20 @@
 # Portfolio Site Rebuild Plan
 
-## Implementation Status (as of 2026-06-15)
+## Implementation Status (as of 2026-06-22)
 
-**Done — infrastructure:**
+The frontend SPA and Slim API are functionally complete: all four pages (home,
+portfolio, articles, job history) render live content from the API, portfolio
+and article detail views work as routed modals, and the full visual system is
+ported (see theme-migration.md — every section there is ticked off). UI
+components (`TechBadge`, `ContentCard`, `MarkdownRenderer`, `PageTitle`) and the
+content composables (`usePageData`, `useContent`, `useModalNavigation`) are built.
 
-- DDEV environment, Vite, TypeScript, Tailwind 4, Vue Router all configured
-- `AppHeader`, `AppNav`, `AppFooter` components built with full visual treatment
-- TypeScript interfaces (`portfolio.ts`, `article.ts`, `job.ts`, `page.ts`)
-- Route structure scaffolded; views exist but are mostly empty pending API
+**Remaining:**
 
-**Done — visual system (substantially exceeds original plan):**
-
-- CSS architecture: Tailwind 4 + custom property tokens + scoped component styles; global partials organised into `@layer base` / `@layer components` / unlayered so Tailwind utilities override predictably (see CLAUDE.md § CSS Architecture)
-- Animated SVG tile background with `bg-scroll` CSS keyframe (replaced porting the PNG)
-- Glitch spot overlay (`useBackgroundGlitch.ts`): SVG turbulence masks, radial-gradient soft edges
-- Lightning streak overlay (`useBackgroundStreaks.ts`): lattice-following glow pulses with forking at turn vertices
-- Full link decoration system: chevrons on plain links; `.link-poly` shape + transition modifiers for nav/interactive links
-- `v-tooltip` directive with `@floating-ui/dom`, arrow, enter/leave transitions
-- Glitch keyframe effects on header brand text, nav links, footer icons
-
-**Not yet started:**
-
-- API handlers (PageHandler, ContentHandler)
-- Content composables (`usePageData`, `useContent`)
-- All page views (HomeView content, PortfolioView, ArticlesView, JobHistoryView)
-- UI components (TechBadge, ContentCard, SectionHeading, MarkdownRenderer)
-- Modal routing overlay
-- SSG / SEO setup
+- SEO / SSG setup (vite-ssg, meta tags, sitemap, robots.txt) — see § SEO
+- Build & deploy workflow — see § Build output & deploy workflow
+- AppFooter mobile responsiveness
+- Nice-to-have: Clippy companion, Konami easter egg, scroll-in animations
 
 ---
 
@@ -86,8 +74,7 @@ A modern headless portfolio site with a Vue 3 SPA frontend consuming a lightweig
 │   │   │   ├── ui/                  # Reusable UI primitives
 │   │   │   │   ├── TechBadge.vue
 │   │   │   │   ├── ContentCard.vue
-│   │   │   │   ├── MarkdownRenderer.vue
-│   │   │   │   └── SectionHeading.vue
+│   │   │   │   └── MarkdownRenderer.vue
 │   │   │   ├── portfolio/
 │   │   │   │   ├── PortfolioList.vue
 │   │   │   │   └── PortfolioItem.vue
