@@ -576,30 +576,28 @@ build time as the entry point.
 
 ### Client-side animation vs. SSG (hydration + SEO)
 
-Anything that renders differently on the server than on the client's *first*
-paint causes a **hydration mismatch** (Vue warns and patches the DOM). Known
-offenders here:
+**Current state (Phase 1): not an issue.** Home page content (the intro
+subtitle/body) is fetched at runtime via `usePageData` in `onMounted`, so it is
+*not* in the prerendered `index.html` — the static file shows only the chrome +
+a `Loading…` placeholder. Because the server renders no intro text, there is
+nothing for the client's first paint to disagree with: `IntroTerminal`'s
+typewriter starts from empty strings after the data fetch, so there's no
+hydration mismatch and no hidden-text-for-SEO requirement. The typewriter
+already (correctly) runs only in `onMounted`.
 
-- `IntroTerminal`'s typewriter (`Math.random()` timing, growing string)
-- Any `Date`-based or random rendering added later
+**If home content is ever SSR-fetched** (baking the real intro text into
+`index.html` for SEO — see "SSR-fetch home only", deferred), the following would
+then apply, because the static HTML would contain the full text the typewriter
+animates over:
 
-Rules to follow:
-
-1. **Server output must contain the full text** — crawlers read the SSG HTML, so
-   the complete subtitle/body must be present in the static file (not an empty
-   string the typewriter fills in later). This is also what makes the content
-   count for SEO.
-2. **First client render must equal the server render** — so the typewriter must
-   *not* start during render/hydration. Start it in `onMounted` (runs only in the
-   browser, after hydration), reading the already-present full text.
-3. **Avoid the flash** — if the full text renders visibly and then `onMounted`
-   clears it to begin typing, the user sees a flash of complete text first. Fix:
-   the to-be-typed text is in the DOM for SEO but visually hidden by default
-   (e.g. `opacity: 0` / `visibility: hidden`), and `onMounted` controls
-   visibility — reveal-and-type on the animated first load, reveal-in-full
-   otherwise. No-JS visitors and crawlers still get the real content; the only
-   thing CSS hides is the pre-animation flash. Keep the hidden text identical to
-   the visible copy (mirrored, not keyword-stuffed) so it reads as legitimate.
+1. Server output must contain the full text (it's what counts for SEO).
+2. First client render must equal the server render — start the typewriter in
+   `onMounted`, not during render/hydration.
+3. Avoid the flash — keep the to-be-typed text in the DOM but visually hidden
+   by default (`opacity: 0` / `visibility: hidden`), and let `onMounted` control
+   visibility: reveal-and-type on the first animated load, reveal-in-full
+   otherwise. Keep the hidden copy identical to the visible copy (mirrored, not
+   keyword-stuffed).
 
 ### Build output & deploy workflow
 
