@@ -3,7 +3,7 @@
  * Home page — fetches the resolved page layout from the API and renders each
  * section dynamically by mapping section.type to the appropriate component.
  */
-import { type Component, computed } from 'vue'
+import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { Briefcase, Newspaper, Hexagon } from '@lucide/vue'
 import { usePageData } from '@/composables/usePageData'
 import PageTitle from '@/components/ui/PageTitle.vue'
@@ -50,6 +50,51 @@ const navItems = computed(() =>
     .filter(s => s.type in navMeta)
     .map(s => ({ type: s.type, ...navMeta[s.type] })),
 )
+
+// Active section tracking: highlight the nav button for whichever right-column
+// section is most in view, whether reached by clicking a nav link or scrolling.
+const activeSection = ref('')
+let observer: IntersectionObserver | null = null
+const ratios = new Map<string, number>()
+
+function setupObserver() {
+  observer?.disconnect()
+  ratios.clear()
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0)
+      }
+      let best = ''
+      let bestRatio = 0
+      for (const [id, r] of ratios) {
+        if (r > bestRatio) {
+          bestRatio = r
+          best = id
+        }
+      }
+      if (best) activeSection.value = best
+    },
+    { threshold: [0, 0.25, 0.5, 0.75, 1] },
+  )
+  for (const item of navItems.value) {
+    const el = document.getElementById(item.type)
+    if (el) observer.observe(el)
+  }
+}
+
+// Sections render async (after page data loads), so wire the observer once the
+// nav items exist and the DOM has flushed.
+watch(
+  navItems,
+  async () => {
+    await nextTick()
+    if (navItems.value.length) setupObserver()
+  },
+  { immediate: true },
+)
+
+onUnmounted(() => observer?.disconnect())
 </script>
 
 <template>
@@ -67,6 +112,8 @@ const navItems = computed(() =>
                 :key="item.type"
                 :href="`#${item.type}`"
                 class="btn shape-chamfer shape-jitter"
+                :class="{ active: activeSection === item.type }"
+                :aria-current="activeSection === item.type ? 'true' : undefined"
               >
                 <component :is="item.icon" :size="18" />
                 <span class="text-sm">{{ item.label }}</span>
@@ -127,6 +174,12 @@ const navItems = computed(() =>
   justify-content: center;
   gap: 0.5rem;
   margin-block: 0.75rem 1.25rem;
+}
+
+/* Active nav button: green like hover, minus the icon-glitch animation. */
+.section-nav .btn.active {
+  color: var(--color-primary-light);
+  --shape-border: var(--color-primary-light);
 }
 
 /* Home title sits in the narrow left pane — drop it from h1 to h3 scale.
