@@ -15,7 +15,7 @@ content composables (`usePageData`, `useContent`, `useModalNavigation`) are buil
 
 - Build & deploy: documented (§ Build output & deploy workflow); execute on the server when ready
 - AppFooter mobile responsiveness
-- Nice-to-have: Clippy companion, Konami easter egg, scroll-in animations
+- Nice-to-have: Clippy companion, Konami easter egg
 
 ---
 

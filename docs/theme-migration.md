@@ -217,9 +217,9 @@ The `scroll-animations.css` file powers the skills tiles appearing on scroll
 (`show-on-scroll` class with `slide-up/down/left/right` variants, each with a
 randomised duration and delay).
 
-**Vue implementation:** Can be recreated with the Intersection Observer API in a Vue
-composable (`useScrollAnimation.ts` or similar), or a lightweight library.
-This is a `nice-to-have` for the initial build — the core visual style works without it.
+**Not being ported.** This was an easy CMS-controlled win in Drupal, but the rebuild
+has stronger visual effects (typewriter intro, hex skills grid, glitch/streak background)
+that make scroll-in animations unnecessary. Dropped from the plan.
 
 ---
 
