@@ -1,27 +1,22 @@
 <script setup lang="ts">
 /**
  * Full-viewport loading cover shown on every page load.
- * Waits for the router to be ready and Vue to render, then waits an additional
- * delay if a modal is open (so the modal enter transition completes before the
- * cover lifts). Fades out and removes itself from the DOM when done.
+ * Waits for the router to be ready, then holds for a fixed delay (consistent
+ * across all routes — gives every page a bit of weight, and covers the modal
+ * enter transition on direct loads). Fades out and removes itself when done.
  */
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const route  = useRoute()
 
-const MODAL_TRANSITION_MS = 500
+const LOAD_DELAY_MS = 500
 
 const visible = ref(true)
 
 onMounted(async () => {
   await router.isReady()
-  await new Promise<void>(resolve => setTimeout(resolve, 0))
-
-  if (route.meta.modal) {
-    await new Promise<void>(resolve => setTimeout(resolve, MODAL_TRANSITION_MS))
-  }
+  await new Promise<void>(resolve => setTimeout(resolve, LOAD_DELAY_MS))
 
   visible.value = false
 })

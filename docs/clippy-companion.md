@@ -31,16 +31,22 @@ later is *dynamically generated* quips instead of hand-written ones (see Part 2)
 | **Idle**    | He cycles through idle fidgets on his own when not busy.                                                     |
 | **Move**    | Walks across the screen to a coordinate.                                                                     |
 | **Point**   | Gestures toward a coordinate — pair with a real element's position to point at your nav, a card, the footer. |
-| **Sounds**  | The classic Clippy MP3s ship with the package.                                                               |
-| **Dismiss** | Closed by the visitor and stays gone for the session.                                                        |
+| **Sounds**  | Disabled. The MP3s ship with the package, but he's loaded muted (see Part 2).                                |
+| **Dismiss** | Closed via an X on the widget; stays gone for good (`localStorage`). A footer button summons him back.       |
 
 ### The behaviour we're building
 
-- Appears on first load with a greeting animation + a welcome line.
-- On route change, plays a fitting animation and speaks a **canned line for that page**.
-- Offers **2–4 canned buttons** under the balloon (navigation links, "dismiss",
+- Appears on first load with a greeting animation + a welcome line — after the
+  router is ready plus a short beat, so he "notices" the visitor rather than
+  ambushing them. Respects `prefers-reduced-motion` (instant, no entrance).
+- **Tablet+ only** — never loads on phones (smaller viewport dimension < 600px),
+  where he'd be too space-hungry and blocking.
+- *(Planned)* On route change, plays a fitting animation and speaks a **canned
+  line for that page**.
+- *(Planned)* Offers **2–4 canned buttons** under the balloon (navigation links,
   maybe a "tell me more" that fires a second scripted line).
-- Can be dismissed; a `localStorage` flag keeps him gone for the rest of the session.
+- Dismissed via an X on the widget; a `localStorage` flag keeps him **gone for
+  good**. A footer button (paperclip + "Need a hand?") summons him back.
 - Self-aware, slightly dry tone — fits the site's personality.
 
 ### Tone & UX principles (why this Clippy isn't annoying)
@@ -61,7 +67,7 @@ rule below serves "charming, brief, instantly dismissible."
 
 | Original sin | Our rule |
 | --- | --- |
-| Reappeared after you dismissed him | **"No" means gone.** One dismiss → gone for the session (`localStorage`). This is the single most important feature, not a nice-to-have. |
+| Reappeared after you dismissed him | **"No" means gone.** One dismiss → gone for good (`localStorage`), with an explicit opt-in footer button to summon him back. This is the single most important feature, not a nice-to-have. |
 | Interrupted focused work | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate. |
 | Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet. |
 | Same line every time, forever | **Vary the lines.** 2–3 rotating quips per route so a repeat visitor isn't hit with the identical string. (This is also what the Claude API buys later.) |
@@ -137,14 +143,24 @@ agent.speak('Down here when you need me.')
 
 ```text
 src/components/clippy/
-  ClippyCompanion.vue    # Wrapper: creates the agent, owns show/hide/session state,
-                         # watches the route, picks the line + animation per page.
-  ClippyMessage.vue      # The canned action buttons (the library balloon is text-only).
+  ClippyCompanion.vue    # Wrapper: phone gate, lazy-loads + creates the agent,
+                         # owns the entrance/dismiss, renders the dismiss button.
+  ClippyMessage.vue      # (Planned) canned action buttons (the balloon is text-only).
+src/composables/
+  useClippy.ts           # Shared singleton state (dismissed / active / allowed).
 ```
 
-Currently only `ClippyCompanion.vue` exists, in a minimal "stand-up" form: it
-loads the agent, shows it, and speaks one line. Route-awareness, buttons, dismiss
-state, and theming are the work still to do.
+`ClippyCompanion.vue` handles startup and dismissal: it gates on viewport size,
+lazy-loads the library after the router is ready plus a beat, shows + greets +
+speaks one welcome line, and teleports a round dismiss `X` into the agent's own
+element so it tracks the (draggable) widget. Route-awareness, action buttons, and
+balloon theming are the work still to do.
+
+`useClippy.ts` is a one-file singleton store (module-scoped refs) shared between
+the companion and the footer's summon button — `dismissed` (persisted to
+`localStorage`), `active` (on screen now), and `allowed` (client + non-phone, set
+by the companion on mount). The footer reads `allowed`/`active` reactively to show
+its summon button only where Clippy runs and only while he's hidden.
 
 It is mounted once in `App.vue` as a sibling of `ModalOverlay` / `LoadingScreen`.
 
@@ -155,11 +171,16 @@ import { initAgent } from 'clippyjs'
 import { Clippy } from 'clippyjs/agents'
 // Other agents: Bonzi, F1, Genie, Genius, Links, Merlin, Peedy, Rocky, Rover
 
-const agent = await initAgent(Clippy)
+// Loaded muted: clippyjs has no mute API, so we override the sound loader with
+// an empty map. Browsers block autoplay on load anyway — the only time audio
+// fired was a user-triggered re-summon, which was jarring.
+const agent = await initAgent({ ...Clippy, sound: () => Promise.resolve({ default: {} }) })
 ```
 
-The library injects its own DOM into `<body>` and positions itself — the Vue
-component renders nothing into the template.
+The library injects its own DOM into `<body>` and positions itself. The Vue
+component renders one thing: a dismiss `X` button, `<Teleport>`ed into the agent's
+own element (reached via its private `_el`) so it follows the widget when dragged
+and hides with it.
 
 #### SSG constraint (important)
 
@@ -237,10 +258,19 @@ The library balloon is **text only** — the action buttons are our own Vue DOM
 button set is defined per-route in the frontend config, **not** returned by any
 API.
 
-#### Dismiss + session memory
+#### Startup, dismiss & summon
 
-A `localStorage` flag (e.g. `clippy-dismissed`) checked on mount; if set, skip
-creating the agent entirely. Set it when the visitor closes him.
+- **Startup** waits on `router.isReady()`, then a fixed beat
+  (`FIRST_SHOW_DELAY_MS`), then lazy-loads the library. `LoadingScreen` uses the
+  same "router ready + fixed delay" gate, so the two are consistent.
+- **Phone gate:** on mount, `allowed = Math.min(innerWidth, innerHeight) >= 600`.
+  Phones bail before anything loads; tablets+ proceed.
+- **Dismiss** is persistent. A `localStorage` flag (`clippy-dismissed`) is read
+  when `useClippy` initialises and set when the visitor clicks the dismiss `X`.
+  Once set, he stays hidden across visits — *gone means gone*.
+- **Summon** (footer button) clears the flag. A `watch` on `dismissed` drives the
+  agent: hide when dismissed, first-show once, re-show on later summons (he's
+  hidden, not disposed, so re-showing is instant).
 
 #### Theming the balloon
 
@@ -347,9 +377,13 @@ the line when it succeeds.
 
 ## Status
 
-- ✅ Library installed, minimal `ClippyCompanion.vue` mounted and shows on load.
+- ✅ Library installed; `ClippyCompanion.vue` mounted.
+- ✅ Startup: router-ready + fixed beat, greeting + welcome line, reduced-motion path.
+- ✅ Phone gate (tablet+ only).
+- ✅ Sound off (empty sound map).
+- ✅ Persistent dismiss (`localStorage`, gone-means-gone) + teleported dismiss `X`.
+- ✅ Footer summon button (`useClippy` shared state).
 - ⬜ Route-reactive canned lines + per-page animation.
 - ⬜ Action buttons (`ClippyMessage.vue`).
-- ⬜ Dismiss-for-session (`localStorage`).
 - ⬜ Balloon theming.
 - ⬜ Claude API back-end (`ClippyHandler` + `/api/clippy`).
