@@ -598,6 +598,9 @@ function startDrag(index: number, hexEl: HTMLElement, clientX: number, clientY: 
   dragSourceIdx.value = index
   dragTargetIdx.value = index
   isDragging.value = true
+  // Cursor follows the pointer over any element during drag — element-level
+  // cursor (grab on the hexes, default elsewhere) wins otherwise.
+  document.body.classList.add('hex-dragging')
   dragX.value = clientX
   dragY.value = clientY
   // Use the element's actual rendered rect so the offset is correct under any 3D tilt.
@@ -674,6 +677,7 @@ function onDragEnd(event: PointerEvent) {
   Object.keys(iconRotations).forEach(k => { iconRotations[+k] = 0 })
   Object.keys(iconHeld).forEach(k => { iconHeld[+k] = false })
   isDragging.value = false
+  document.body.classList.remove('hex-dragging')
   dragSourceIdx.value = null
   dragTargetIdx.value = null
   justDropped = true
@@ -698,6 +702,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  document.body.classList.remove('hex-dragging')
   resizeObserver?.disconnect()
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
   if (dragPendingTimer) clearTimeout(dragPendingTimer)
@@ -992,9 +997,14 @@ svg.hex-icon {
 /* Floating hex: follows cursor during drag; position:fixed via teleport to body */
 .hex-floating {
   position: fixed;
-  pointer-events: none;
   z-index: 1000;
-  cursor: grabbing;
+}
+
+/* Body class set while dragging — forces grabbing over every element the
+   pointer crosses, not just the floating hex. */
+:global(body.hex-dragging),
+:global(body.hex-dragging *) {
+  cursor: grabbing !important;
 }
 
 /* Victory animation — triggered when user drags skills back to original order.
