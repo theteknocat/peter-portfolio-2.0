@@ -43,6 +43,40 @@ later is *dynamically generated* quips instead of hand-written ones (see Part 2)
 - Can be dismissed; a `localStorage` flag keeps him gone for the rest of the session.
 - Self-aware, slightly dry tone — fits the site's personality.
 
+### Tone & UX principles (why this Clippy isn't annoying)
+
+The original Clippy was hated for specific, well-documented reasons. None of them
+are inevitable — they came from one root cause that **doesn't apply here**, plus a
+handful of behaviours we can simply refuse to repeat.
+
+**The root reframe.** The original interrupted people *trying to get work done* in a
+productivity tool — adding cognitive load at the worst moment, breaking the basic
+social norm that a colleague asks before interrupting. A portfolio site is not a
+tool anyone is trying to finish a task in. Here Clippy **is** part of the
+entertainment, not an obstacle to it. That's the whole licence to do this. The
+only real risk is overstaying a welcome that was always just a novelty — so every
+rule below serves "charming, brief, instantly dismissible."
+
+**Hard rules — these are the antidote to the original's sins:**
+
+| Original sin | Our rule |
+| --- | --- |
+| Reappeared after you dismissed him | **"No" means gone.** One dismiss → gone for the session (`localStorage`). This is the single most important feature, not a nice-to-have. |
+| Interrupted focused work | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate. |
+| Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet. |
+| Same line every time, forever | **Vary the lines.** 2–3 rotating quips per route so a repeat visitor isn't hit with the identical string. (This is also what the Claude API buys later.) |
+| Unprompted escalation | **Earn the second line.** "Tell me more" is opt-in — he expands *only* if asked. Consent-based, the inverse of the original. |
+| "Leering" eyes felt like surveillance | **Keep the gaze friendly.** Favour warm animations (`Greeting`, `Wave`, `Congratulate`); avoid the staring ones and don't have him track the cursor in a way that reads as "watching you." |
+| Patronizing, oblivious | **Self-aware and ironic.** He *knows* he's Clippy and knows the bit is absurd. Self-awareness is the antidote to "patronizing." |
+
+**The comedic register.** The humour is *earnest help offered for absurdly
+inappropriate things* — the "it looks like you're \[doing X]\, want help with that?"
+formula deliberately misapplied. The classic dark-comedy version of this trope
+offers chirpy assistance with things no assistant should help with; lean into that
+ironic, slightly morbid mismatch between Clippy's relentless helpfulness and the
+situation, kept tasteful enough for a professional portfolio. He's funny because he
+commits completely to being helpful about the wrong thing.
+
 ### Example per-route lines
 
 These are hand-written and live in a config object on the frontend. The Claude
