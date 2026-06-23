@@ -14,10 +14,7 @@ const currentYear = computed(() => new Date().getFullYear())
 
 <template>
   <footer>
-    <div class="footer-inner">
-      <p class="copyright">
-        Copyright &copy; {{ currentYear }} Peter Epp
-      </p>
+    <div class="footer-inner flex flex-col items-center gap-3 md:flex-row md:justify-between md:gap-0">
       <nav class="social-links" aria-label="Social links">
         <a v-tooltip="'Drupal.org Profile'" href="https://drupal.org/u/teknocat" class="social-link link-poly link-poly--slash shape-jitter" target="_blank" rel="noopener noreferrer">
           <span class="sr-only">Drupal.org Profile</span>
@@ -30,6 +27,9 @@ const currentYear = computed(() => new Date().getFullYear())
           <span v-html="stripTitle(siGithub.svg)" class="social-icon" />
         </a>
       </nav>
+      <p class="copyright text-sm">
+        Copyright &copy; {{ currentYear }} Peter Epp
+      </p>
     </div>
   </footer>
 </template>
@@ -54,9 +54,6 @@ footer {
 }
 
 .footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   max-width: 72rem;
   margin-inline: auto;
   padding: 1rem 1.5rem;
