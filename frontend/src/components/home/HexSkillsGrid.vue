@@ -233,7 +233,8 @@ const focusedHexPos = ref<{ x: number; y: number } | null>(null)
 // Keyboard-driven tilt only on devices with a fine pointer (mouse/trackpad).
 // On touch screens, tab-focus still moves the grid visually via the focus ring
 // but shouldn't tilt the whole grid unexpectedly.
-const keyboardTiltEnabled = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+const keyboardTiltEnabled = typeof window !== 'undefined'
+  && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 // Resolves to the position that should drive tilt and per-hex scaling.
 const effectivePos = computed(() =>

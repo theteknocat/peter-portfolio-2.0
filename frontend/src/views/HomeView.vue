@@ -6,6 +6,7 @@
 import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { Briefcase, Newspaper, Hexagon } from '@lucide/vue'
 import { usePageData } from '@/composables/usePageData'
+import { useSeo } from '@/composables/useSeo'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import IntroTerminal from '@/components/home/IntroTerminal.vue'
 import FeaturedPortfolioSection from '@/components/home/FeaturedPortfolioSection.vue'
@@ -13,6 +14,13 @@ import FeaturedArticlesSection from '@/components/home/FeaturedArticlesSection.v
 import SkillsSection from '@/components/home/SkillsSection.vue'
 
 const { data, loading, error } = usePageData('home')
+
+useSeo({
+  title: 'Peter Epp — Full-Stack Web Developer',
+  description:
+    'Portfolio of Peter Epp, a full-stack web developer specialising in Drupal, PHP, and modern JavaScript.',
+  path: '',
+})
 
 const sectionComponents: Record<string, Component> = {
   'intro': IntroTerminal,

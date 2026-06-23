@@ -38,6 +38,7 @@ function onKeyDown(event: KeyboardEvent): void {
 watch(
   () => route.meta.modal,
   (isModal, wasModal) => {
+    if (typeof document === 'undefined') return // no DOM during SSG prerender
     document.body.classList.toggle('modal-open', Boolean(isModal))
     if (isModal) {
       contentReady.value = false

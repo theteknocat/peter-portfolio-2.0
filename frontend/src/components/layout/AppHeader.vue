@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Sticky site header. Picks up scroll position from useScrolled and
 // applies the .scrolled class to trigger blur + transparency.
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { LayoutGrid, X } from '@lucide/vue'
 import { useScrolled } from '@/composables/useScrolled'
@@ -14,12 +14,17 @@ const route = useRoute()
 
 watch(route, () => { isMenuOpen.value = false })
 
-// ponytail: matchMedia at setup — no resize listener needed, MQL fires on change
-const mq = window.matchMedia('(max-width: 767px)')
-const isMobile = ref(mq.matches)
+// ponytail: matchMedia, no resize listener needed — MQL fires on change. Read in
+// onMounted so SSG prerenders the desktop default and the client hydrates to match.
+const isMobile = ref(false)
+let mq: MediaQueryList | null = null
 const onMqChange = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
-mq.addEventListener('change', onMqChange)
-onUnmounted(() => mq.removeEventListener('change', onMqChange))
+onMounted(() => {
+  mq = window.matchMedia('(max-width: 767px)')
+  isMobile.value = mq.matches
+  mq.addEventListener('change', onMqChange)
+})
+onUnmounted(() => mq?.removeEventListener('change', onMqChange))
 </script>
 
 <template>

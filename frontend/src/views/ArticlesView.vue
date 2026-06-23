@@ -5,12 +5,19 @@
  */
 import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
+import { useSeo } from '@/composables/useSeo'
 import type { Article } from '@/types/article'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import ArticleCard from '@/components/articles/ArticleCard.vue'
 
 const { data, loading, error } = usePageData('articles')
+
+useSeo({
+  title: 'Articles — Peter Epp',
+  description: 'Writing on web development by Peter Epp.',
+  path: '/articles',
+})
 
 const items = computed(
   () => (data.value?.sections[0]?.items ?? []) as unknown as Article[]

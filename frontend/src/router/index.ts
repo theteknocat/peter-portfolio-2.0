@@ -1,7 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
-const routes: RouteRecordRaw[] = [
+export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('@/views/HomeView.vue'),
@@ -39,8 +38,3 @@ const routes: RouteRecordRaw[] = [
     meta: { transition: 'page' },
   },
 ]
-
-export const router = createRouter({
-  history: createWebHistory(),
-  routes,
-})

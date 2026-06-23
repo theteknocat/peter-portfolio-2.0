@@ -9,10 +9,11 @@ ported (see theme-migration.md — every section there is ticked off). UI
 components (`TechBadge`, `ContentCard`, `MarkdownRenderer`, `PageTitle`) and the
 content composables (`usePageData`, `useContent`, `useModalNavigation`) are built.
 
+**Done since:** SEO/SSG via vite-ssg (per-route metadata, robots.txt, sitemap) — see § SEO.
+
 **Remaining:**
 
-- SEO / SSG setup (vite-ssg, meta tags, sitemap, robots.txt) — see § SEO
-- Build & deploy workflow — see § Build output & deploy workflow
+- Build & deploy: documented (§ Build output & deploy workflow); execute on the server when ready
 - AppFooter mobile responsiveness
 - Nice-to-have: Clippy companion, Konami easter egg, scroll-in animations
 
@@ -499,9 +500,13 @@ rsync -avz --delete ~/content/peter-epp/ user@server:/var/content/peter-epp/
 ### Deploying Code
 
 ```bash
-# On server via webhook or manually
+# API code (server): pull + install, no build step
 git pull origin main
-cd frontend && npm run build   # or CI handles this
+cd api && composer install --no-dev
+
+# Frontend: built LOCALLY (no Node on server), then shipped
+npm run build --prefix frontend
+rsync -avz --delete frontend/dist/ user@server:/var/www/peter-epp/
 ```
 
 Code and content deployments are fully independent.
@@ -526,45 +531,48 @@ APP_ENV=development
 
 ## SEO
 
-The site is a client-side Vue 3 SPA — crawlers get a near-empty `index.html` until JavaScript executes. The fix is static site generation (SSG) at build time: pre-render every route to a real `index.html` so crawlers receive fully-formed HTML immediately.
+The site is a client-side Vue 3 SPA — crawlers get a near-empty `index.html` until JavaScript executes. The fix is static site generation (SSG) at build time: pre-render every route to a real HTML file so crawlers receive fully-formed `<head>` + page chrome immediately.
 
-### Chosen approach: `vite-ssg`
+### Implemented: `vite-ssg`
 
 `vite-ssg` wraps the existing Vite + Vue Router setup with minimal changes:
 
-- `main.ts` switches from `createApp` to `ViteSSG`'s exported function
-- Build output gains one `index.html` per route (`/portfolio/index.html`, etc.)
-- The result is static HTML that works without JavaScript, with the SPA hydrating on top for navigation
-- No framework migration required; same codebase, same router, same components
+- `main.ts` exports a `ViteSSG(App, { routes }, setupFn)` factory instead of `createApp().mount()`; the router singleton moved to `routes` exported from `router/index.ts`.
+- Build output gains one **flat** HTML file per static route (`dist/portfolio.html`, `dist/articles.html`, `dist/job-history.html`, `dist/index.html`) — *not* `/portfolio/index.html`. This matters for the nginx `try_files` line below.
+- The static HTML carries the full `<head>` + chrome (header/nav/footer) + a `Loading…` body placeholder. **Page/item body content is fetched at runtime** (`usePageData` / `useContent` run in `onMounted`), so it is not baked — it hydrates client-side. This was a deliberate Phase 1 call: name searches surface via the homepage and per-page metadata, and there's little value in baking 100% static body content.
+- No framework migration required; same codebase, same router, same components.
 
-**Install:** `npm install vite-ssg`
+**Versions:** `vite-ssg` ^28 with `@unhead/vue` ^2 (must match the copy `vite-ssg` bundles — a v3 mismatch silently writes head tags to an instance vite-ssg never reads). Build command is `vue-tsc && vite-ssg build` (plain `vite build` does **not** prerender).
 
-**Trade-off vs Nuxt 3:** Nuxt is more mature (auto-imports, `useHead`, Nitro server, richer ecosystem) but requires architectural migration. `vite-ssg` is the right call while still establishing Vue 3 / TypeScript patterns. Revisit a Nuxt migration after the site is feature-complete.
+**Trade-off vs Nuxt 3:** Nuxt is more mature but requires architectural migration. `vite-ssg` is the right call while still establishing Vue 3 / TypeScript patterns. Revisit a Nuxt migration after the site is feature-complete.
 
-### Additional SEO work (to do alongside)
+### Per-route metadata: `useSeo` composable
 
-- `robots.txt` in `frontend/public/` — see Bot Mitigation section below
-- `sitemap.xml` — can be generated at build time by a `vite-ssg` hook
-- Per-route `<title>` and `<meta description>` tags via `useHead` (bundled with `vite-ssg`)
+`frontend/src/composables/useSeo.ts` wraps `useHead` and emits, for each route,
+the `<title>`, `<meta description>`, `<link rel="canonical">`, and Open Graph +
+Twitter Card tags — all derived from `https://peter-epp.dev`. Each of the four
+static views calls it with its own title/description (current copy is
+placeholder). `og:image` is intentionally omitted until a share-card image
+exists; JSON-LD was not added.
 
-### Gaps to resolve before implementing
+### Implemented alongside
 
-- **Social / discovery metadata not yet scoped.** `useHead` can emit it, but the
-  list above omits Open Graph + Twitter Card tags (link previews when a page is
-  shared), `<link rel="canonical">`, and JSON-LD structured data
-  (`Person` for the home page, `Article` / `BlogPosting` for articles,
-  `CreativeWork` for portfolio items). These are worth adding for a portfolio.
-- **Build-time content access for dynamic routes.** `vite-ssg` pre-renders at
-  *build time*, but routes like `/portfolio/{slug}` and `/articles/{slug}` get
-  their data from the PHP API at runtime. Two things need deciding:
-  1. *Route enumeration* — `vite-ssg`'s `includedRoutes` hook must be given the
-     full slug list so it knows which pages to generate. That list has to come
-     from the flat-file content (read the content dir, or hit a manifest
-     endpoint) during the build.
-  2. *Data availability* — the content must be present and readable when
-     `npm run build` runs (API reachable, or read the YAML/Markdown files
-     directly at build time). Decide which, since content lives outside the repo
-     and is rsynced separately.
+- `robots.txt` in `frontend/public/` (allow all + sitemap link).
+- `sitemap.xml` generated at build time by `ssgOptions.onFinished` in
+  `vite.config.ts`, which walks `dist/` for prerendered `.html` files. Any new
+  prerendered route appears automatically — no second edit.
+
+### Detail-page prerendering: intentionally skipped
+
+`/portfolio/{slug}` and `/articles/{slug}` are **not** prerendered — they stay
+client-rendered SPA routes. Doing it properly would mean baking real per-item
+metadata into the static HTML, which requires refactoring `useContent` to fetch
+during SSR (`onServerPrefetch`) and transferring that state to the client via
+vite-ssg's `initialState` to avoid a hydration mismatch + double fetch. Given the
+stated goal (name searches, already covered by the homepage), the marginal
+per-article search value didn't justify the refactor. Revisit if article traffic
+ever becomes a priority — `includedRoutes` would enumerate slugs from the API at
+build time as the entry point.
 
 ### Client-side animation vs. SSG (hydration + SEO)
 
@@ -595,18 +603,30 @@ Rules to follow:
 
 ### Build output & deploy workflow
 
-The generated static HTML is a **build artifact, not source** — output it to a
-gitignored folder (e.g. `frontend/dist/`) and never commit it. Because the pages
-are rendered from content at build time, the deploy flow for a **content-only**
-change is:
+The generated static HTML is a **build artifact, not source** — `vite-ssg`
+outputs to the gitignored `frontend/dist/` and it is never committed.
 
-1. rsync the updated content into place (it lives outside the repo).
-2. Re-run `npm run build` so `vite-ssg` regenerates every static page from the
-   new content.
-3. Deploy the freshly built `dist/` output.
+**Deploy model (Option B):** build locally, ship the artifact. The server runs
+nginx + PHP-FPM only — **no Node, no server-side build**.
 
-i.e. a content edit alone is not enough — it only goes live after a rebuild
-regenerates the affected static pages.
+```text
+Build (local):  npm run build  →  dist/ (HTML + hashed assets + robots.txt + sitemap.xml)
+                No API needed at build — page/item content is fetched at runtime, not baked.
+
+Deploy:
+  - rsync dist/ → nginx web root
+  - rsync content/ → server CONTENT_PATH (read by the PHP API at runtime; content lives outside the repo)
+  - API code: git pull + composer install on the server
+
+nginx:  try_files $uri $uri.html /index.html;   # flat .html: /portfolio → portfolio.html
+        /api/* → PHP-FPM (unchanged)
+```
+
+**Content-only change:** rsync `content/` alone — it goes live immediately
+because the API reads the fresh files at runtime. A rebuild is only needed for
+frontend code changes or SEO-copy edits (titles/descriptions), since those are
+the only things baked into the static HTML. (This is the inverse of a
+fully-static-body SSG, where every content edit would force a rebuild.)
 
 ---
 

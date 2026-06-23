@@ -5,12 +5,19 @@
  */
 import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
+import { useSeo } from '@/composables/useSeo'
 import type { Job } from '@/types/job'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import JobEntryCard from '@/components/jobs/JobEntryCard.vue'
 
 const { data, loading, error } = usePageData('job-history')
+
+useSeo({
+  title: 'Job History — Peter Epp',
+  description: 'Professional work history of Peter Epp.',
+  path: '/job-history',
+})
 
 const items = computed(
   () => (data.value?.sections[0]?.items ?? []) as unknown as Job[]

@@ -5,12 +5,19 @@
  */
 import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
+import { useSeo } from '@/composables/useSeo'
 import type { PortfolioItem } from '@/types/portfolio'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import PortfolioCard from '@/components/portfolio/PortfolioCard.vue'
 
 const { data, loading, error } = usePageData('portfolio')
+
+useSeo({
+  title: 'Portfolio — Peter Epp',
+  description: 'Selected web development projects by Peter Epp.',
+  path: '/portfolio',
+})
 
 // The portfolio page has a single 'portfolio-list' section.
 // Pull items directly rather than using a dynamic component map.
