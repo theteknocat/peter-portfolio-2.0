@@ -7,7 +7,7 @@
 // - Dismissal is persistent (gone means gone); the footer's "summon" button
 //   brings him back via shared state in useClippy().
 import { onMounted, onUnmounted, shallowRef, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { useClippy } from '@/composables/useClippy'
 
@@ -23,6 +23,7 @@ interface Agent {
 }
 
 const router = useRouter()
+const route = useRoute()
 const { dismissed, active, allowed, dismiss } = useClippy()
 
 const agent = shallowRef<Agent | null>(null)
@@ -30,8 +31,69 @@ const agent = shallowRef<Agent | null>(null)
 // button into it so the button tracks the widget — including when it's dragged.
 const agentEl = shallowRef<HTMLElement | null>(null)
 
-const WELCOME = "It looks like you're visiting Peter's portfolio. Need a hand?"
+// First-appearance lines (first load + every re-summon). Picked at random.
+const WELCOME = [
+  "It looks like you're visiting Peter's portfolio. Need a hand? I have exactly one.",
+  "It looks like you're judging a stranger's career. I'm legally obligated to help.",
+  "It looks like you opened a portfolio in 2026 and got Clippy. Bold of both of us.",
+  "Hi. It looks like you're about to be impressed. I'll wait.",
+]
 const FIRST_SHOW_DELAY_MS = 2500
+
+// Per-section quips. He speaks one at random when you navigate into a *new*
+// section — never on movement within one, so opening a project/article modal
+// doesn't re-trigger him. 2 lines each so a repeat visitor isn't hit with the
+// same string. Register: earnest help, absurdly misapplied; dry, self-aware.
+const LINES: Record<string, { anim: string; text: string[] }> = {
+  home: {
+    anim: 'Greeting',
+    text: [
+      "It looks like you're back at the start. Bold strategy. Want the tour again?",
+      "Welcome back to square one. I won't judge — that's not in my feature set.",
+    ],
+  },
+  portfolio: {
+    anim: 'GetTechy',
+    text: [
+      "It looks like you're evaluating someone's life's work. Take your time — he can't see you doing it.",
+      "Projects, projects. It looks like you're deciding whether to be impressed. I recommend yes.",
+    ],
+  },
+  articles: {
+    anim: 'GetArtsy',
+    text: [
+      "It looks like you're after opinions about AI. Peter has several. I am one of them.",
+      "Words! It looks like you're about to read on purpose. How retro. I approve.",
+    ],
+  },
+  'job-history': {
+    anim: 'GetAttention',
+    text: [
+      "It looks like you're checking whether Peter is employable. He is. I'd stake my entire existence on it.",
+      "Ah, the résumé portion. It looks like you're doing due diligence. I already vouched for him.",
+    ],
+  },
+}
+
+/** Random element of a non-empty array. */
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+/** First path segment, or 'home' for '/'. */
+function sectionOf(path: string): string {
+  return path.split('/')[1] || 'home'
+}
+
+/** Speak a random quip for the section (if he's loaded and on screen). */
+function speakForSection(section: string): void {
+  const a = agent.value
+  if (!a || !active.value) return // not loaded yet, or dismissed/off-screen
+  const line = LINES[section]
+  if (!line) return
+  if (!reduceMotion) a.play(line.anim)
+  a.speak(pick(line.text))
+}
 
 let started = false
 const reduceMotion =
@@ -48,7 +110,7 @@ function reveal(): void {
     a.show()
     a.play('Greeting')
   }
-  a.speak(WELCOME)
+  a.speak(pick(WELCOME))
   active.value = true
 }
 
@@ -106,6 +168,20 @@ onMounted(() => {
       }
     },
     { immediate: true },
+  )
+
+  // Navigation quips: fire only when the *section* changes (so portfolio →
+  // a project modal stays quiet). No `immediate` — first load is the welcome
+  // line's job, not this watcher's.
+  let lastSection = sectionOf(route.path)
+  watch(
+    () => route.path,
+    (path) => {
+      const section = sectionOf(path)
+      if (section === lastSection) return
+      lastSection = section
+      speakForSection(section)
+    },
   )
 })
 
