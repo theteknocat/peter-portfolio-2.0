@@ -65,15 +65,15 @@ rule below serves "charming, brief, instantly dismissible."
 
 **Hard rules — these are the antidote to the original's sins:**
 
-| Original sin | Our rule |
-| --- | --- |
-| Reappeared after you dismissed him | **"No" means gone.** One dismiss → gone for good (`localStorage`), with an explicit opt-in footer button to summon him back. This is the single most important feature, not a nice-to-have. |
-| Interrupted focused work | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate. |
-| Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet. |
-| Same line every time, forever | **Vary the lines.** 2–3 rotating quips per route so a repeat visitor isn't hit with the identical string. (This is also what the Claude API buys later.) |
-| Unprompted escalation | **Earn the second line.** "Tell me more" is opt-in — he expands *only* if asked. Consent-based, the inverse of the original. |
-| "Leering" eyes felt like surveillance | **Keep the gaze friendly.** Favour warm animations (`Greeting`, `Wave`, `Congratulate`); avoid the staring ones and don't have him track the cursor in a way that reads as "watching you." |
-| Patronizing, oblivious | **Self-aware and ironic.** He *knows* he's Clippy and knows the bit is absurd. Self-awareness is the antidote to "patronizing." |
+| Original sin                            | Our rule                                                                                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reappeared after you dismissed him      | **"No" means gone.** One dismiss → gone for good (`localStorage`), with an explicit opt-in footer button to summon him back. This is the single most important feature, not a nice-to-have. |
+| Interrupted focused work                | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate.                       |
+| Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet.                            |
+| Same line every time, forever           | **Vary the lines.** 2–3 rotating quips per route so a repeat visitor isn't hit with the identical string. (This is also what the Claude API buys later.)                                    |
+| Unprompted escalation                   | **Earn the second line.** "Tell me more" is opt-in — he expands *only* if asked. Consent-based, the inverse of the original.                                                                |
+| "Leering" eyes felt like surveillance   | **Keep the gaze friendly.** Favour warm animations (`Greeting`, `Wave`, `Congratulate`); avoid the staring ones and don't have him track the cursor in a way that reads as "watching you."  |
+| Patronizing, oblivious                  | **Self-aware and ironic.** He *knows* he's Clippy and knows the bit is absurd. Self-awareness is the antidote to "patronizing."                                                             |
 
 **The comedic register.** The humour is *earnest help offered for absurdly
 inappropriate things* — the "it looks like you're \[doing X]\, want help with that?"
@@ -232,6 +232,34 @@ Clippy's animation names include: `Greeting`, `Wave`, `GetAttention`,
 `Processing`, `Writing`, `Print`, `SendMail`, `Save`, `GestureUp/Down/Left/Right`,
 `LookUp/Down/Left/Right` (+ diagonals), and several `Idle*` fidgets. Call
 `agent.animations()` at runtime for the authoritative list.
+
+#### Behavioural notes (the non-obvious runtime facts)
+
+These are things the type definitions don't tell you — confirmed by reading the
+installed `clippyjs` source. Captured here so they don't have to be re-derived.
+
+- **`hide()` with no `fast` plays a built-in `Hide` animation, *then* sets
+  `display:none`** — but Clippy's `Hide` is only ~4 frames at `duration: 10`
+  each (~40ms total, versus `duration: 100` for normal animations), so it reads
+  as an instant vanish. `hide(true)` skips it and hides immediately. **There is
+  no slow, graceful built-in exit.** A visible close animation would have to be
+  our own (e.g. a CSS fade/sink on `_el`, then `hide(true)` to finalise) — and
+  we deliberately chose *not* to build one; the instant hide is the shipped
+  behaviour.
+- **`play(name, timeout?, cb?)`'s callback fires on animation *exit*** (when the
+  animation finishes / is interrupted), not on entry.
+- **The library's method params are optional at runtime** even though the
+  generated `.d.ts` marks several as required (`show(fast)`, `hide(fast, cb)`,
+  `speak(text, hold)`). `ClippyCompanion.vue` declares its own `interface Agent`
+  with the real optional signatures and casts to it — don't trust the bundled
+  types.
+- **`agent._el` is the agent's own `<div>`** (private, untyped). We `<Teleport>`
+  the dismiss `X` into it so the button tracks the widget when dragged and hides
+  with it. Reached via the cast `as unknown as Agent & { _el: HTMLElement }`.
+- **`stop()` clears the whole queue** (and is what `hide()` calls internally), so
+  you can't queue an animation *then* `hide()` and expect both to run — the
+  `hide()` wipes the pending animation. Chain via `play(name, timeout, () =>
+  agent.hide(true))` instead.
 
 #### Route-reactive pattern (sketch)
 
