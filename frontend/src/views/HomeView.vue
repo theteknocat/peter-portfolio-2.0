@@ -169,11 +169,11 @@ onUnmounted(() => observer?.disconnect())
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  /* Top: stands in for the page title other pages have above their content.
-     Bottom: replaces the view-container bottom padding (zeroed via pb-0) so the
-     spacing lives inside .home-grid and the sticky panel doesn't shift at the
-     scroll bottom. */
-  padding-block: 1rem;
+  padding-bottom: 1rem;
+}
+
+.home-right section:first-child {
+  padding-top: 1rem;
 }
 
 .section-nav {
