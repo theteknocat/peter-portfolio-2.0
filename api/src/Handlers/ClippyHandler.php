@@ -48,6 +48,11 @@ class ClippyHandler
 
         $response->getBody()->write(json_encode(['quips' => $quips], JSON_THROW_ON_ERROR));
 
-        return $response->withHeader('Content-Type', 'application/json');
+        // no-store: the pool changes server-side on its own TTL, so the browser
+        // must never hold a stale copy across sessions. In-session de-duplication
+        // is handled client-side in sessionStorage, not the HTTP cache.
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('Cache-Control', 'no-store');
     }
 }

@@ -227,11 +227,22 @@ Confirmed from the installed type definitions:
 | `pause()` / `resume()`      | Pause / resume animation.                                        |
 | `dispose()`                 | Remove the agent from the DOM.                                   |
 
-Clippy's animation names include: `Greeting`, `Wave`, `GetAttention`,
-`Congratulate`, `GetTechy`, `GetWizardy`, `GetArtsy`, `Searching`, `Thinking`,
-`Processing`, `Writing`, `Print`, `SendMail`, `Save`, `GestureUp/Down/Left/Right`,
-`LookUp/Down/Left/Right` (+ diagonals), and several `Idle*` fidgets. Call
-`agent.animations()` at runtime for the authoritative list.
+Clippy's full animation set (42 names), pulled from the installed agent data.
+Call `agent.animations()` at runtime for the authoritative list.
+
+| Group | Names | Use? |
+| --- | --- | --- |
+| **Expressive gestures** | `Wave`, `GetAttention`, `Congratulate`, `GetTechy`, `GetWizardy`, `GetArtsy`, `Searching`, `Thinking`, `Processing`, `Writing`, `Explain`, `CheckingSomething`, `Alert`, `Hearing_1` | ✅ Drive these on navigation / click. |
+| **Office-prop gags** | `Print`, `SendMail`, `Save`, `EmptyTrash` | ✅ Fine — Clippy-era flavour. |
+| **Entrance** | `Greeting` | ⚠️ Reserve for first load / re-summon — it reads as "appearing". |
+| **Pointing** | `GestureUp`, `GestureDown`, `GestureLeft`, `GestureRight` | ⚠️ Only with `gestureAt()` toward a real element; aimless in a random pool. |
+| **Looking** | `LookUp`, `LookDown`, `LookLeft`, `LookRight` (+ 4 diagonals) | ❌ The "staring" set — feels like surveillance. Avoid. |
+| **Idle loops** | `Idle1_1`, `IdleAtom`, `IdleEyeBrowRaise`, `IdleFingerTap`, `IdleHeadScratch`, `IdleRopePile`, `IdleSideToSide`, `IdleSnooze` | ❌ Auto-played when the queue empties. Never drive manually. |
+| **Lifecycle** | `Show`, `Hide`, `RestPose`, `GoodBye` | ❌ System animations — `show()`/`hide()` invoke these for you. |
+
+The built-in `animate()` (and the double-click handler) picks at random from
+**all** non-`Idle*` names — so it can surface the staring and lifecycle ones. For
+a curated feel, keep an explicit allow-list and `play()` from that instead.
 
 #### Behavioural notes (the non-obvious runtime facts)
 

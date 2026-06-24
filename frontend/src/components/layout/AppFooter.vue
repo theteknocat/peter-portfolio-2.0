@@ -9,7 +9,7 @@ import { useClippy } from '@/composables/useClippy'
 
 const currentYear = computed(() => new Date().getFullYear())
 
-const { active, allowed, summon } = useClippy()
+const { dismissed, allowed, summon } = useClippy()
 
 // LinkedIn omitted for now — simple-icons v16 dropped the LinkedIn icon and
 // @lucide/vue's export name was unresolved at build time.
@@ -36,7 +36,7 @@ const { active, allowed, summon } = useClippy()
 
         <!-- Summon Clippy back: only on viewports where he runs, and only
              while he's not already on screen. -->
-        <template v-if="allowed && !active">
+        <template v-if="allowed && dismissed">
           <span class="footer-divider" aria-hidden="true" />
           <button type="button" class="summon-clippy social-link link-poly link-poly--slash shape-jitter" @click="summon">
             <Paperclip class="summon-icon" :size="18" />

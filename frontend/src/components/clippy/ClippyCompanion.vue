@@ -10,6 +10,7 @@ import { onMounted, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { useClippy } from '@/composables/useClippy'
+import { useClippyQuips } from '@/composables/useClippyQuips'
 
 // clippyjs's generated types mark these method params as required, but the
 // runtime treats them as optional. Declare the subset we drive with the real
@@ -20,11 +21,15 @@ interface Agent {
   play(name: string): void
   speak(text: string, hold?: boolean): void
   dispose(): void
+  // clippyjs internal: the balloon's post-text close delay (ms). We override
+  // it per-quip so longer lines linger long enough to read. See readingDelay.
+  _balloon: { CLOSE_BALLOON_DELAY: number }
 }
 
 const router = useRouter()
 const route = useRoute()
 const { dismissed, active, allowed, dismiss } = useClippy()
+const { nextQuip } = useClippyQuips()
 
 const agent = shallowRef<Agent | null>(null)
 // clippyjs's own <div> (the agent's internal element). We teleport the dismiss
@@ -40,59 +45,78 @@ const WELCOME = [
 ]
 const FIRST_SHOW_DELAY_MS = 2500
 
-// Per-section quips. He speaks one at random when you navigate into a *new*
-// section — never on movement within one, so opening a project/article modal
-// doesn't re-trigger him. 2 lines each so a repeat visitor isn't hit with the
-// same string. Register: earnest help, absurdly misapplied; dry, self-aware.
-const LINES: Record<string, { anim: string; text: string[] }> = {
-  home: {
-    anim: 'Greeting',
-    text: [
-      "It looks like you're back at the start. Bold strategy. Want the tour again?",
-      "Welcome back to square one. I won't judge — that's not in my feature set.",
-    ],
-  },
-  portfolio: {
-    anim: 'GetTechy',
-    text: [
-      "It looks like you're evaluating someone's life's work. Take your time — he can't see you doing it.",
-      "Projects, projects. It looks like you're deciding whether to be impressed. I recommend yes.",
-    ],
-  },
-  articles: {
-    anim: 'GetArtsy',
-    text: [
-      "It looks like you're after opinions about AI. Peter has several. I am one of them.",
-      "Words! It looks like you're about to read on purpose. How retro. I approve.",
-    ],
-  },
-  'job-history': {
-    anim: 'GetAttention',
-    text: [
-      "It looks like you're checking whether Peter is employable. He is. I'd stake my entire existence on it.",
-      "Ah, the résumé portion. It looks like you're doing due diligence. I already vouched for him.",
-    ],
-  },
+// Built-in fallback quips, keyed by section. Used when the server quip pool for
+// a scope is empty (API down, no key, or item with no pool).
+// Register: earnest help, absurdly misapplied; dry, self-aware.
+const LINES: Record<string, string[]> = {
+  home: [
+    "It looks like you're back at the start. Bold strategy. Want the tour again?",
+    "Welcome back to square one. I won't judge — that's not in my feature set.",
+  ],
+  portfolio: [
+    "It looks like you're evaluating someone's life's work. Take your time — he can't see you doing it.",
+    "Projects, projects. It looks like you're deciding whether to be impressed. I recommend yes.",
+  ],
+  articles: [
+    "It looks like you're after opinions about AI. Peter has several. I am one of them.",
+    "Words! It looks like you're about to read on purpose. How retro. I approve.",
+  ],
+  'job-history': [
+    "It looks like you're checking whether Peter is employable. He is. I'd stake my entire existence on it.",
+    "Ah, the résumé portion. It looks like you're doing due diligence. I already vouched for him.",
+  ],
 }
+
+// Gestures Clippy plays on navigation. Curated: expressive gestures + office-prop
+// gags. Excludes Greeting (reserved for the entrance), the staring Look* set,
+// idle loops (auto-played), and lifecycle animations. See docs/clippy-companion.md.
+const GESTURES = [
+  'Wave', 'Congratulate', 'GetTechy', 'GetWizardy', 'GetArtsy',
+  'Searching', 'Thinking', 'Processing', 'Writing', 'Explain',
+  'CheckingSomething', 'Alert', 'Hearing_1', 'Print', 'SendMail', 'Save',
+  'EmptyTrash',
+]
 
 /** Random element of a non-empty array. */
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-/** First path segment, or 'home' for '/'. */
-function sectionOf(path: string): string {
-  return path.split('/')[1] || 'home'
+let lastGesture = ''
+/** A random gesture from GESTURES, never the same one twice in a row. */
+function randomGesture(): string {
+  let g = pick(GESTURES)
+  while (g === lastGesture) g = pick(GESTURES)
+  return (lastGesture = g)
 }
 
-/** Speak a random quip for the section (if he's loaded and on screen). */
-function speakForSection(section: string): void {
+/** Reading dwell (ms) for the speech bubble. clippyjs's default is a flat 2s
+ *  that doesn't scale, so longer quips feel cut off. Scale by word count
+ *  (~215 wpm), clamped to a sane floor/ceiling. */
+function readingDelay(text: string): number {
+  const words = text.trim().split(/\s+/).length
+  return Math.min(Math.max(words * 280, 2500), 9000)
+}
+
+/** Path → quip scope. '/' is 'home'; item routes keep their slug. */
+function scopeOf(path: string): string {
+  return path.replace(/^\/+/, '') || 'home'
+}
+
+/**
+ * Speak a quip for a scope: server pool first, built-in LINES as fallback.
+ * Async because the first quip for a scope fetches its pool.
+ */
+async function speakForScope(scope: string): Promise<void> {
+  if (!agent.value || !active.value) return // not loaded yet, or off-screen
+  const section = scope.split('/')[0]
+  const fallback = LINES[section]
+  const quip = (await nextQuip(scope)) ?? (fallback ? pick(fallback) : null)
   const a = agent.value
-  if (!a || !active.value) return // not loaded yet, or dismissed/off-screen
-  const line = LINES[section]
-  if (!line) return
-  if (!reduceMotion) a.play(line.anim)
-  a.speak(pick(line.text))
+  if (!quip || !a || !active.value) return // no line, or navigated away mid-fetch
+  if (!reduceMotion) a.play(randomGesture())
+  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
+  a.speak(quip)
 }
 
 let started = false
@@ -110,7 +134,9 @@ function reveal(): void {
     a.show()
     a.play('Greeting')
   }
-  a.speak(pick(WELCOME))
+  const line = pick(WELCOME)
+  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(line)
+  a.speak(line)
   active.value = true
 }
 
@@ -140,7 +166,39 @@ async function firstShow(): Promise<void> {
   const a = (await initAgent({
     ...Clippy,
     sound: () => Promise.resolve({ default: {} }),
-  })) as unknown as Agent & { _el: HTMLElement }
+  })) as unknown as Agent & {
+    _el: HTMLElement
+    _idlePromise: Promise<void> | null
+    _isIdleAnimation(): boolean
+    _animator: {
+      showAnimation(name: string, cb: unknown): void
+      exitAnimation(): void
+    }
+    _playInternal(animation: string, callback: unknown): void
+  }
+
+  // ponytail: clippyjs defers play()/hide()/show() behind an idle "exit"
+  // promise so the idle finishes its wake-up branch first — nice, except idles
+  // with no exit branch never resolve it and deadlock every later action. Keep
+  // the graceful wait but cap it: trigger the idle's exit, race its completion
+  // against a short grace window, then swap to the requested animation.
+  const IDLE_EXIT_GRACE_MS = 1800
+  a._playInternal = function (animation, callback) {
+    if (!a._isIdleAnimation() || !a._idlePromise) {
+      a._animator.showAnimation(animation, callback)
+      return
+    }
+    let started = false
+    const start = () => {
+      if (started) return
+      started = true
+      a._animator.showAnimation(animation, callback)
+    }
+    a._idlePromise.then(start)
+    a._animator.exitAnimation()
+    window.setTimeout(start, IDLE_EXIT_GRACE_MS)
+  }
+
   agent.value = a
   agentEl.value = a._el
   reveal()
@@ -170,17 +228,22 @@ onMounted(() => {
     { immediate: true },
   )
 
-  // Navigation quips: fire only when the *section* changes (so portfolio →
-  // a project modal stays quiet). No `immediate` — first load is the welcome
-  // line's job, not this watcher's.
-  let lastSection = sectionOf(route.path)
+  // Navigation quips: fire when the *scope* changes. Opening a project/article
+  // modal is a scope change (its own quip), but closing one (returning from an
+  // item scope to any section) is skipped. No `immediate`: first load is the
+  // welcome line's job, not this watcher's.
+  let lastScope = scopeOf(route.path)
   watch(
     () => route.path,
     (path) => {
-      const section = sectionOf(path)
-      if (section === lastSection) return
-      lastSection = section
-      speakForSection(section)
+      const scope = scopeOf(path)
+      if (scope === lastScope) return
+      const prev = lastScope
+      lastScope = scope
+      // Item scopes have a slash. Returning from an item to any section is a
+      // modal close (no quip); item→item and section→item still quip.
+      const closingModal = prev.includes('/') && !scope.includes('/')
+      if (!closingModal) speakForScope(scope)
     },
   )
 })
