@@ -1,5 +1,8 @@
 # Dependencies
 api/vendor/
+
+# Server-writable cache (Clippy quip pools, etc.)
+api/var/
 frontend/node_modules/
 
 # Build output
