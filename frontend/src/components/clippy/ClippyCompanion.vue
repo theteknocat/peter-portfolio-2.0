@@ -20,6 +20,9 @@ interface Agent {
   hide(fast?: boolean): void
   play(name: string): void
   speak(text: string, hold?: boolean): void
+  // Clears the queue, exits the current animation, and hides the balloon —
+  // used to cancel an in-flight quip when the visitor navigates again.
+  stop(): void
   dispose(): void
   // clippyjs internal: the balloon's post-text close delay (ms). We override
   // it per-quip so longer lines linger long enough to read. See readingDelay.
@@ -36,13 +39,6 @@ const agent = shallowRef<Agent | null>(null)
 // button into it so the button tracks the widget — including when it's dragged.
 const agentEl = shallowRef<HTMLElement | null>(null)
 
-// First-appearance lines (first load + every re-summon). Picked at random.
-const WELCOME = [
-  "It looks like you're visiting Peter's portfolio. Need a hand? I have exactly one.",
-  "It looks like you're judging a stranger's career. I'm legally obligated to help.",
-  "It looks like you opened a portfolio in 2026 and got Clippy. Bold of both of us.",
-  "Hi. It looks like you're about to be impressed. I'll wait.",
-]
 const FIRST_SHOW_DELAY_MS = 2500
 
 // Built-in fallback quips, keyed by section. Used when the server quip pool for
@@ -104,16 +100,22 @@ function scopeOf(path: string): string {
 }
 
 /**
- * Speak a quip for a scope: server pool first, built-in LINES as fallback.
+ * Resolve a quip for a scope: server pool first, built-in LINES as fallback.
  * Async because the first quip for a scope fetches its pool.
  */
-async function speakForScope(scope: string): Promise<void> {
-  if (!agent.value || !active.value) return // not loaded yet, or off-screen
+async function quipFor(scope: string): Promise<string | null> {
   const section = scope.split('/')[0]
   const fallback = LINES[section]
-  const quip = (await nextQuip(scope)) ?? (fallback ? pick(fallback) : null)
+  return (await nextQuip(scope)) ?? (fallback ? pick(fallback) : null)
+}
+
+/** Speak a quip for a scope (navigation): random gesture, cancel anything mid-flight. */
+async function speakForScope(scope: string): Promise<void> {
+  if (!agent.value || !active.value) return // not loaded yet, or off-screen
+  const quip = await quipFor(scope)
   const a = agent.value
   if (!quip || !a || !active.value) return // no line, or navigated away mid-fetch
+  a.stop() // cancel any still-running quip so they don't stack on fast nav
   if (!reduceMotion) a.play(randomGesture())
   a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
   a.speak(quip)
@@ -124,8 +126,9 @@ const reduceMotion =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/** Run the entrance: show, greet, speak. Used on first load and on re-summon. */
-function reveal(): void {
+/** Run the entrance: show, greet, then speak a line for whatever scope the
+ *  visitor landed on. Used on first load and on re-summon. */
+async function reveal(): Promise<void> {
   const a = agent.value
   if (!a) return
   if (reduceMotion) {
@@ -134,10 +137,11 @@ function reveal(): void {
     a.show()
     a.play('Greeting')
   }
-  const line = pick(WELCOME)
-  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(line)
-  a.speak(line)
   active.value = true
+  const quip = await quipFor(scopeOf(route.path))
+  if (!quip || !agent.value || !active.value) return // dismissed mid-fetch
+  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
+  a.speak(quip)
 }
 
 /** Hide him without disposing, so a later summon can re-show instantly. */
