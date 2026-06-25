@@ -29,6 +29,9 @@ interface Agent {
   reposition(): void
   play(name: string): void
   speak(text: string, hold?: boolean): void
+  // Queue a balloon action to run after the entrance animation drains. We wrap
+  // it ourselves (rather than Agent.speak) so the entrance can fit buttons too.
+  _addToQueue(func: (complete: () => void) => void): void
   // Clears the queue, exits the current animation, and hides the balloon —
   // used to cancel an in-flight quip when the visitor navigates again.
   stop(): void
@@ -208,7 +211,13 @@ function say(a: Agent, quip: string, scope: string, concurrent = false): void {
     a._balloon.speak(() => {}, quip, hold)
     if (hold) nextTick(() => fitContentToButtons(a, quip))
   } else {
-    a.speak(quip, hold) // queued: used on first load/re-summon so the bubble follows the entrance
+    // queued: used on first load/re-summon so the bubble follows the entrance.
+    // Wrap the queued balloon.speak so we can fit the text once it actually shows
+    // (the buttons teleported in synchronously, but the bubble only measures here).
+    a._addToQueue((complete) => {
+      a._balloon.speak(complete, quip, hold)
+      if (hold) fitContentToButtons(a, quip)
+    })
   }
 }
 
@@ -218,8 +227,9 @@ function say(a: Agent, quip: string, scope: string, concurrent = false): void {
  * speak() pins _content to its ≤200px text width/height; once the wider button
  * <menu> sibling teleports in, the text looks cramped in a wide bubble. Re-pin at
  * the inner balloon width — re-measuring height too, since fewer wrap lines need
- * less height (skipping that would leave a gap above the buttons). Concurrent (nav)
- * path only; the page-load entrance never carries buttons.
+ * less height (skipping that would leave a gap above the buttons). Both the
+ * concurrent path (nav, reduced-motion entrance) and the queued full-motion
+ * entrance call this.
  *
  * @param a - The agent whose balloon to fit.
  * @param text - The full quip, for the height re-measure.
