@@ -258,7 +258,12 @@ function blurFocusedHex() {
   if (el?.classList.contains('hex-cell')) el.blur()
 }
 
-function onHexFocus(hex: HexItem) {
+function onHexFocus(hex: HexItem, event: FocusEvent) {
+  // Only keyboard focus drives the grid tilt. A pointer click also focuses the
+  // hex, but :focus-visible is false then — without this guard a click would
+  // switch controlSource to 'keyboard' and snap the tilt to the hex centre
+  // (and a trackball click, with no follow-up mousemove, would leave it stuck).
+  if (!(event.currentTarget as HTMLElement).matches(':focus-visible')) return
   focusedHexPos.value = { x: hex.x, y: hex.y }
   controlSource.value = 'keyboard'
 }
@@ -535,6 +540,23 @@ function stopSpin(index: number) {
   }
 }
 
+// Touch has no hover, so a tap toggles the spin: an idle icon launches at full
+// speed and coasts down (the same fade a mouse-out gives), and a tap on an
+// already-spinning icon (frozen to 'held' by holdSpin on press) settles it to a stop.
+function tapSpin(index: number) {
+  if (prefersReducedMotion) return
+  const anim = getIconAnim(index)
+  if (anim.phase === 'held') {
+    releaseSpin(index)
+    return
+  }
+  anim.omega = SPIN_MAX
+  anim.rotation = 0
+  anim.lastTime = performance.now()
+  anim.phase = 'spindown'
+  if (spinRafId === null) spinRafId = requestAnimationFrame(spinTick)
+}
+
 // ─── Drag-to-reorder ──────────────────────────────────────────────────────────
 const isDragging = ref(false)
 const dragSourceIdx = ref<number | null>(null)
@@ -597,12 +619,20 @@ const floatingStyle = computed(() => ({
   top: `${dragY.value - dragOffsetY.value - HEX_H.value / 2}px`,
 }))
 
-let dragPendingTimer: ReturnType<typeof setTimeout> | null = null
 let pendingDragCancelFn: (() => void) | null = null
 
-function startDrag(index: number, hexEl: HTMLElement, clientX: number, clientY: number) {
+// Suppress the long-press context menu for the whole press→drag gesture. The
+// floating hex is teleported to body, so a target-scoped handler misses it;
+// window-level is the only reliable point. Attached in onHexPointerDown, removed
+// once the gesture ends (cancel / onDragEnd / unmount).
+const blockContextMenu = (e: Event) => e.preventDefault()
+
+function startDrag(index: number, hexEl: HTMLElement, pointerId: number, clientX: number, clientY: number) {
   if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
   victoryActive.value = false
+  // Keep pointermove events flowing to us even when the pointer leaves the cell.
+  // Touch scroll is already suppressed by touch-action: none on .hex-cell.
+  hexEl.setPointerCapture(pointerId)
   dragSourceIdx.value = index
   dragTargetIdx.value = index
   isDragging.value = true
@@ -619,29 +649,52 @@ function startDrag(index: number, hexEl: HTMLElement, clientX: number, clientY: 
   window.addEventListener('pointerup', onDragEnd)
 }
 
+// Pointer travel (px) past the press point before a press becomes a drag rather
+// than a tap/click. Touch can't scroll a hex (touch-action: none), so the same
+// threshold distinguishes tap from drag for both input types.
+const DRAG_THRESHOLD = 6
+
 function onHexPointerDown(index: number, event: PointerEvent) {
   if (event.button !== 0) return
   // Capture element and coords now — event.currentTarget is nulled after this handler returns.
   const hexEl = event.currentTarget as HTMLElement
-  const { clientX, clientY } = event
+  const { clientX, clientY, pointerId } = event
+  const isTouch = event.pointerType === 'touch'
 
   holdSpin(index)
 
-  const cancel = () => {
-    if (dragPendingTimer) { clearTimeout(dragPendingTimer); dragPendingTimer = null }
+  // Suppress the long-press context menu for the whole touch gesture (removed in
+  // cancel for a tap, in onDragEnd for a drag).
+  if (isTouch) window.addEventListener('contextmenu', blockContextMenu)
+
+  // Don't start on press — a plain press is a tap/click (mouse: stop the hover
+  // spin; touch: toggle the spin). Begin the drag only once the pointer travels
+  // past DRAG_THRESHOLD; a release before then is the tap.
+  const teardownPending = () => {
     pendingDragCancelFn = null
-    resetSpin(index)
+    window.removeEventListener('pointerup', cancel)
+    window.removeEventListener('pointercancel', cancel)
+    window.removeEventListener('pointermove', onPendingMove)
+  }
+  const onPendingMove = (e: PointerEvent) => {
+    if (Math.hypot(e.clientX - clientX, e.clientY - clientY) <= DRAG_THRESHOLD) return
+    teardownPending()
+    startDrag(index, hexEl, pointerId, clientX, clientY)
+  }
+  const cancel = () => {
+    teardownPending()
+    if (isTouch) {
+      window.removeEventListener('contextmenu', blockContextMenu)
+      tapSpin(index)
+    } else {
+      resetSpin(index)
+    }
   }
   pendingDragCancelFn = cancel
 
-  dragPendingTimer = setTimeout(() => {
-    dragPendingTimer = null
-    pendingDragCancelFn = null
-    window.removeEventListener('pointerup', cancel)
-    startDrag(index, hexEl, clientX, clientY)
-  }, 150)
-
   window.addEventListener('pointerup', cancel, { once: true })
+  window.addEventListener('pointercancel', cancel, { once: true })
+  window.addEventListener('pointermove', onPendingMove)
 }
 
 function onDragMove(event: PointerEvent) {
@@ -698,6 +751,7 @@ function onDragEnd(event: PointerEvent) {
   }
   window.removeEventListener('pointermove', onDragMove)
   window.removeEventListener('pointerup', onDragEnd)
+  window.removeEventListener('contextmenu', blockContextMenu)
 }
 
 onMounted(() => {
@@ -713,10 +767,11 @@ onUnmounted(() => {
   document.body.classList.remove('hex-dragging')
   resizeObserver?.disconnect()
   if (spinRafId !== null) cancelAnimationFrame(spinRafId)
-  if (dragPendingTimer) clearTimeout(dragPendingTimer)
-  if (pendingDragCancelFn) window.removeEventListener('pointerup', pendingDragCancelFn)
+  // Invoke the pending-cancel fn so its own listeners (incl. pointermove) are torn down.
+  pendingDragCancelFn?.()
   window.removeEventListener('pointermove', onDragMove)
   window.removeEventListener('pointerup', onDragEnd)
+  window.removeEventListener('contextmenu', blockContextMenu)
 })
 
 defineExpose({ isReordered, resetOrder, shuffleOrder })
@@ -750,7 +805,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
         :class="{ 'hex-cell--victory': victoryActive }"
         :style="hexCellStyle(hex)"
         @mouseenter="blurFocusedHex"
-        @focus="onHexFocus(hex)"
+        @focus="onHexFocus(hex, $event)"
         @blur="onHexBlur"
         @keydown="(e) => onHexKeydown(e, i)"
       >
@@ -762,6 +817,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
           @mouseleave="stopSpin(hex.index)"
           @pointerdown="(e: PointerEvent) => onHexPointerDown(hex.index, e)"
           @dragstart.prevent
+          @contextmenu.prevent
           @mouseup="releaseSpin(hex.index)"
         >
           <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
@@ -830,7 +886,13 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 
 .hex-cell {
   position: absolute;
+  /* A touch starting on a hex is ours (drag candidate) — never the browser's to
+     scroll. touch-action is locked at touchstart, so anything but `none` lets the
+     browser commit a scroll mid-hold that can't be reclaimed. Page scroll is by
+     swiping off the hexes; the DRAG_THRESHOLD travel distinguishes tap from drag. */
   touch-action: none;
+  /* Suppress the iOS long-press callout so it can't compete with the drag hold. */
+  -webkit-touch-callout: none;
   transition: left 200ms ease-out, top 200ms ease-out, transform 200ms ease-out;
 }
 
