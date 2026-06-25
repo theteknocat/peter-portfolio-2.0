@@ -32,7 +32,32 @@ function close(): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') close()
+  if (event.key === 'Escape') { close(); return }
+  if (event.key !== 'Tab') return
+
+  const wrapper = modalWrapper.value
+  if (!wrapper) return
+  // Re-queried each Tab so dynamically-added focusables (close button, loaded
+  // article links) are always covered. Selector excludes tabindex="-1".
+  // ponytail: doesn't filter display:none / visibility:hidden focusables — none
+  // exist in the modal's content today; add an offsetParent check if any appear.
+  const focusables = wrapper.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+  )
+  if (focusables.length === 0) { event.preventDefault(); return }
+
+  const first  = focusables[0]
+  const last   = focusables[focusables.length - 1]
+  const active = document.activeElement
+
+  // Wrapper itself holds focus on open (tabindex=-1); treat it as "before first".
+  if (event.shiftKey && (active === first || active === wrapper)) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 watch(
