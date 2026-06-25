@@ -18,7 +18,7 @@
 /* Text glitch via text-shadow — zero blur = sharp offset copy, always under text.
    No HTML changes needed: text-shadow paints behind text by definition.
    4s cycle; burst 1 fires at 2% so a quick hover-over still catches it. */
-a:not(.site-brand) {
+a:not(.site-brand, .clippy-btn) {
   &:hover,
   &:focus-visible {
     animation: nav-text-glitch 4s linear infinite;

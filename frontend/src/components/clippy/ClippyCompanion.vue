@@ -6,11 +6,13 @@
 //   "notices" the visitor rather than ambushing them. Respects reduced motion.
 // - Dismissal is persistent (gone means gone); the footer's "summon" button
 //   brings him back via shared state in useClippy().
-import { onMounted, onUnmounted, shallowRef, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
 import { useClippy } from '@/composables/useClippy'
 import { useClippyQuips } from '@/composables/useClippyQuips'
+import { actionsFor, type ClippyAction } from '@/composables/clippyActions'
+import ClippyMessage from './ClippyMessage.vue'
 
 // clippyjs's generated types mark these method params as required, but the
 // runtime treats them as optional. Declare the subset we drive with the real
@@ -24,9 +26,33 @@ interface Agent {
   // used to cancel an in-flight quip when the visitor navigates again.
   stop(): void
   dispose(): void
-  // clippyjs internal: the balloon's post-text close delay (ms). We override
-  // it per-quip so longer lines linger long enough to read. See readingDelay.
-  _balloon: { CLOSE_BALLOON_DELAY: number }
+  // clippyjs internals. CLOSE_BALLOON_DELAY is the balloon's post-text close
+  // delay (ms); we override it per-quip so longer lines linger (see readingDelay).
+  // _balloon is the Balloon instance. `_balloon._balloon` is the bubble <div>
+  // (we teleport buttons into it); `close()` releases a held bubble — which
+  // clippyjs otherwise leaves stuck, blocking the queue (see closeBubble);
+  // `hide(true)` collapses it instantly.
+  // _active is true while the bubble is writing out words; _hold is true while a
+  // held (button) bubble stays open. We read both to skip stacking a quip onto a
+  // busy bubble (see speakForScope).
+  _balloon: {
+    CLOSE_BALLOON_DELAY: number
+    _balloon: HTMLElement
+    _content: HTMLElement
+    _active: boolean
+    _hold: boolean
+    close(): void
+    hide(fast?: boolean): void
+    // Cancels the balloon's pending timers (word loop + the delayed _finishHideBalloon
+    // that stop()'s non-fast hide schedules). Without this the stale hide fires into a
+    // live bubble, closing a held one and wedging _hold=true (blocks all later quips).
+    pause(): void
+    // Direct speak (not Agent.speak, which queues behind play()) so the bubble shows
+    // WITH the gesture; complete fires on finish. reposition re-measures the balloon —
+    // needed after the buttons teleport in, since speak() positioned it button-less.
+    speak(complete: () => void, text: string, hold: boolean): void
+    reposition(): void
+  }
 }
 
 const router = useRouter()
@@ -38,6 +64,11 @@ const agent = shallowRef<Agent | null>(null)
 // clippyjs's own <div> (the agent's internal element). We teleport the dismiss
 // button into it so the button tracks the widget — including when it's dragged.
 const agentEl = shallowRef<HTMLElement | null>(null)
+// The balloon's outer <div>, exposed so we can teleport action buttons into it.
+const balloonEl = shallowRef<HTMLElement | null>(null)
+// Buttons for the bubble currently on screen (empty = a plain, auto-closing
+// quip). Set per-quip; only some quips get buttons (see BUTTON_CHANCE).
+const currentActions = shallowRef<ClippyAction[]>([])
 
 const FIRST_SHOW_DELAY_MS = 2500
 
@@ -112,13 +143,122 @@ async function quipFor(scope: string): Promise<string | null> {
 /** Speak a quip for a scope (navigation): random gesture, cancel anything mid-flight. */
 async function speakForScope(scope: string): Promise<void> {
   if (!agent.value || !active.value) return // not loaded yet, or off-screen
-  const quip = await quipFor(scope)
   const a = agent.value
-  if (!quip || !a || !active.value) return // no line, or navigated away mid-fetch
+  // Busy bubble: still writing, or holding buttons. Leave it standing rather
+  // than stacking/interrupting (clippyjs has no clean mid-write abort; skipping
+  // is the simpler, accepted tradeoff). Button clicks close it explicitly.
+  if (a._balloon._active || a._balloon._hold) return
+  const quip = await quipFor(scope)
+  if (!quip || !agent.value || !active.value) return // no line, or navigated away mid-fetch
   a.stop() // cancel any still-running quip so they don't stack on fast nav
+  a._balloon.pause() // stop()'s non-fast hide scheduled a delayed _finishHideBalloon; cancel
+  // it or it fires mid-quip, closing a held bubble and wedging _hold=true (blocks later quips)
+  a._balloon.hide(true) // collapse a finished-but-not-yet-closed bubble NOW so its stale
+  // text can't show under the incoming buttons while the gesture plays
   if (!reduceMotion) a.play(randomGesture())
-  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
-  a.speak(quip)
+  say(a, quip, scope, true) // concurrent: bubble shows alongside the gesture
+}
+
+// Chance a quip arrives with action buttons rather than just auto-closing.
+const BUTTON_CHANCE = 0.5
+
+// Gag buttons: each maps to an animation and a canned punchline. Pure bits, no
+// navigation — the joke is that the "help" does nothing useful.
+const GAGS: Record<string, { play: string; line: string }> = {
+  enhance: {
+    play: 'Processing',
+    line: 'Enhancing. Enhancing. There — it looks exactly the same, but now you feel watched.',
+  },
+  print: {
+    play: 'Print',
+    line: "Sent to your fax machine. It looks like you don't have a fax machine. We'll keep trying.",
+  },
+  summarize: {
+    play: 'GetTechy',
+    line: 'Summary: it is good. I am told four thousand words went into it. I have given you four.',
+  },
+  wordart: {
+    play: 'GetArtsy',
+    line: 'Rendered in glorious WordArt. Peter asked me not to. That is precisely why I did.',
+  },
+}
+
+/**
+ * Speak a quip, sometimes attaching the scope's action buttons. With buttons we
+ * hold the bubble open (so they stay clickable); without, it auto-closes after
+ * a reading delay.
+ */
+function say(a: Agent, quip: string, scope: string, concurrent = false): void {
+  const acts = Math.random() < BUTTON_CHANCE ? actionsFor(scope) : []
+  currentActions.value = acts
+  const hold = acts.length > 0
+  if (!hold) a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
+  a._balloon._content.style.maxWidth = '200px' // reset; a prior button bubble may have widened it
+  if (concurrent) {
+    // Speak straight on the balloon so it shows alongside the gesture (Agent.speak
+    // would queue behind play()). Buttons teleport in async, so once they've mounted
+    // widen the text to fill the balloon they stretched, then reposition.
+    a._balloon.speak(() => {}, quip, hold)
+    if (hold) nextTick(() => fitContentToButtons(a, quip))
+  } else {
+    a.speak(quip, hold) // queued: used on first load/re-summon so the bubble follows the entrance
+  }
+}
+
+/**
+ * Widen the speech-bubble text column to fill a balloon the button row stretched.
+ *
+ * speak() pins _content to its ≤200px text width/height; once the wider button
+ * <menu> sibling teleports in, the text looks cramped in a wide bubble. Re-pin at
+ * the inner balloon width — re-measuring height too, since fewer wrap lines need
+ * less height (skipping that would leave a gap above the buttons). Concurrent (nav)
+ * path only; the page-load entrance never carries buttons.
+ *
+ * @param a - The agent whose balloon to fit.
+ * @param text - The full quip, for the height re-measure.
+ */
+function fitContentToButtons(a: Agent, text: string): void {
+  const c = a._balloon._content
+  const inner = a._balloon._balloon.clientWidth - 16 // strip the balloon's 8px padding
+  if (inner <= c.offsetWidth) { // buttons no wider than the text — nothing to fill
+    a._balloon.reposition()
+    return
+  }
+  c.style.maxWidth = inner + 'px'
+  c.style.width = 'auto'
+  c.style.height = 'auto'
+  const typed = c.textContent // whatever _sayWords has written so far
+  c.textContent = text // measure the full line at the new width
+  c.style.height = c.offsetHeight + 'px'
+  c.style.width = c.offsetWidth + 'px'
+  c.textContent = typed // restore the in-progress text; _sayWords keeps typing
+  a._balloon.reposition()
+}
+
+/**
+ * Close a held (button-bearing) bubble. A held bubble never fires clippyjs's
+ * queue-completion callback, so the queue stays stuck and blocks every later
+ * play()/speak(). `close()` fires that callback (freeing the queue); `hide(true)`
+ * collapses the bubble now.
+ */
+function closeBubble(): void {
+  const a = agent.value
+  if (!a) return
+  currentActions.value = [] // unmount the teleported buttons
+  a._balloon.close() // release the hold → fires the queue completion, unsticking it
+  a._balloon._hold = false // close() leaves _hold set; clear it so the next quip isn't skipped
+  a._balloon.hide(true) // collapse the bubble immediately
+}
+
+/** A gag button was clicked: close the held bubble, play the bit, deliver the punchline. */
+function onGag(key: string): void {
+  const a = agent.value
+  const gag = GAGS[key]
+  if (!a || !gag) return
+  closeBubble() // frees the queue so the punchline can actually speak
+  if (!reduceMotion) a.play(gag.play)
+  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(gag.line)
+  a.speak(gag.line) // fresh, auto-closing bubble
 }
 
 let started = false
@@ -138,16 +278,17 @@ async function reveal(): Promise<void> {
     a.play('Greeting')
   }
   active.value = true
-  const quip = await quipFor(scopeOf(route.path))
+  const scope = scopeOf(route.path)
+  const quip = await quipFor(scope)
   if (!quip || !agent.value || !active.value) return // dismissed mid-fetch
-  a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
-  a.speak(quip)
+  say(a, quip, scope)
 }
 
 /** Hide him without disposing, so a later summon can re-show instantly. */
 function conceal(): void {
   agent.value?.hide()
   active.value = false
+  currentActions.value = [] // unmount the teleported buttons with him
 }
 
 /** First-ever appearance: load the library lazily after a deliberate beat. */
@@ -205,6 +346,7 @@ async function firstShow(): Promise<void> {
 
   agent.value = a
   agentEl.value = a._el
+  balloonEl.value = a._balloon._balloon
   reveal()
 }
 
@@ -263,6 +405,17 @@ onUnmounted(() => agent.value?.dispose())
       <X :size="16" />
     </button>
   </Teleport>
+
+  <!-- Action buttons, teleported into the speech bubble itself (see ClippyMessage).
+       Only present while a button-bearing quip is held open. -->
+  <ClippyMessage
+    v-if="balloonEl && active && currentActions.length"
+    :to="balloonEl"
+    :actions="currentActions"
+    @gag="onGag"
+    @nav="closeBubble"
+    @close="closeBubble"
+  />
 </template>
 
 <style scoped>
