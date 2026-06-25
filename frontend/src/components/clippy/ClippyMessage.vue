@@ -39,7 +39,7 @@ const emit = defineEmits<{
       <!-- Always-present escape hatch: just dismiss the bubble, no navigation. -->
       <li class="clippy-action">
         <button type="button" class="clippy-btn" @click="emit('close')">
-          <span class="clippy-btn-text">Cancel</span>
+          <span class="clippy-btn-text">Close</span>
         </button>
       </li>
     </menu>
