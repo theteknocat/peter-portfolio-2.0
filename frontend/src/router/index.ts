@@ -37,4 +37,10 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/JobHistoryView.vue'),
     meta: { transition: 'page' },
   },
+  {
+    // Catch-all 404 — matches anything the routes above don't.
+    path: '/:pathMatch(.*)*',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: { transition: 'page' },
+  },
 ]
