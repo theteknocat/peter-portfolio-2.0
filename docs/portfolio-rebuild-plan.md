@@ -1,6 +1,6 @@
 # Portfolio Site Rebuild Plan
 
-## Implementation Status (as of 2026-06-22)
+## Implementation Status (as of 2026-06-25)
 
 The frontend SPA and Slim API are functionally complete: all four pages (home,
 portfolio, articles, job history) render live content from the API, portfolio
@@ -9,13 +9,18 @@ ported (see theme-migration.md — every section there is ticked off). UI
 components (`TechBadge`, `ContentCard`, `MarkdownRenderer`, `PageTitle`) and the
 content composables (`usePageData`, `useContent`, `useModalNavigation`) are built.
 
-**Done since:** SEO/SSG via vite-ssg (per-route metadata, robots.txt, sitemap) — see § SEO.
+**Done:** SEO/SSG via vite-ssg (per-route metadata, robots.txt, sitemap, § SEO);
+AppFooter mobile responsiveness; the Clippy companion (full AI-driven backend +
+frontend, see § The Clippy Feature and clippy-companion.md).
 
 **Remaining:**
 
 - Build & deploy: documented (§ Build output & deploy workflow); execute on the server when ready
-- AppFooter mobile responsiveness
-- Nice-to-have: Clippy companion, Konami easter egg
+
+**Dropped (may revisit):**
+
+- Konami easter egg — deliberately skipped for this version; the AI-driven Clippy
+  already covers the "fun extra" niche. Left here in case it's worth adding later.
 
 ---
 
