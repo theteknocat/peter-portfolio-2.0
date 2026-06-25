@@ -20,6 +20,13 @@ import ClippyMessage from './ClippyMessage.vue'
 interface Agent {
   show(fast?: boolean): void
   hide(fast?: boolean): void
+  // The agent's fixed-position root element. Under reduced motion we write his
+  // top/left directly (fast-show skips clippyjs's own default positioning).
+  _el: HTMLElement
+  // Clamps an x/y into the viewport (accounts for his size + a 5px margin).
+  _clampXY(x: number, y: number): { x: number; y: number }
+  // Re-clamps the agent into the viewport and repositions the balloon under it.
+  reposition(): void
   play(name: string): void
   speak(text: string, hold?: boolean): void
   // Clears the queue, exits the current animation, and hides the balloon —
@@ -262,6 +269,7 @@ function onGag(key: string): void {
 }
 
 let started = false
+let positioned = false
 const reduceMotion =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -273,6 +281,17 @@ async function reveal(): Promise<void> {
   if (!a) return
   if (reduceMotion) {
     a.show(true) // instant, no entrance animation
+    // clippyjs's fast-show skips the default positioning its normal show() does,
+    // leaving top/left:auto so he lands offscreen. Place him once; drag survives re-summon.
+    if (!positioned) {
+      // Place him synchronously; moveTo() queues, so its reposition would fire
+      // before he's moved. The concurrent speak path below repositions the
+      // balloon once he's seeded here.
+      const { x, y } = a._clampXY(window.innerWidth * 0.8, window.innerHeight * 0.8)
+      a._el.style.left = `${x}px`
+      a._el.style.top = `${y}px`
+      positioned = true
+    }
   } else {
     a.show()
     a.play('Greeting')
@@ -281,7 +300,10 @@ async function reveal(): Promise<void> {
   const scope = scopeOf(route.path)
   const quip = await quipFor(scope)
   if (!quip || !agent.value || !active.value) return // dismissed mid-fetch
-  say(a, quip, scope)
+  // Reduced motion has no entrance animation to wait for, so speak concurrently:
+  // the bubble shows + repositions with him, and held (button) bubbles get fitted
+  // via nextTick once the buttons teleport in (see say()'s concurrent branch).
+  say(a, quip, scope, reduceMotion)
 }
 
 /** Hide him without disposing, so a later summon can re-show instantly. */

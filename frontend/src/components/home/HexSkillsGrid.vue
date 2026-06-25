@@ -236,12 +236,19 @@ const focusedHexPos = ref<{ x: number; y: number } | null>(null)
 const keyboardTiltEnabled = typeof window !== 'undefined'
   && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
+// ponytail: read once at setup — reduced-motion rarely toggles mid-session.
+// When set, the grid drops tilt/scale (via effectivePos) and spin (via startSpin);
+// hover/focus colour + label still work (those are plain CSS :hover/:focus).
+const prefersReducedMotion = typeof window !== 'undefined'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 // Resolves to the position that should drive tilt and per-hex scaling.
-const effectivePos = computed(() =>
-  controlSource.value === 'keyboard'
+const effectivePos = computed(() => {
+  if (prefersReducedMotion) return null   // no tilt, no per-hex scale
+  return controlSource.value === 'keyboard'
     ? (keyboardTiltEnabled ? focusedHexPos.value : null)
     : mousePos.value
-)
+})
 
 // DOM refs for each rendered hex cell — populated by :ref callback in v-for.
 const hexCellEls = ref<(HTMLElement | null)[]>([])
@@ -470,7 +477,7 @@ function spinTick(now: number) {
 }
 
 function startSpin(index: number) {
-  if (isDragging.value || justDropped) return
+  if (prefersReducedMotion || isDragging.value || justDropped) return
   const anim = getIconAnim(index)
   anim.phase = 'spinup'
   anim.lastTime = performance.now()
@@ -1014,6 +1021,14 @@ svg.hex-icon {
   animation:
     hex-victory-spread 1.4s linear forwards,
     hex-victory-glow   1.4s ease-out forwards;
+}
+
+/* Reduced motion: keep the glow, drop the spread (translate/scale/jiggle).
+   !important + scoped specificity survives the global * reset in transitions.css. */
+@media (prefers-reduced-motion: reduce) {
+  .hex-cell--victory {
+    animation: hex-victory-glow 1.4s ease-out forwards !important;
+  }
 }
 
 @keyframes hex-victory-spread {

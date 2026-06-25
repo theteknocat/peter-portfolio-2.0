@@ -187,6 +187,8 @@ export function useBackgroundGlitch(containerRef: Ref<HTMLElement | null>): void
   }
 
   onMounted(() => {
+    // Honour reduced-motion: this timer-driven glitch can't be stopped by CSS, so skip it.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const spots = Array.from(
       containerRef.value?.querySelectorAll<HTMLElement>('.bg-spot') ?? []
     )

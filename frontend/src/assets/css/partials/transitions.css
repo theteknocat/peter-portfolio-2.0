@@ -118,3 +118,19 @@
   from { opacity: 1; transform: rotateY(0deg); }
   to   { opacity: 0; transform: rotateY(90deg); }
 }
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+
+/* Standard a11y reset: near-instant every CSS animation/transition for users who
+   ask for reduced motion. Covers nav/brand glitch, shape jitter, and the page +
+   modal transitions above. JS-driven motion (background streaks/glitch, hexgrid
+   tilt/spin) is gated separately in its own composables/component — CSS can't
+   reach it. Opt-outs (e.g. hexgrid victory glow) re-declare with !important at
+   higher specificity. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

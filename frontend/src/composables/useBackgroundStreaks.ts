@@ -312,6 +312,8 @@ export function useBackgroundStreaks(svgRef: Ref<SVGSVGElement | null>): void {
   }
 
   onMounted(() => {
+    // Honour reduced-motion: this rAF motion can't be stopped by CSS, so don't start it.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     mountTime = performance.now()
     for (let i = 0; i < STREAK_COUNT; i++) {
       startStreakLoop()
