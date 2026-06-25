@@ -20,6 +20,13 @@ renderer.code = ({ text, lang }) => {
   const highlighted = hljs.highlight(text, { language }).value
   return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
 }
+// Escape a value for safe interpolation into a double-quoted HTML attribute.
+// marked v15 no longer sanitizes, and overriding renderer.link bypasses its own
+// escaping — so a stray " in an href/title can't break out of the attribute.
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
+
 // External links (absolute http[s]) open in a new tab; the icon + tooltip are
 // added in CSS / via attachTooltip below. Internal links stay plain <a> and are
 // routed through vue-router by the click handler.
@@ -29,8 +36,8 @@ renderer.link = function (this: Renderer, { href, title, tokens }) {
   const text = this.parser.parseInline(tokens) as string
   const external = /^https?:\/\//i.test(href)
   const attrs = [
-    `href="${href}"`,
-    title ? `title="${title}"` : null,
+    `href="${escapeAttr(href)}"`,
+    title ? `title="${escapeAttr(title)}"` : null,
     external ? 'target="_blank" rel="noopener noreferrer"' : null,
   ]
     .filter(Boolean)
