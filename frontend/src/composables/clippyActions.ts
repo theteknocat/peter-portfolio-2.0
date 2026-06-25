@@ -24,21 +24,57 @@ export type ClippyAction = NavButton | GagButton
  */
 export const ACTIONS: Record<string, ClippyAction[]> = {
   home: [
-    { kind: 'nav', label: 'See his projects', to: '/portfolio' },
-    { kind: 'nav', label: 'Read his ramblings', to: '/articles' },
-    { kind: 'gag', label: 'Enhance', gag: 'enhance' },
+    {
+      kind: 'nav',
+      label: 'See his projects',
+      to: '/portfolio',
+    },
+    {
+      kind: 'nav',
+      label: 'Read his ramblings',
+      to: '/articles',
+    },
+    {
+      kind: 'gag',
+      label: 'Enhance',
+      gag: 'enhance',
+    },
   ],
   portfolio: [
-    { kind: 'nav', label: 'Is he hireable?', to: '/job-history' },
-    { kind: 'gag', label: 'Print to fax', gag: 'print' },
+    {
+      kind: 'nav',
+      label: 'Is he hireable?',
+      to: '/job-history',
+    },
+    {
+      kind: 'gag',
+      label: 'Print to fax',
+      gag: 'print',
+    },
   ],
   articles: [
-    { kind: 'nav', label: 'Show me his work', to: '/portfolio' },
-    { kind: 'gag', label: 'Summarize in Clippy', gag: 'summarize' },
+    {
+      kind: 'nav',
+      label: 'Show me his work',
+      to: '/portfolio',
+    },
+    {
+      kind: 'gag',
+      label: 'Summarize in Clippy',
+      gag: 'summarize',
+    },
   ],
   'job-history': [
-    { kind: 'nav', label: 'See the proof', to: '/portfolio' },
-    { kind: 'gag', label: 'Format as WordArt', gag: 'wordart' },
+    {
+      kind: 'nav',
+      label: 'See the proof',
+      to: '/portfolio',
+    },
+    {
+      kind: 'gag',
+      label: 'Format as WordArt',
+      gag: 'wordart',
+    },
   ],
 }
 
