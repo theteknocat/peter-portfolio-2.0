@@ -23,6 +23,9 @@ api/.env.local
 # Session scratchpad
 SESSION.md
 
+# Local-only reference data (GitHub inventory, etc.)
+.local/
+
 # OS
 .DS_Store
 Thumbs.db
