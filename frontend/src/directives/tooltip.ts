@@ -196,6 +196,10 @@ export function attachTooltip(el: HTMLElement, text: string): () => void {
   }
 }
 
+// No `updated` hook: the binding value never changes reactively in practice —
+// every v-tooltip in the app passes a static string literal (or relies on the
+// element's title). Add an `updated` hook (re-resolve text, re-attach) only if a
+// reactive binding is ever introduced.
 export const vTooltip = {
   mounted(el: HTMLElement, binding: DirectiveBinding<string | undefined>) {
     detachMap.set(el, attachTooltip(el, resolveTooltipText(el, binding.value)))
