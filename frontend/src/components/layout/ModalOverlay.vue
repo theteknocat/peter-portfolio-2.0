@@ -180,7 +180,7 @@ onUnmounted(() => {
 /* Panel retreats to bottom-left when the backdrop closes.
    Defined after .panel-visible so these win at equal specificity. */
 .modal-leave-active .modal-wrapper {
-  transition: transform 0.5s ease-in, opacity 0.35s ease 0.15s;
+  transition: transform 0.5s ease-in, opacity 0.2s ease-out 0.3s;
 }
 
 .modal-leave-to .modal-wrapper {

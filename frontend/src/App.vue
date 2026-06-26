@@ -106,8 +106,9 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   min-height: 100vh;
   box-shadow: none;
   transform-origin: 50vw 50vh;
-  /* Return transition — applied when .is-modal-open is removed */
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1), filter 1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 1s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Return transition — applied when .is-modal-open is removed.
+     Even curve + slight delay so the background trails the departing modal. */
+  transition: transform 1s ease 0.1s, filter 1s ease, box-shadow 1s ease;
 }
 
 .page-layer.is-modal-open {
