@@ -14,7 +14,7 @@ import { siIcons } from '@/utils/techIcons'
 import { stripTitle } from '@/utils/svg'
 import { Plug, RefreshCw, Smartphone, Database, Terminal, Server } from '@lucide/vue'
 
-const props = defineProps<{ tag: Tag }>()
+const props = defineProps<{ tag: Tag; iconOnly?: boolean }>()
 
 // Lucide components available for use in YAML (lucide: ComponentName).
 // Add imports above and entries here when new generic icons are needed.
@@ -34,10 +34,21 @@ const siIcon = computed(() =>
 const lucideComponent = computed(() =>
   props.tag.lucide ? (lucideComponents[props.tag.lucide] ?? null) : null
 )
+
+const hasIcon = computed(() => !!siIcon.value || !!lucideComponent.value)
+
+// Collapse to icon-only only when there's actually an icon to show — an
+// icon-less tag (e.g. "Slim 4") keeps its label so it isn't rendered blank.
+const collapse = computed(() => !!props.iconOnly && hasIcon.value)
 </script>
 
 <template>
-  <li class="tech-badge">
+  <li
+    class="tech-badge"
+    :class="{ 'tech-badge--icon-only': collapse }"
+    v-tooltip="collapse ? tag.label : ''"
+    :tabindex="collapse ? 0 : undefined"
+  >
     <span
       v-if="siIcon"
       class="tech-badge__icon"
@@ -50,7 +61,7 @@ const lucideComponent = computed(() =>
       class="tech-badge__icon"
       aria-hidden="true"
     />
-    <span class="tech-badge__label">{{ tag.label }}</span>
+    <span class="tech-badge__label" :class="{ 'sr-only': collapse }">{{ tag.label }}</span>
   </li>
 </template>
 
@@ -60,6 +71,11 @@ const lucideComponent = computed(() =>
   align-items: center;
   gap: 0;
   padding: 0; /* override .tag-list li — each zone manages its own padding */
+}
+
+.tech-badge:focus-visible {
+  outline: 1px solid var(--color-primary-light);
+  outline-offset: 3px;
 }
 
 .tech-badge__icon {
@@ -90,5 +106,10 @@ svg.tech-badge__icon {
 /* Text-only badge — label is first child, restore full left padding */
 .tech-badge__label:first-child {
   padding-inline-start: 0.5rem;
+}
+
+/* Icon-only badge — balanced padding around the lone icon (label is sr-only) */
+.tech-badge--icon-only .tech-badge__icon {
+  padding: 0.25rem 0.375rem;
 }
 </style>

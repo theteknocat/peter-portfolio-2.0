@@ -26,6 +26,9 @@ SESSION.md
 # Local-only reference data (GitHub inventory, etc.)
 .local/
 
+# Portfolio/article screenshots — content, synced separately (not committed)
+frontend/public/images/content/
+
 # OS
 .DS_Store
 Thumbs.db
