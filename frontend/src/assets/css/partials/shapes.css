@@ -233,6 +233,13 @@
       animation: shape-glitch 5s linear infinite;
     }
   }
+
+  /** Same glitch on the element itself — for shapes bordered with a real CSS
+   *  border (.btn-icon circle, carousel diamonds), not a clip-path pseudo. */
+  .border-jitter:hover,
+  .border-jitter:focus-visible {
+    animation: shape-glitch 5s linear infinite;
+  }
 }
 
 /* 5s cycle: 4 bursts of varying length (50ms–280ms) at irregular positions.

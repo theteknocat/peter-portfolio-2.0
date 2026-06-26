@@ -98,7 +98,7 @@ async function createTooltip(
       left: arrowX != null ? `${arrowX}px` : '',
       top: arrowY != null ? `${arrowY}px` : '',
       // 1px overlap into the tooltip box hides the seam between arrow and border.
-      [staticSide]: `-${HALF_DIAG - 1}px`,
+      [staticSide]: `-${HALF_DIAG}px`,
     })
   }
 

@@ -63,6 +63,19 @@
   }
 }
 
+/* Circular icon-only button — modal close, carousel arrows. Pair with .btn. */
+.btn-icon {
+  aspect-ratio: 1;
+  padding: 0.33rem;
+  border: 0.06rem solid var(--color-accent);
+  border-radius: 50%;
+}
+
+.btn-icon:hover,
+.btn-icon:focus-visible {
+  border-color: var(--color-primary-light);
+}
+
 /* Card heading — display font, accent colour, used in article and portfolio cards */
 .card-title {
   font-family: var(--font-display);

@@ -96,7 +96,7 @@ onUnmounted(() => {
         </div>
       </Transition>
       <div ref="modalWrapper" class="modal-wrapper" :class="{ 'panel-visible': contentReady }" role="dialog" aria-modal="true" tabindex="-1">
-        <button v-if="contentReady" class="btn modal-close" aria-label="Close" @click="close">
+        <button v-if="contentReady" class="btn btn-icon border-jitter modal-close" aria-label="Close" @click="close">
           <X :size="18" />
         </button>
         <div class="modal-container">
@@ -147,23 +147,12 @@ onUnmounted(() => {
   transform: none;
 }
 
-/* Circular geometric variant — extends .btn with a plain border + position. */
+/* Position only — circular look comes from .btn-icon. */
 .modal-close {
   position: absolute;
   z-index: 10;
   right: -0.9rem;
   top: 0.6rem;
-  aspect-ratio: 1;
-  padding: 0.33rem;
-  border: 0.06rem solid var(--color-accent);
-  border-radius: 50%;
-}
-
-/* Border lives unlayered here, so its hover colour must too — a layered
-   .btn:hover border-color would lose to this scoped border shorthand. */
-.modal-close:hover,
-.modal-close:focus-visible {
-  border-color: var(--color-primary-light);
 }
 
 .modal-container {
