@@ -121,6 +121,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
 main {
   flex: 1;
   position: relative; /* anchors .page-leave-active absolute positioning */
+  overflow-x: clip;
 }
 
 /* Hide immediately when modal opens, restore only after the page-layer
