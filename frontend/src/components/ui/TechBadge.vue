@@ -51,16 +51,17 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
   >
     <span
       v-if="siIcon"
-      class="tech-badge__icon"
+      class="tech-badge__icon tech-badge__icon--filled"
       v-html="stripTitle(siIcon.svg)"
       aria-hidden="true"
     />
-    <component
+    <span
       v-else-if="lucideComponent"
-      :is="lucideComponent"
       class="tech-badge__icon"
       aria-hidden="true"
-    />
+    >
+      <component :is="lucideComponent" />
+    </span>
     <span class="tech-badge__label" :class="{ 'sr-only': collapse }">{{ tag.label }}</span>
   </li>
 </template>
@@ -85,17 +86,17 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
   padding: 0.125rem 0.2rem 0.125rem 0.375rem;
 }
 
-/* SI icons: SVG is a child of the icon span */
+/* Both icon sets now sit inside a .tech-badge__icon span, so the SVG is always
+   a child sized here. */
 .tech-badge__icon :deep(svg) {
   width: 1rem;
   height: 1rem;
-  fill: currentColor;
 }
 
-/* Lucide icons: component renders the SVG as the root element with this class */
-svg.tech-badge__icon {
-  width: 1rem;
-  height: 1rem;
+/* Simple Icons are filled paths (default black) — tint to currentColor.
+   Lucide is stroke-based and is left untouched so it stays an outline. */
+.tech-badge__icon--filled :deep(svg) {
+  fill: currentColor;
 }
 
 .tech-badge__label {
