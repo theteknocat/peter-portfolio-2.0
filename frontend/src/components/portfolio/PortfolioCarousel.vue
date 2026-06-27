@@ -30,6 +30,11 @@ function imageUrl(src: string): string {
 function scrollToIndex(i: number): void {
   const el = track.value
   if (!el) return
+  if (i < 0) {
+    i = props.images.length;
+  } else if (i > (props.images.length - 1)) {
+    i = 0;
+  }
   const clamped = Math.max(0, Math.min(i, props.images.length - 1))
   el.scrollTo({ left: clamped * el.clientWidth, behavior: 'smooth' })
 }
@@ -53,7 +58,6 @@ function onScroll(): void {
     <template v-if="images.length > 1">
       <button
         class="btn btn-icon border-jitter carousel-nav carousel-nav--prev"
-        :disabled="active === 0"
         aria-label="Previous screenshot"
         @click="scrollToIndex(active - 1)"
       >
@@ -61,7 +65,6 @@ function onScroll(): void {
       </button>
       <button
         class="btn btn-icon border-jitter carousel-nav carousel-nav--next"
-        :disabled="active === images.length - 1"
         aria-label="Next screenshot"
         @click="scrollToIndex(active + 1)"
       >
