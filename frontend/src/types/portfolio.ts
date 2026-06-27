@@ -15,7 +15,7 @@ export interface PortfolioItem {
   title: string
   summary?: string
   tags?: Tag[]
-  github?: string
+  url?: string
   featured?: boolean
   body?: string
   images?: PortfolioImage[]
