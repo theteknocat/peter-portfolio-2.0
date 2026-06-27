@@ -387,6 +387,7 @@ function hexCellStyle(hex: HexItem) {
 const SPIN_ALPHA = 2400       // acceleration deg/s²
 const SPIN_MAX = 2160         // max angular velocity deg/s (6 rotations/sec)
 const SPIN_DECAY = 10         // sqrt-drag coefficient k — smaller = less drag = longer coast; T = 2√ω/k
+const SPIN_BLUR_MAX = 3       // max blur px at SPIN_MAX omega
 
 interface IconAnim {
   rotation: number
@@ -401,6 +402,7 @@ interface IconAnim {
 
 const iconAnims = new Map<number, IconAnim>()
 const iconRotations = reactive<Record<number, number>>({})
+const iconBlurs = reactive<Record<number, number>>({})
 const iconHeld = reactive<Record<number, boolean>>({})
 let spinRafId: number | null = null
 
@@ -476,6 +478,7 @@ function spinTick(now: number) {
     }
 
     iconRotations[index] = anim.rotation
+    iconBlurs[index] = (anim.omega / SPIN_MAX) * SPIN_BLUR_MAX
   })
 
   spinRafId = anyActive ? requestAnimationFrame(spinTick) : null
@@ -500,6 +503,7 @@ function holdSpin(index: number) {
 function resetSpin(index: number) {
   iconAnims.delete(index)
   iconRotations[index] = 0
+  iconBlurs[index] = 0
   iconHeld[index] = false
 }
 
@@ -536,6 +540,7 @@ function stopSpin(index: number) {
     const distance = Math.abs(nearest - anim.rotation)
     anim.settleDuration = Math.max(0.15, Math.min(0.8, 2 * distance / Math.max(anim.omega, 30)))
     anim.settleElapsed = 0
+    anim.omega = 0
     anim.phase = 'settling'
   }
 }
@@ -736,6 +741,7 @@ function onDragEnd(event: PointerEvent) {
   iconAnims.clear()
   if (spinRafId !== null) { cancelAnimationFrame(spinRafId); spinRafId = null }
   Object.keys(iconRotations).forEach(k => { iconRotations[+k] = 0 })
+  Object.keys(iconBlurs).forEach(k => { iconBlurs[+k] = 0 })
   Object.keys(iconHeld).forEach(k => { iconHeld[+k] = false })
   isDragging.value = false
   document.body.classList.remove('hex-dragging')
@@ -820,7 +826,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
           @contextmenu.prevent
           @mouseup="releaseSpin(hex.index)"
         >
-          <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)` }">
+          <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)`, filter: `blur(${(iconBlurs[hex.index] ?? 0).toFixed(2)}px)` }">
             <span
               v-if="hex.siIcon"
               class="hex-icon"
@@ -850,7 +856,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
         <div class="hex-face">
           <div
             class="hex-icon-wrap"
-            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)` }"
+            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)`, filter: `blur(${(iconBlurs[dragSourceIdx ?? 0] ?? 0).toFixed(2)}px)` }"
           >
             <span
               v-if="dragSkill.siIcon"
