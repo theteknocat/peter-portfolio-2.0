@@ -33,6 +33,15 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => route.meta.modal,
+  (isModal) => {
+    if (isModal && typeof window !== 'undefined') {
+      document.documentElement.style.setProperty('--page-scroll-y', `${window.scrollY}px`)
+    }
+  },
+)
+
 // The RouterView slot Component is only accessible in the template, not in
 // script. We capture it here during render so the background page stays frozen
 // (whatever page was active before the modal opened) rather than switching to
@@ -106,17 +115,17 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   min-height: 100vh;
   box-shadow: none;
   transform-origin: 50vw 50vh;
-  /* Return transition — applied when .is-modal-open is removed.
-     Even curve + slight delay so the background trails the departing modal. */
-  transition: transform 1s ease 0.1s, filter 1s ease, box-shadow 1s ease;
+  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
 }
 
 .page-layer.is-modal-open {
-  transform: perspective(1000px) translate(calc(35vw - 5rem), calc(-35vh + 2rem)) scale(0.30) rotateY(-5deg) rotateX(-2deg);
+  /* clip-path shows exactly scrollY → scrollY+100vh */
+  clip-path: inset(var(--page-scroll-y, 0px) 0 calc(100% - var(--page-scroll-y, 0px) - 100vh) 0);
+  /* scale origin should be viewport centre, not document top */
+  transform-origin: 50vw calc(var(--page-scroll-y, 0px) + 50vh);
+  transform: scale(0.92);
   filter: brightness(0.65);
   box-shadow: 0 0 2px 1px var(--color-border);
-  /* Exit transition — applied when .is-modal-open is added */
-  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
 }
 
 main {
@@ -125,11 +134,11 @@ main {
   overflow-x: clip;
 }
 
-/* Hide immediately when modal opens, restore only after the page-layer
-   transition completes (0.35s) to avoid rendering during the animation. */
+/* Hide immediately when modal opens; restore only after the page-layer
+   return transition completes (1s + 0.1s delay = 1.1s). */
 .page-layer .bg-streak-overlay,
 .page-layer .bg-spot {
-  transition: visibility 0s 0.35s;
+  transition: visibility 0s 1.1s;
 }
 
 .page-layer.is-modal-open .bg-streak-overlay,
