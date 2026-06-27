@@ -228,9 +228,13 @@ TypeScript patterns in Vue, directives, slots, and advanced router usage.
 
 Peter commits manually — never run `git commit` or `git add` unless explicitly asked.
 
+**`content/` and `frontend/public/images/content/` are gitignored and never committed.**
+Content files and portfolio screenshots are synced to the server via rsync separately.
+Never include them in a commit message or suggest staging them.
+
 When asked to help draft a commit message:
 
-1. Run `git diff --staged` to see what's being committed
+1. Run `git diff HEAD` to see all pending changes (staged and unstaged)
 2. Draft a message following **Conventional Commits** standard:
    - Format: `type(scope): short description`
    - Types: `feat`, `fix`, `chore`, `style`, `refactor`, `docs`, `test`
