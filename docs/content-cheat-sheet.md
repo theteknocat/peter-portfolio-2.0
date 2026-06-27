@@ -50,7 +50,7 @@ home-page/featured surfaces.
 See `templates/portfolio-item.yaml`, `templates/article.yaml`, `templates/job.yaml`
 for the copy-paste starting points. Key fields:
 
-- **Portfolio:** `title`, `summary`, `tags[]`, `featured`
+- **Portfolio:** `title`, `summary`, `tags[]`, `featured`, `images[]` (optional)
 - **Article:** `title`, `summary`, `date: "YYYY-MM-DD"`, `featured`
 - **Job:** `title`, `company`, `start: "YYYY-MM"`, `end: "YYYY-MM" | present`, `summary`, `skills[]`
 
@@ -70,25 +70,40 @@ tags:
 Full list of available `si:` slugs and `lucide:` names is in the header comment
 of `templates/portfolio-item.yaml`.
 
-## Images in Markdown
+## Images
 
 Images are served as static assets from the **repo**, not the content dir.
-Put them in `frontend/public/images/`, organised into subfolders by content:
+They live under `frontend/public/images/content/{type}/{slug}/`:
 
 ```text
-frontend/public/images/portfolio/job-scout/screenshot.png
+frontend/public/images/content/portfolio/job-scout/screenshot.png
 ```
 
-Reference them with an **absolute** path (leading `/`) — `public/` is served
-from the site root:
+### Portfolio carousel (YAML)
+
+Add an `images:` list to the item's `.yaml`. Each entry needs `src` (filename
+only — no path) and `alt`:
+
+```yaml
+images:
+  - src: home-page.png
+    alt: Job Scout home page showing the dashboard
+  - src: results-list.png
+    alt: Search results with match scores
+```
+
+### Images in Markdown body
+
+Reference them with an **absolute** path (leading `/`) — `public/` is the
+site root:
 
 ```markdown
-![Job Scout dashboard](/images/portfolio/job-scout/screenshot.png)
+![Job Scout dashboard](/images/content/portfolio/job-scout/screenshot.png)
 ```
 
-Do **not** use a relative path (`![](images/foo.png)`) — it resolves against the
-current route URL and 404s on detail pages.
+Do **not** use a relative path (`![](images/foo.png)`) — it resolves against
+the current route URL and 404s on detail pages.
 
 > Note: images deploy with the repo build (rsync of `dist/`), on a different
-> cadence than the rsync'd content text. Author the `.md` and add the image in
-> the same change to keep them in sync.
+> cadence than the rsync'd content text. Author the `.md`/`.yaml` and add the
+> image file in the same change to keep them in sync.

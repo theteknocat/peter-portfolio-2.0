@@ -33,7 +33,9 @@ Flat-file content (YAML/Markdown) — no database.
 │
 ├── frontend/             Vue 3 SPA
 │   ├── public/
-│   │   └── images/       Static assets served as-is (body-bg-dark.png, etc.)
+│   │   └── images/       Static assets + content images
+│   │       └── content/
+│   │           └── portfolio/{slug}/   Screenshots for each portfolio item
 │   ├── src/
 │   │   ├── assets/
 │   │   │   ├── css/      main.css — Tailwind + CSS custom properties + base styles
@@ -160,6 +162,20 @@ unlayered global CSS                ← beats all layers (transitions, body stat
 | `@keyframes` | unlayered (layers don't affect keyframe registration) |
 
 **Tailwind utility override rule:** if a Tailwind utility class isn't winning over a global style, the global style is probably unlayered. Move it to the appropriate `@layer`, or use the `!` prefix (`!flex`) as a last resort.
+
+---
+
+## Content Images
+
+Portfolio item screenshots live in `frontend/public/images/content/portfolio/{slug}/`.
+
+Reference them in the item's YAML with `src` and `alt` — not bare filenames:
+
+```yaml
+images:
+  - src: my-screenshot.png
+    alt: Description of what the screenshot shows
+```
 
 ---
 

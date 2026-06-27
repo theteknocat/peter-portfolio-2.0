@@ -13,6 +13,7 @@ import {
   siLaravel,
   siSymfony,
   siMysql,
+  siMariadb,
   siHtml5,
   siCss,
   siJavascript,
@@ -31,6 +32,11 @@ import {
   siGithub,
   siLinux,
   siWordpress,
+  siStripe,
+  siClaude,
+  siGoogleanalytics,
+  siOllama,
+  siFastapi,
 } from 'simple-icons'
 
 export interface SiIcon {
@@ -62,4 +68,10 @@ export const siIcons: Record<string, SiIcon> = {
   github: siGithub,
   linux: siLinux,
   wordpress: siWordpress,
+  stripe: siStripe,
+  mariadb: siMariadb,
+  claude: siClaude,
+  googleanalytics: siGoogleanalytics,
+  ollama: siOllama,
+  fastapi: siFastapi,
 }

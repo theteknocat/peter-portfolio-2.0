@@ -2,6 +2,14 @@ title: Project Title
 summary: One or two sentence description of what the project is and what problem it solves.
 featured: false
 
+# ─── Images (optional carousel) ───────────────────────────────────────────────
+# Files go in: frontend/public/images/content/portfolio/{slug}/
+# src = filename only (no path). alt = meaningful description for screen readers.
+# images:
+#   - src: screenshot.png
+#     alt: Description of what the screenshot shows
+# ──────────────────────────────────────────────────────────────────────────────
+
 # ─── Tags ─────────────────────────────────────────────────────────────────────
 # Each tag has a required `label` and an optional icon from one of two sources:
 #   si: <slug>      Simple Icons slug (brand/tech logos)

@@ -4,8 +4,60 @@ Plan for replacing the placeholder portfolio items and articles with real
 content, driven by an inventory of the GitHub repos Peter has access to and a
 measure of his contribution level to each.
 
-Status: **planning only** — the inventory below is captured; the per-repo
-contribution scoring and the writing itself are still to do.
+Status: **scored** — inventory captured and contribution scoring run
+(2026-06-26, see § Scoring results). Biscuit framework repos (47) excluded by
+agreement. Writing the items is still to do.
+
+---
+
+## Scoring results (2026-06-26)
+
+Ran the contributors-share method over all 77 non-fork, non-Biscuit repos.
+Identity merge: `theteknocat` login + any anon `Peter Epp` entry. Buckets:
+LEAD ≥60%, MAJOR 20–59%, minor <20% with commits, none = 0.
+
+Counts: **21 LEAD, 23 MAJOR, 21 minor, 12 none.**
+
+**LEAD (≥60% — strongest candidates), by Peter's commit count:**
+
+| Repo | Peter / total | Share |
+| --- | --- | --- |
+| `kellett-lighthouse-laravel` | 6631 / 6821 | 97% |
+| `resume-and-portfolio-drupal` | 1161 / 1161 | 100% |
+| `kci-base-site-drupal` | 1042 / 1432 | 72% |
+| `nwt-arts-2024-drupal` | 751 / 1035 | 72% |
+| `nsrt-nunavut-surface-rights-2023-drupal` | 589 / 888 | 66% |
+| `yg-webform-class1` | 433 / 445 | 97% |
+| `pihole-wtm` | 313 / 315 | 99% |
+| `kahsho-gotine-foundation-kgf-website-2024-drupal` | 203 / 228 | 89% |
+| `ga4-intelligence-tool` | 173 / 173 | 100% |
+| `job-scout` | 158 / 158 | 100% |
+| `kellett-servers` | 97 / 104 | 93% |
+| `server-notification-triage` | 82 / 82 | 100% |
+| `drupal-update-script` | 73 / 73 | 100% |
+| `kci-migrate` | 40 / 41 | 97% |
+| `drush-production-scripts` | 28 / 28 | 100% |
+| `plesk-nginx-bot-limiter` | 25 / 25 | 100% |
+| `peter-portfolio-2.0` | 11 / 11 | 100% |
+
+(plus low-commit LEADs: `deline-nginx-conf`, `ddev-cleanup`,
+`hamlet-of-fort-liard-legacy`, `demo-repository`.)
+
+**MAJOR (20–59%) — include if the project itself is notable.** Top by share:
+`sahtu-divisional-education-council-sdec` (56%),
+`mvg-mountainview-golf` (55%),
+`mackenzie-valley-review-board-mve-2022` (55%, 814 commits — high absolute),
+`land-and-water-boards-lwb-2020` (46%, the Domain Access multi-site),
+`yukon-hospital-corporation-yhc-2021` (45%),
+`nwt-teachers-association-nwtta-2020` (42%). Full list in the scoring run.
+
+**Verified-real zeros:** the 2024+ Kellett client sites (`don-donaleighs`,
+`orogo`, `cndea`, etc.) score 0 because they were built by other devs
+(Mustafa Hersi, Will Strong, astampkellett) — not an identity-merge miss.
+
+**Squash-merge false-negatives (keep despite 0):** `kci_subscriptions`,
+`kci_auto_archive`, `stage-utilities` show 0/1 — squash workflow collapsed
+authorship. Peter's modules; judge on merit, not score.
 
 ---
 
@@ -142,49 +194,53 @@ interesting). The score decides which earn a write-up.
 
 ---
 
-## Open-source contributions (drupal.org)
+## Open-source / Drupal community — home page stats section
 
-Separate from the GitHub inventory: open-source work — primarily Drupal — to
-surface as its own portfolio section. These mostly live on **drupal.org**, not
-GitHub, and will largely need to be found manually.
+**Decision (2026-06-26):** Rather than a portfolio item, surface drupal.org
+contributions as a **stats dashboard section on the home page** — something
+like "17 years in the Drupal community / 32 issue credits / 2 maintained
+projects / contributed to Drupal core."
 
-Where to look:
+**Live vs static:** drupal.org has a public JSON API (`/api-d7/`). The user
+profile endpoint (`/api-d7/user/539422.json`) works without auth and returns
+structured data. Issue credit counts are only shown on the profile HTML page
+(the new-platform contribution-records API requires auth) — so a mixed
+approach works: pull maintained-project metadata via API, keep issue counts
+static (update manually when warranted). Or go fully static for simplicity.
+**Set aside — design + implementation deferred.**
 
-- **drupal.org user profile** (`https://www.drupal.org/u/{username}`) — lists
-  maintained projects (modules/themes) and a "Credits" / contribution history.
-- **Issue credits** — drupal.org records credited issue contributions per user
-  and per release; these are the bulk of most contributors' open-source footprint.
-- **Maintained/co-maintained projects** — any contrib modules or themes with
-  Peter as a maintainer.
-- **Patches / merge requests** — contributions to core or other contrib projects
-  that may not show as "maintainer" but carry issue credit.
-
-Capture for each: project name, role (maintainer / contributor / patch),
-what it does, link, and rough scope. Once gathered, model them as portfolio
-items (or a dedicated "Open Source" section/manifest) alongside the GitHub work.
-
-### drupal.org — confirmed findings
+### drupal.org — confirmed findings (2026-06-26)
 
 Username: **`teknocat`** — profile `https://www.drupal.org/u/teknocat`
-(*Peter Epp*, on drupal.org ~17 years / since ~2009, Kellett Communications —
-Senior Developer). The `theteknocat` variant 404s.
+(*Peter Epp*, on drupal.org 17 years, Kellett Communications — Senior Developer).
+
+**Issue credits: 32 total across 24 contrib projects:**
+Gin Admin Theme (4), Course (3), Spam Master (3), Lightning Scheduler (2),
+plus 1 each on Drupal core, Admin Toolbar, Apache Solr, Barrio Bootstrap 5,
+Webform, reCAPTCHA, PHPMailer SMTP, and ~14 others.
 
 **Maintained projects:**
+- *Drupal Automatic Updater* — `/project/drupal_automatic_updater` (full
+  project, not a sandbox). A **shell script** for running Drupal updates — not
+  an installable module, so has no install stats. Low portfolio weight but
+  includable.
+- *Entity Field Privacy* — sandbox only (`/sandbox/teknocat/2076153`).
 
-- *Drupal Automatic Updater* — `https://www.drupal.org/project/drupal_automatic_updater`
-- *Entity Field Privacy* (sandbox) — `https://www.drupal.org/sandbox/teknocat/2076153`
+**Other:** contributed Drupal patches, contributed to Drupal issue queues,
+1 person lists teknocat as a mentor.
 
-**Also credited:** security advisories and issue-queue contributions. The
-profile summary links "View all" for each but does **not** show counts — pull
-these manually:
+---
 
-- Issue credits: profile → "View all issues" (credited issues, by project/release).
-- Security advisories: profile → "View all security advisories".
+## "Other Work" portfolio entry
 
-**To do manually:** open each maintained project for a one-line description +
-usage/scope, and skim the credited-issues list for any notable core/contrib
-patches worth calling out. Then model as portfolio items (or an "Open Source"
-manifest).
+**Decision (2026-06-26):** Add a single catch-all portfolio item for notable
+Drupal/client work that has no GitHub representation — primarily Yukon
+Government sites built in YG's private GitLab (e.g. Yukon Airports, and
+others Peter will identify). Frame as a supporting-role / agency delivery
+item rather than a lead-author showcase. Peter to supply the site list.
+**Deferred — waiting on Peter's list of YG GitLab projects.**
+
+---
 
 ---
 
