@@ -23,7 +23,7 @@ const lucideComponents: Record<string, Component> = {
 // R (circumradius) scales with the container so hexes shrink on narrow screens
 // (~4-5 across on mobile) and cap at MAX_R on wide ones. Everything below derives
 // from R, so the whole grid scales from this one value.
-const MAX_R = 60        // hex size on wide containers (current/desktop size)
+const MAX_R = 50        // hex size on wide containers (current/desktop size)
 const MIN_R = 30        // floor so very narrow screens stay legible
 // ponytail: linear scale; 0.13 keeps ~4-5 across in the shrink band. Tune here.
 const R = computed(() => {
@@ -781,14 +781,14 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
   <div
     ref="wrapperRef"
     class="hex-grid-wrapper"
-    @pointermove="onMouseMove"
-    @mouseleave="onMouseLeave"
   >
     <div
       ref="containerRef"
       class="hex-grid"
       :class="{ dragging: isDragging }"
       :style="[{ width: `${containerWidth}px`, height: `${containerHeight}px`, '--hex-r': R }, gridStyle]"
+      @pointermove="onMouseMove"
+      @mouseleave="onMouseLeave"
     >
       <!-- Ghost: separate element so real items never move in the DOM -->
       <div v-if="ghostHex" class="hex-cell hex-cell--ghost" :style="hexCellStyle(ghostHex)">
