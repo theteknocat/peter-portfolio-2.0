@@ -4,7 +4,7 @@
  * section dynamically by mapping section.type to the appropriate component.
  */
 import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
-import { Briefcase, Newspaper, Hexagon } from '@lucide/vue'
+import { Briefcase, Newspaper, Joystick } from '@lucide/vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
 import PageTitle from '@/components/ui/PageTitle.vue'
@@ -45,18 +45,18 @@ const introTitle = computed(
   () => (introSection.value?.content?.title as string | undefined) ?? 'Peter Epp',
 )
 
-// Section-nav metadata: label + icon per scrollable section type. Labels match
-// each section's heading; adjust here. Sections not listed get no nav button.
-const navMeta: Record<string, { label: string; icon: Component }> = {
-  'featured-portfolio': { label: 'Featured Work', icon: Briefcase },
-  'featured-articles':  { label: 'Recent Writing', icon: Newspaper },
-  'skills':             { label: 'Skills', icon: Hexagon },
+// Icons per section type — labels come from section.content.title.
+// Sections without a registered icon or without a content title get no nav button.
+const navIcons: Record<string, Component> = {
+  'featured-portfolio': Briefcase,
+  'featured-articles':  Newspaper,
+  'skills':             Joystick,
 }
 
 const navItems = computed(() =>
   bodySections.value
-    .filter(s => s.type in navMeta)
-    .map(s => ({ type: s.type, ...navMeta[s.type] })),
+    .filter(s => s.type in navIcons && s.content?.title)
+    .map(s => ({ type: s.type, icon: navIcons[s.type], label: s.content!.title as string })),
 )
 
 // Active section tracking: highlight the nav button for whichever right-column

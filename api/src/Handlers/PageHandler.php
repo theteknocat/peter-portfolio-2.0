@@ -93,6 +93,10 @@ class PageHandler
     {
         $resolved = ['type' => $section['type']];
 
+        if (isset($section['source'])) {
+            $resolved['content'] = $this->contentService->getPageItem((string) $section['source']);
+        }
+
         if (isset($section['manifest'])) {
             $limit = isset($section['limit']) ? (int) $section['limit'] : null;
             $filter = isset($section['filter']) ? (string) $section['filter'] : null;
@@ -108,12 +112,6 @@ class PageHandler
                 $items[] = $item;
             }
             $resolved['items'] = $items;
-
-            return $resolved;
-        }
-
-        if (isset($section['source'])) {
-            $resolved['content'] = $this->contentService->getPageItem((string) $section['source']);
         }
 
         return $resolved;

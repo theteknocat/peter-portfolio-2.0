@@ -4,7 +4,7 @@
  * Expects section.content from 'pages/skills.yaml'.
  */
 import { ref, computed } from 'vue'
-import { RotateCcw, Shuffle } from '@lucide/vue'
+import { RotateCcw, Shuffle, Joystick } from '@lucide/vue'
 import type { ResolvedSection } from '@/types/page'
 import type { Tag } from '@/types/portfolio'
 import ContentCard from '@/components/ui/ContentCard.vue'
@@ -23,7 +23,8 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <template>
   <section class="home-skills">
     <ContentCard>
-      <h2 class="relative">
+      <h2 class="relative flex items-center justify-start gap-2">
+        <Joystick :size="24" />
         {{ content?.title ?? 'Skills' }}
         <div v-if="content?.skills?.length" class="skills-actions flex gap-2 items-center justify-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
           <button

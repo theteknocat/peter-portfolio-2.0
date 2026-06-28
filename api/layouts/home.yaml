@@ -2,10 +2,12 @@ sections:
   - type: intro
     source: home-intro
   - type: featured-portfolio
+    source: featured-portfolio
     manifest: portfolio
     limit: 3
     filter: featured
   - type: featured-articles
+    source: featured-articles
     manifest: articles
     limit: 3
     filter: featured
