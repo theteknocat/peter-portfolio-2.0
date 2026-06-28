@@ -113,19 +113,17 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  box-shadow: none;
-  transform-origin: 50vw 50vh;
-  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
+  transform: none;
+  /* scale origin should be viewport centre, not document top */
+  transform-origin: 50vw calc(var(--page-scroll-y, 0px) + 50vh);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
 .page-layer.is-modal-open {
   /* clip-path shows exactly scrollY → scrollY+100vh */
   clip-path: inset(var(--page-scroll-y, 0px) 0 calc(100% - var(--page-scroll-y, 0px) - 100vh) 0);
-  /* scale origin should be viewport centre, not document top */
-  transform-origin: 50vw calc(var(--page-scroll-y, 0px) + 50vh);
   transform: scale(0.92);
-  filter: brightness(0.65);
-  box-shadow: 0 0 2px 1px var(--color-border);
+  transition: transform 0.2s ease;
 }
 
 main {
@@ -135,10 +133,10 @@ main {
 }
 
 /* Hide immediately when modal opens; restore only after the page-layer
-   return transition completes (1s + 0.1s delay = 1.1s). */
+   return transition completes (0.4s + 0.2s delay = 0.6s). */
 .page-layer .bg-streak-overlay,
 .page-layer .bg-spot {
-  transition: visibility 0s 1.1s;
+  transition: visibility 0s 0.65s;
 }
 
 .page-layer.is-modal-open .bg-streak-overlay,

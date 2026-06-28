@@ -121,7 +121,7 @@ function onModalBeforeLeave(el: Element): void {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background-color: rgba(5, 15, 10, 0.05);
+  background-color: rgba(5, 15, 10, 0.5);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -142,18 +142,19 @@ function onModalBeforeLeave(el: Element): void {
   transform: scale(0.5);
   transform-origin: center 50vh;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.2s ease, transform 0.2s ease;
   perspective: 1500px;
 }
 
 .modal-wrapper.panel-visible {
   opacity: 1;
   transform: scale(1);
+  transition: opacity 0.2s ease-out, 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: auto;
 }
 
 .modal-leave-active .modal-wrapper {
-  transition: opacity 0.2s ease, transform 0.25s ease-in;
+  transition: opacity 0.2s ease, transform 0.2s ease-in;
 }
 
 .modal-leave-to .modal-wrapper {
@@ -183,7 +184,7 @@ function onModalBeforeLeave(el: Element): void {
 }
 
 .modal-leave-active {
-  transition: opacity 0.35s ease 0.15s;
+  transition: opacity 0.2s ease 0.15s;
 }
 
 .modal-enter-from,

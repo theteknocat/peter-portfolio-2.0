@@ -69,6 +69,11 @@
   will-change: filter;
 }
 
+/* Hide the tile during modal — animation keeps running so nothing desyncs on restore. */
+body.modal-open .bg-layer {
+  background-image: none;
+}
+
 /* ─── Streak overlay ─────────────────────────────────────────────────────── */
 
 /* Transparent overlay for JS-driven streak animations (useBackgroundStreaks.ts).
