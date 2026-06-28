@@ -67,7 +67,7 @@ interface Agent {
 
 const router = useRouter()
 const route = useRoute()
-const { dismissed, active, allowed, dismiss } = useClippy()
+const { dismissed, active, allowed, summoning, dismiss } = useClippy()
 const { nextQuip } = useClippyQuips()
 
 const agent = shallowRef<Agent | null>(null)
@@ -307,6 +307,7 @@ async function reveal(): Promise<void> {
     a.play('Greeting')
   }
   active.value = true
+  summoning.value = false // he's on screen now — release the footer summon button
   const scope = scopeOf(route.path)
   const quip = await quipFor(scope)
   if (!quip || !agent.value || !active.value) return // dismissed mid-fetch

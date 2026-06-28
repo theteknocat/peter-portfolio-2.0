@@ -3,13 +3,13 @@
 // to summon Clippy back once he's been dismissed.
 import { computed } from 'vue'
 import { siDrupal, siGithub } from 'simple-icons'
-import { Paperclip } from '@lucide/vue'
+import { LoaderCircle, Paperclip } from '@lucide/vue'
 import { stripTitle } from '@/utils/svg'
 import { useClippy } from '@/composables/useClippy'
 
 const currentYear = computed(() => new Date().getFullYear())
 
-const { dismissed, allowed, summon } = useClippy()
+const { dismissed, allowed, summoning, summon } = useClippy()
 
 // LinkedIn omitted for now — simple-icons v16 dropped the LinkedIn icon and
 // @lucide/vue's export name was unresolved at build time.
@@ -34,13 +34,15 @@ const { dismissed, allowed, summon } = useClippy()
           </a>
         </nav>
 
-        <!-- Summon Clippy back: only on viewports where he runs, and only
-             while he's not already on screen. -->
-        <template v-if="allowed && dismissed">
+        <!-- Summon Clippy back: only on viewports where he runs, and only while
+             he's not already on screen. Stays visible (disabled, spinning)
+             while summoning so it doesn't vanish during his reveal delay. -->
+        <template v-if="allowed && (dismissed || summoning)">
           <span class="footer-divider" aria-hidden="true" />
-          <button type="button" class="summon-clippy social-link link-poly link-poly--slash shape-jitter" @click="summon">
-            <Paperclip class="summon-icon" :size="18" />
-            <span>Need a hand?</span>
+          <button type="button" class="summon-clippy social-link link-poly link-poly--slash shape-jitter" :disabled="summoning" @click="summon">
+            <LoaderCircle v-if="summoning" class="summon-spinner" :size="18" />
+            <Paperclip v-else class="summon-icon" :size="18" />
+            <span>{{ summoning ? 'Summoning…' : 'Need a hand?' }}</span>
           </button>
         </template>
       </div>
@@ -138,8 +140,26 @@ footer {
   transform: scale(1.05);
 }
 
+/* Disabled while summoning: no hover lift, no pointer. */
+.summon-clippy:disabled {
+  cursor: default;
+}
+
+.summon-clippy:disabled:hover,
+.summon-clippy:disabled:focus-visible {
+  transform: none;
+}
+
 .summon-icon {
   transform: rotate(-45deg);
+}
+
+.summon-spinner {
+  animation: summon-spin 0.8s linear infinite;
+}
+
+@keyframes summon-spin {
+  to { transform: rotate(360deg); }
 }
 
 </style>

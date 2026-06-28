@@ -20,6 +20,14 @@ const dismissed = ref(
 /** True while the agent is actually on screen (drives the footer button). */
 const active = ref(false)
 
+/**
+ * True from a footer summon-click until Clippy is actually on screen. Keeps the
+ * footer button visible (as a spinner) during the reveal delay so it doesn't
+ * vanish the instant `dismissed` flips — which felt broken. Cleared by the
+ * companion once `active` goes true.
+ */
+const summoning = ref(false)
+
 /** True on client + non-phone viewports. Set by ClippyCompanion on mount. */
 const allowed = ref(false)
 
@@ -34,8 +42,9 @@ export function useClippy() {
   /** Bring Clippy back (from the footer button). */
   function summon(): void {
     localStorage.removeItem(STORAGE_KEY)
+    summoning.value = true
     dismissed.value = false
   }
 
-  return { dismissed, active, allowed, dismiss, summon }
+  return { dismissed, active, allowed, summoning, dismiss, summon }
 }
