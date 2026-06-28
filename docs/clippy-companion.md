@@ -13,16 +13,18 @@ This doc has two parts:
 
 1. **How to use it** — the high-level behaviour and what you can make him do.
 2. **Technical implementation** — the frontend wiring, the SSG constraints, and
-   how the optional Claude API back-end is set up.
+   how the Claude API back-end generates his quips.
 
 ---
 
 ## Part 1 — How to use it
 
-### What Clippy can do (frontend only, no back-end)
+### What Clippy can do
 
-Everything below works with **zero back-end**. The only thing the Claude API adds
-later is *dynamically generated* quips instead of hand-written ones (see Part 2).
+Everything below still works with **zero back-end** — if the API is down or has no
+key, he falls back to hand-written quips. When the back-end is reachable, his lines
+are *dynamically generated* by the Claude API instead (see Part 2); the behaviour is
+otherwise identical.
 
 | Capability  | What it looks like                                                                                           |
 | ----------- | ------------------------------------------------------------------------------------------------------------ |
@@ -34,17 +36,19 @@ later is *dynamically generated* quips instead of hand-written ones (see Part 2)
 | **Sounds**  | Disabled. The MP3s ship with the package, but he's loaded muted (see Part 2).                                |
 | **Dismiss** | Closed via an X on the widget; stays gone for good (`localStorage`). A footer button summons him back.       |
 
-### The behaviour we're building
+### How he behaves
 
 - Appears on first load with a greeting animation + a welcome line — after the
   router is ready plus a short beat, so he "notices" the visitor rather than
   ambushing them. Respects `prefers-reduced-motion` (instant, no entrance).
 - **Tablet+ only** — never loads on phones (smaller viewport dimension < 600px),
   where he'd be too space-hungry and blocking.
-- *(Planned)* On route change, plays a fitting animation and speaks a **canned
-  line for that page**.
-- *(Planned)* Offers **2–4 canned buttons** under the balloon (navigation links,
-  maybe a "tell me more" that fires a second scripted line).
+- On each scope change he plays a random gesture and speaks a quip for that scope
+  (server-generated, or a hand-written fallback). Backing out of a modal is
+  silent — see the route-reactive wiring in Part 2.
+- About half his quips (`BUTTON_CHANCE`) arrive with a small button row inside the
+  balloon: navigation links and the occasional "gag" button that plays an animation
+  and delivers a one-off punchline. Every button row includes a Close button.
 - Dismissed via an X on the widget; a `localStorage` flag keeps him **gone for
   good**. A footer button (paperclip + "Need a hand?") summons him back.
 - Self-aware, slightly dry tone — fits the site's personality.
@@ -65,15 +69,15 @@ rule below serves "charming, brief, instantly dismissible."
 
 **Hard rules — these are the antidote to the original's sins:**
 
-| Original sin                            | Our rule                                                                                                                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reappeared after you dismissed him      | **"No" means gone.** One dismiss → gone for good (`localStorage`), with an explicit opt-in footer button to summon him back. This is the single most important feature, not a nice-to-have. |
-| Interrupted focused work                | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate.                       |
-| Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet.                            |
-| Same line every time, forever           | **Vary the lines.** 2–3 rotating quips per route so a repeat visitor isn't hit with the identical string. (This is also what the Claude API buys later.)                                    |
-| Unprompted escalation                   | **Earn the second line.** "Tell me more" is opt-in — he expands *only* if asked. Consent-based, the inverse of the original.                                                                |
-| "Leering" eyes felt like surveillance   | **Keep the gaze friendly.** Favour warm animations (`Greeting`, `Wave`, `Congratulate`); avoid the staring ones and don't have him track the cursor in a way that reads as "watching you."  |
-| Patronizing, oblivious                  | **Self-aware and ironic.** He *knows* he's Clippy and knows the bit is absurd. Self-awareness is the antidote to "patronizing."                                                             |
+| Original sin                            | Our rule                                                                                                                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Reappeared after you dismissed him      | **"No" means gone.** One dismiss → gone for good (`localStorage`), with an explicit opt-in footer button to summon him back. This is the single most important feature, not a nice-to-have.                  |
+| Interrupted focused work                | **Never block anything.** No modal, no covering content, no stealing focus, no animation that must finish before the visitor can act. He's a sidebar gag, not a gate.                                        |
+| Knocked on the glass when you were idle | **Silence is the default.** Speak once per arrival, then idle quietly. Never re-trigger on the same page; never demand attention because the visitor went quiet.                                             |
+| Same line every time, forever           | **Vary the lines.** ~10 quips per scope (Claude-generated, no-repeat queue) so a repeat visitor isn't hit with the identical string. Falls back to a couple of hand-written lines if the API is unavailable. |
+| Unprompted escalation                   | **Earn the extra beat.** The button row is opt-in — nav links and gags only do something *if clicked*. He never escalates on his own. Consent-based, the inverse of the original.                            |
+| "Leering" eyes felt like surveillance   | **Keep the gaze friendly.** Favour warm animations (`Greeting`, `Wave`, `Congratulate`); avoid the staring ones and don't have him track the cursor in a way that reads as "watching you."                   |
+| Patronizing, oblivious                  | **Self-aware and ironic.** He *knows* he's Clippy and knows the bit is absurd. Self-awareness is the antidote to "patronizing."                                                                              |
 
 **The comedic register.** The humour is *earnest help offered for absurdly
 inappropriate things* — the "it looks like you're \[doing X]\, want help with that?"
@@ -85,8 +89,10 @@ commits completely to being helpful about the wrong thing.
 
 ### Example per-route lines
 
-These are hand-written and live in a config object on the frontend. The Claude
-API (Part 2) can later replace the *line* while the buttons stay defined here.
+Illustrative of the register and the line+buttons shape. In the running site the
+*line* comes from the Claude-generated pool (with a hand-written `LINES` fallback),
+while the *buttons* are always defined on the frontend in `clippyActions.ts` — see
+Part 2.
 
 ```text
 Homepage:
@@ -144,17 +150,22 @@ agent.speak('Down here when you need me.')
 ```text
 src/components/clippy/
   ClippyCompanion.vue    # Wrapper: phone gate, lazy-loads + creates the agent,
-                         # owns the entrance/dismiss, renders the dismiss button.
-  ClippyMessage.vue      # (Planned) canned action buttons (the balloon is text-only).
+                         # owns the entrance/dismiss/navigation quips/gags, and
+                         # renders the dismiss button.
+  ClippyMessage.vue      # Action buttons teleported INTO the speech balloon.
 src/composables/
   useClippy.ts           # Shared singleton state (dismissed / active / allowed).
+  useClippyQuips.ts      # Per-scope quip pools: fetch once per session, serve
+                         # with no immediate repeats (sessionStorage).
+  clippyActions.ts       # Per-scope action-button config (frontend-only) + the
+                         # ClippyAction discriminated union.
 ```
 
-`ClippyCompanion.vue` handles startup and dismissal: it gates on viewport size,
-lazy-loads the library after the router is ready plus a beat, shows + greets +
-speaks one welcome line, and teleports a round dismiss `X` into the agent's own
-element so it tracks the (draggable) widget. Route-awareness, action buttons, and
-balloon theming are the work still to do.
+`ClippyCompanion.vue` handles startup, dismissal, **and** the route-reactive
+behaviour: it gates on viewport size, lazy-loads the library after the router is
+ready plus a beat, shows + greets + speaks a line for whatever scope the visitor
+landed on, then speaks a fresh line on each scope change. It teleports a round
+dismiss `X` into the agent's own element so it tracks the (draggable) widget.
 
 `useClippy.ts` is a one-file singleton store (module-scoped refs) shared between
 the companion and the footer's summon button — `dismissed` (persisted to
@@ -230,15 +241,15 @@ Confirmed from the installed type definitions:
 Clippy's full animation set (42 names), pulled from the installed agent data.
 Call `agent.animations()` at runtime for the authoritative list.
 
-| Group | Names | Use? |
-| --- | --- | --- |
-| **Expressive gestures** | `Wave`, `GetAttention`, `Congratulate`, `GetTechy`, `GetWizardy`, `GetArtsy`, `Searching`, `Thinking`, `Processing`, `Writing`, `Explain`, `CheckingSomething`, `Alert`, `Hearing_1` | ✅ Drive these on navigation / click. |
-| **Office-prop gags** | `Print`, `SendMail`, `Save`, `EmptyTrash` | ✅ Fine — Clippy-era flavour. |
-| **Entrance** | `Greeting` | ⚠️ Reserve for first load / re-summon — it reads as "appearing". |
-| **Pointing** | `GestureUp`, `GestureDown`, `GestureLeft`, `GestureRight` | ⚠️ Only with `gestureAt()` toward a real element; aimless in a random pool. |
-| **Looking** | `LookUp`, `LookDown`, `LookLeft`, `LookRight` (+ 4 diagonals) | ❌ The "staring" set — feels like surveillance. Avoid. |
-| **Idle loops** | `Idle1_1`, `IdleAtom`, `IdleEyeBrowRaise`, `IdleFingerTap`, `IdleHeadScratch`, `IdleRopePile`, `IdleSideToSide`, `IdleSnooze` | ❌ Auto-played when the queue empties. Never drive manually. |
-| **Lifecycle** | `Show`, `Hide`, `RestPose`, `GoodBye` | ❌ System animations — `show()`/`hide()` invoke these for you. |
+| Group                   | Names                                                                                                                                                                                | Use?                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| **Expressive gestures** | `Wave`, `GetAttention`, `Congratulate`, `GetTechy`, `GetWizardy`, `GetArtsy`, `Searching`, `Thinking`, `Processing`, `Writing`, `Explain`, `CheckingSomething`, `Alert`, `Hearing_1` | ✅ Drive these on navigation / click.                                       |
+| **Office-prop gags**    | `Print`, `SendMail`, `Save`, `EmptyTrash`                                                                                                                                            | ✅ Fine — Clippy-era flavour.                                               |
+| **Entrance**            | `Greeting`                                                                                                                                                                           | ⚠️ Reserve for first load / re-summon — it reads as "appearing".            |
+| **Pointing**            | `GestureUp`, `GestureDown`, `GestureLeft`, `GestureRight`                                                                                                                            | ⚠️ Only with `gestureAt()` toward a real element; aimless in a random pool. |
+| **Looking**             | `LookUp`, `LookDown`, `LookLeft`, `LookRight` (+ 4 diagonals)                                                                                                                        | ❌ The "staring" set — feels like surveillance. Avoid.                      |
+| **Idle loops**          | `Idle1_1`, `IdleAtom`, `IdleEyeBrowRaise`, `IdleFingerTap`, `IdleHeadScratch`, `IdleRopePile`, `IdleSideToSide`, `IdleSnooze`                                                        | ❌ Auto-played when the queue empties. Never drive manually.                |
+| **Lifecycle**           | `Show`, `Hide`, `RestPose`, `GoodBye`                                                                                                                                                | ❌ System animations — `show()`/`hide()` invoke these for you.              |
 
 The built-in `animate()` (and the double-click handler) picks at random from
 **all** non-`Idle*` names — so it can surface the staring and lifecycle ones. For
@@ -271,31 +282,70 @@ installed `clippyjs` source. Captured here so they don't have to be re-derived.
   you can't queue an animation *then* `hide()` and expect both to run — the
   `hide()` wipes the pending animation. Chain via `play(name, timeout, () =>
   agent.hide(true))` instead.
+- **A *held* balloon (`speak(text, true)`) never fires clippyjs's queue-completion
+  callback**, so the queue stays stuck and blocks every later `play()`/`speak()`.
+  Because action buttons need the bubble to stay open, every button-bearing quip
+  is held — and must be released explicitly: `_balloon.close()` (fires the
+  completion, unsticking the queue) **+** clear `_balloon._hold` (which `close()`
+  leaves set) **+** `_balloon.hide(true)` (collapse it now). `closeBubble()` does
+  all three. This is why a stray held bubble silently kills Clippy for the rest of
+  the session.
+- **`stop()`'s non-fast hide schedules a *delayed* `_finishHideBalloon`.** On fast
+  navigation that stale timer fires into the *next* quip's bubble, closing a held
+  one and wedging `_hold=true`. Call `_balloon.pause()` (cancels the pending
+  timers) right after `stop()` before speaking again.
+- **clippyjs defers `play()`/`show()`/`hide()` behind an idle "exit" promise** so a
+  running idle finishes its wake-up branch first — but idles with no exit branch
+  never resolve it and **deadlock every later action**. `firstShow()` patches
+  `_playInternal` to trigger the idle's exit and race its completion against a
+  short grace window (`IDLE_EXIT_GRACE_MS`), then swaps in the requested animation.
+- **Two ways to speak, picked by timing.** A *navigation* quip speaks straight on
+  the balloon (`_balloon.speak`) so the bubble appears **alongside** the gesture;
+  `Agent.speak` would queue behind the `play()` and the bubble would lag the
+  animation. The *entrance / re-summon* quip instead uses `_addToQueue` so the
+  bubble waits for the show animation to drain. `say(…, concurrent)` chooses.
+- **A busy bubble is left standing, not interrupted.** If a bubble is mid-write
+  (`_balloon._active`) or holding buttons (`_hold`), a new navigation quip is
+  skipped — clippyjs has no clean mid-write abort, so stacking/interrupting looks
+  worse than just letting the current line finish. Button clicks close it explicitly.
+- **Action buttons widen the balloon, so the text has to be re-fitted.** `speak()`
+  pins the text column to its own ≤200px width; once the wider button `<menu>`
+  teleports in as a sibling, the text looks cramped in a now-wide bubble.
+  `fitContentToButtons` re-pins the text to the inner balloon width (re-measuring
+  height too, since fewer wrap lines need less height) and repositions. This is the
+  one piece of "theming" work the balloon needed beyond CSS.
 
-#### Route-reactive pattern (sketch)
+#### Route-reactive wiring
 
-```ts
-const lines: Record<string, { text: string; anim: string }> = {
-  '/':            { text: '…',  anim: 'Greeting' },
-  '/portfolio':   { text: '…',  anim: 'GetTechy' },
-  '/articles':    { text: '…',  anim: 'GetArtsy' },
-  '/job-history': { text: '…',  anim: 'LookRight' },
-}
+A `watch` on `route.path` drives the agent. The path is reduced to a **scope** —
+`scopeOf(path)` strips the leading `/` and maps `''` to `'home'`, so the top-level
+scopes are `home`, `portfolio`, `articles`, `job-history`, and item routes become
+`{type}/{slug}` (e.g. `portfolio/job-scout`).
 
-watch(() => route.path, (path) => {
-  const line = lines[path]
-  if (!line || dismissed.value) return
-  agent.value?.play(line.anim)
-  agent.value?.speak(line.text)
-})
-```
+The watcher **skips modal-close transitions** — when `prev` was an item scope
+(`includes('/')`) and the new scope is a top-level one, the visitor is just backing
+out of a modal, not arriving somewhere new, so Clippy stays quiet.
+
+`quipFor(scope)` resolves the line: the **server pool first** (`nextQuip(scope)`
+from `useClippyQuips`, drained from the per-session sessionStorage queue), falling
+back to a hand-written `LINES[section]` entry when the pool is empty or the fetch
+failed. A gesture is chosen from a curated `GESTURES` list via `randomGesture`
+(no immediate repeat), and the line is held open (`speak(text, true)`) when it
+carries action buttons. `readingDelay(text)` (≈ 280 ms/word, clamped 2.5–9 s)
+decides how long a button-less line stays up before auto-closing.
 
 #### Buttons
 
-The library balloon is **text only** — the action buttons are our own Vue DOM
-(`ClippyMessage.vue`), positioned next to the agent using its bounding rect. The
-button set is defined per-route in the frontend config, **not** returned by any
-API.
+The action buttons are our own Vue DOM (`ClippyMessage.vue`), but they are
+**`<Teleport>`-ed *into* the library balloon element** — not floated beside the
+agent — so they sit inside the speech bubble and move/close with it. The button
+set comes from `clippyActions.ts`: `actionsFor(scope)` returns a per-scope list
+(`ClippyAction = NavButton | GagButton`, a discriminated union), looked up by exact
+scope then by section prefix. This is **frontend config, never returned by the
+API**. Nav buttons are `<RouterLink>`s; a Close button is always present; gag
+buttons emit a key that `ClippyCompanion` maps to a `GAGS` entry (play an animation -
+speak a canned line). A quip carries buttons with probability `BUTTON_CHANCE`
+(0.5).
 
 #### Startup, dismiss & summon
 
@@ -313,77 +363,89 @@ API.
 
 #### Theming the balloon
 
-The balloon DOM uses the library's own classes (`.clippy-balloon`, etc.). Restyle
-it with **global, unlayered** CSS (it's third-party DOM outside any component
-scope) to match the cyberpunk art-deco aesthetic.
+The library's **default balloon (classic Office Assistant yellow) was kept as-is** —
+it fits the retro-Clippy bit better than restyling it to the site's aesthetic would.
+The only styling needed was the **in-bubble buttons** (`ClippyMessage.vue`'s scoped
+CSS: flat thin-bordered dialog boxes on the `#ffc` yellow, under a separator rule),
+plus the JS width-fix above (`fitContentToButtons`) so the text fills a button-widened
+bubble. The buttons are teleported into the balloon, so their styles live in
+`ClippyMessage.vue` rather than a global override.
 
 ---
 
-### Back-end (Claude API) — optional, swaps in later
+### Back-end (Claude API) — pre-generated quip pools
 
-The back-end's only job is to turn "which page is the visitor on" into a generated
-quip. Everything else (buttons, animations, dismiss) stays on the frontend.
+The back-end turns a **scope** into a *pool* of ready-made quips, not a single
+line per request. Claude is called **at most once per scope per TTL window**,
+server-side, and the result is cached to a flat JSON file shared by every visitor.
+The browser fetches a scope's pool once per session and serves lines from it
+locally — so normal browsing makes **no Anthropic calls at all**.
 
 #### Why a back-end at all
 
 The site is a **public SPA** — anything in its JavaScript is readable by anyone.
-The Anthropic API key must therefore **never** ship to the browser. The existing
-Slim 4 API proxies the call: the frontend only ever talks to our own endpoint,
-and the key lives in `api/.env`.
+The Anthropic API key must therefore **never** ship to the browser. The Slim 4 API
+proxies the call: the frontend only ever talks to our own endpoint, and the key
+lives in `api/.env`.
 
 #### Flow
 
 ```text
-ClippyCompanion ──fetch──▶  GET /api/clippy?page=portfolio
-   (Vue)                          │
+ClippyCompanion ──fetch──▶  GET /api/clippy/quips/portfolio
+   (Vue, once/session)            │
                                   ▼
                           ClippyHandler (Slim)
-                                  │  builds prompt from page context
-                                  ▼
-                          Anthropic Messages API   (key from api/.env)
                                   │
                                   ▼
-                          { "text": "…the quip…" }
-   agent.speak(text)  ◀───────────┘
+                          ClippyService::getPool(scope)
+                                  │
+                   ┌──────────────┴────────────────┐
+                   │ cache file fresh (< TTL)?     │
+                   │   yes → return cached quips   │
+                   │   no  → call Anthropic, cache │
+                   └──────────────┬────────────────┘
+                                  ▼
+                          { "quips": ["…", "…", …] }   (~10 lines)
+   sessionStorage queue ◀─────────┘
+   nextQuip(scope) drains it locally, no further calls
 ```
 
 #### Endpoint contract
 
 ```text
-GET /api/clippy?page={page}
+GET /api/clippy/quips/{scope}
 
 200 OK
-{ "text": "It looks like you're browsing projects…" }
+{ "quips": ["It looks like you're browsing projects…", … ] }   (~10 lines)
+
+Cache-Control: no-store   (the server-side file cache is the cache; the
+                           browser dedups per session, so don't double-cache)
 ```
 
-Keep it a thin request: the handler already knows the canned button set lives on
-the frontend, so it returns **only** the line. Page content can be passed for
-richer quips, but start with just the page name.
+An **invalid scope or any failure returns `{ "quips": [] }`** (HTTP 200) — Clippy
+degrades gracefully to the frontend `LINES` fallback rather than erroring.
 
-#### Handler responsibilities (`api/src/Handlers/ClippyHandler.php`)
+#### Handler / service responsibilities
 
-Following the existing handler/service conventions:
+`ClippyHandler.php` is thin: read `{scope}`, call `ClippyService::getPool`, write
+`{ quips }` with `Cache-Control: no-store`. The work lives in `ClippyService.php`:
 
-- Read the `page` query param; validate it against a known allow-list of routes
-  (a trust boundary — don't forward arbitrary strings into a prompt).
-- Build the prompt:
-  - **System prompt** — establishes the Clippy persona (dry, self-aware, ≤ 2
-    sentences, no markdown, in character).
-  - **User message** — the page name, optionally a short summary of that page's
-    content pulled via the existing `ContentService` / `PageLayoutService`.
-- Call the Anthropic Messages API and return `{ text }`.
+- **`isValidScope`** — a trust boundary. The scope is checked against the known
+  allow-list (top-level sections + `{type}/{slug}` where type ∈ `portfolio`,
+  `articles`), slug matched against `/^[a-z0-9-]+$/`, and confirmed to exist on
+  disk. Arbitrary strings never reach the prompt.
+- **`getPool` → `readFresh`** — the cache file (`/` in the scope becomes `__` in
+  the filename) is served when its `filemtime` is within `ttlSeconds`; otherwise
+  `generate` is called and the result re-cached.
+- **`generate`** — a plain cURL `POST` to `api.anthropic.com/v1/messages`
+  (`max_tokens` 1024). The `SYSTEM` constant carries the Clippy persona;
+  `buildPrompt` asks for *"10 distinct one-liners"* for the scope, pulling page
+  context via `ContentService`. `parseQuips` extracts the first `[…]` JSON array.
+  Returns `[]` if the API key is empty — no key, no calls, frontend falls back.
 
 #### Calling Anthropic from PHP
 
-Two options:
-
-```text
-- Official SDK:  composer require anthropic-ai/sdk   (typed client)
-- Plain HTTP:    a few lines of Guzzle/cURL against the Messages endpoint
-```
-
-Given the request is a single short message, the plain-HTTP path is the lazy
-default; reach for the SDK only if the integration grows.
+Plain cURL, not the SDK — one POST per scope per TTL is not worth a dependency.
 
 Config in `api/.env` (gitignored):
 
@@ -392,25 +454,30 @@ ANTHROPIC_API_KEY=sk-ant-…
 CLIPPY_MODEL=claude-haiku-4-5
 ```
 
-**Model choice:** a one-line quip wants low latency and low cost, so Haiku 4.5 is
-the sensible default. Bump `CLIPPY_MODEL` to a Sonnet/Opus model if the quips need
-more wit — it's a single env change.
+**Model choice:** short quips want low latency and cost, so Haiku 4.5 is the
+default. Bump `CLIPPY_MODEL` to a Sonnet/Opus model for more wit — a single env
+change. TTL and cache dir are likewise constructor config.
+
+#### Per-session frontend cache (`useClippyQuips.ts`)
+
+The browser fetches each scope's pool **once per session** and stores it in
+`sessionStorage` (`clippy-pool:{scope}`). `nextQuip(scope)` serves from a shuffled,
+no-repeat queue (`clippy-queue:{scope}`, Fisher–Yates, reshuffled only when
+drained) so the same line doesn't recur back-to-back within a session. A failed or
+empty fetch is **not** cached, so a later navigation can recover.
 
 #### No streaming
 
-`clippyjs`'s `speak()` is one-shot and already animates text word-by-word itself,
-so there is **no value in streaming tokens** from Claude into the balloon —
-doing so would mean chunking into repeated `speak()` calls that fight the
-library's own queue. The endpoint returns the full line; the library's typewriter
-does the rest. (The original plan's streaming idea relied on a different library's
-`speakStream()`, which pi0's `clippyjs` does not have.)
+`clippyjs`'s `speak()` is one-shot and animates text word-by-word itself, and the
+quips are pre-generated anyway — there is **no streaming** and nothing to stream.
+The pool is fetched as a whole; the library's typewriter does the rest.
 
 #### Failure handling
 
-If the API call fails or times out, fall back to the **canned line** for that
-route. The frontend should always have a hard-coded line per page so Clippy is
-never silent or broken when the back-end is unavailable — the API only *upgrades*
-the line when it succeeds.
+If the API call fails, the key is missing, or the scope is invalid, the endpoint
+returns an empty pool and the frontend falls back to the hard-coded `LINES[section]`
+entry. Clippy is never silent or broken when the back-end is unavailable — the API
+only *upgrades* the lines when it succeeds.
 
 ---
 
@@ -422,7 +489,9 @@ the line when it succeeds.
 - ✅ Sound off (empty sound map).
 - ✅ Persistent dismiss (`localStorage`, gone-means-gone) + teleported dismiss `X`.
 - ✅ Footer summon button (`useClippy` shared state).
-- ⬜ Route-reactive canned lines + per-page animation.
-- ⬜ Action buttons (`ClippyMessage.vue`).
-- ⬜ Balloon theming.
-- ⬜ Claude API back-end (`ClippyHandler` + `/api/clippy`).
+- ✅ Route-reactive quips + per-scope animation (scope watcher, modal-close skip).
+- ✅ Action buttons teleported into the balloon (`ClippyMessage.vue`, `clippyActions.ts`).
+- ✅ Claude API back-end: pre-generated quip pools, file cache + TTL
+  (`ClippyHandler` + `ClippyService`, `GET /api/clippy/quips/{scope}`).
+- ✅ Per-session frontend pool cache + no-repeat queue (`useClippyQuips.ts`).
+- ✅ Balloon: default theme kept; in-bubble button CSS + text width-fit (`ClippyMessage.vue`, `fitContentToButtons`).
