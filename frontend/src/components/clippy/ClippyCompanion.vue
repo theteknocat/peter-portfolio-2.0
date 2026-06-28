@@ -9,6 +9,7 @@
 import { nextTick, onMounted, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { X } from '@lucide/vue'
+import { routes } from '@/router'
 import { useClippy } from '@/composables/useClippy'
 import { useClippyQuips } from '@/composables/useClippyQuips'
 import { actionsFor, type ClippyAction } from '@/composables/clippyActions'
@@ -68,7 +69,7 @@ interface Agent {
 const router = useRouter()
 const route = useRoute()
 const { dismissed, active, allowed, summoning, dismiss } = useClippy()
-const { nextQuip } = useClippyQuips()
+const { nextQuip, prefetch } = useClippyQuips()
 
 const agent = shallowRef<Agent | null>(null)
 // clippyjs's own <div> (the agent's internal element). We teleport the dismiss
@@ -148,6 +149,38 @@ async function quipFor(scope: string): Promise<string | null> {
   const section = scope.split('/')[0]
   const fallback = LINES[section]
   return (await nextQuip(scope)) ?? (fallback ? pick(fallback) : null)
+}
+
+// Top-level section scopes, derived from the router: static paths only
+// (detail/modal routes and the 404 catch-all all contain ':').
+const prefetchScopes = routes
+  .filter((r) => typeof r.path === 'string' && !r.path.includes(':'))
+  .map((r) => scopeOf(r.path))
+
+let idlePrefetchDone = false
+
+/**
+ * Warm the other top-level quip pools during browser idle, so navigating to a
+ * section serves its first quip from cache instead of waiting on the API. Runs
+ * once per session; the fetches themselves are session-deduped by loadPool().
+ */
+function scheduleIdlePrefetch(): void {
+  if (idlePrefetchDone || typeof window === 'undefined') return
+  idlePrefetchDone = true
+
+  const run = (): void => {
+    if (dismissed.value) return // user left before idle fired
+    const current = scopeOf(route.path)
+    for (const scope of prefetchScopes) {
+      if (scope !== current) void prefetch(scope)
+    }
+  }
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(run, { timeout: 2000 })
+  } else {
+    window.setTimeout(run, 1000)
+  }
 }
 
 /** Speak a quip for a scope (navigation): random gesture, cancel anything mid-flight. */
@@ -381,6 +414,7 @@ async function firstShow(): Promise<void> {
   agentEl.value = a._el
   balloonEl.value = a._balloon._balloon
   reveal()
+  scheduleIdlePrefetch()
 }
 
 function onDismiss(): void {

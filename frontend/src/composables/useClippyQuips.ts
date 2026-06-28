@@ -87,6 +87,19 @@ export function useClippyQuips() {
    * @param scope - The quip scope to draw from.
    * @returns A quip string, or null if no pool is available.
    */
+  /**
+   * Warm a scope's pool cache ahead of time without consuming a quip.
+   *
+   * Fire-and-forget: a hit is cached for the session, so calling this on idle /
+   * hover means the eventual nextQuip() for that scope resolves instantly. Safe
+   * to call repeatedly — loadPool() dedupes against the cache.
+   *
+   * @param scope - The quip scope to warm.
+   */
+  async function prefetch(scope: string): Promise<void> {
+    await loadPool(scope)
+  }
+
   async function nextQuip(scope: string): Promise<string | null> {
     const pool = await loadPool(scope)
     if (pool.length === 0) {
@@ -104,5 +117,5 @@ export function useClippyQuips() {
     return quip
   }
 
-  return { nextQuip }
+  return { nextQuip, prefetch }
 }

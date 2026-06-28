@@ -154,9 +154,10 @@ src/components/clippy/
                          # renders the dismiss button.
   ClippyMessage.vue      # Action buttons teleported INTO the speech balloon.
 src/composables/
-  useClippy.ts           # Shared singleton state (dismissed / active / allowed).
+  useClippy.ts           # Shared singleton state (dismissed / active / allowed /
+                         # summoning).
   useClippyQuips.ts      # Per-scope quip pools: fetch once per session, serve
-                         # with no immediate repeats (sessionStorage).
+                         # with no immediate repeats (sessionStorage); prefetch().
   clippyActions.ts       # Per-scope action-button config (frontend-only) + the
                          # ClippyAction discriminated union.
 ```
@@ -169,9 +170,11 @@ dismiss `X` into the agent's own element so it tracks the (draggable) widget.
 
 `useClippy.ts` is a one-file singleton store (module-scoped refs) shared between
 the companion and the footer's summon button — `dismissed` (persisted to
-`localStorage`), `active` (on screen now), and `allowed` (client + non-phone, set
-by the companion on mount). The footer reads `allowed`/`active` reactively to show
-its summon button only where Clippy runs and only while he's hidden.
+`localStorage`), `active` (on screen now), `allowed` (client + non-phone, set by
+the companion on mount), and `summoning` (set by a summon-click, cleared once
+`active` flips). The footer reads `allowed`/`active`/`summoning` reactively to show
+its summon button only where Clippy runs and only while he's hidden, and to render
+its in-flight loading state (see below).
 
 It is mounted once in `App.vue` as a sibling of `ModalOverlay` / `LoadingScreen`.
 
@@ -360,6 +363,15 @@ speak a canned line). A quip carries buttons with probability `BUTTON_CHANCE`
 - **Summon** (footer button) clears the flag. A `watch` on `dismissed` drives the
   agent: hide when dismissed, first-show once, re-show on later summons (he's
   hidden, not disposed, so re-showing is instant).
+- **Summon loading state.** Clearing `dismissed` would normally make the footer
+  button (which renders on `allowed && dismissed`) vanish the instant it's
+  clicked — but the reveal lags (`show()` + `Greeting` + the awaited quip, and on
+  a cold re-summon the full `router.isReady()` + `FIRST_SHOW_DELAY_MS` beat), so
+  the button disappearing with nothing yet on screen felt broken. `summon()` sets
+  a shared `summoning` flag; the button stays rendered (`allowed && (dismissed ||
+  summoning)`), disabled, with the paperclip swapped for a spinner, until `reveal()`
+  flips `active` true and clears `summoning` — i.e. the moment Clippy is actually
+  on screen.
 
 #### Theming the balloon
 
@@ -466,6 +478,17 @@ no-repeat queue (`clippy-queue:{scope}`, Fisher–Yates, reshuffled only when
 drained) so the same line doesn't recur back-to-back within a session. A failed or
 empty fetch is **not** cached, so a later navigation can recover.
 
+**Idle prefetch.** The first fetch of a cold scope hits the API and shows a visible
+delay on the *first* navigation to each section. To hide it, `useClippyQuips`
+exposes `prefetch(scope)` (warms the pool cache via the same `loadPool`, without
+consuming a queue slot). After Clippy's first reveal, `ClippyCompanion` schedules a
+once-per-session `requestIdleCallback` (1 s `setTimeout` fallback) that prefetches
+the other top-level scopes — derived from the router (`routes` filtered to static,
+`:`-free paths) so there's no hardcoded list to drift. By the time the visitor
+clicks a nav link, that section's quip is already cached. Detail scopes
+(`{type}/{slug}`) are not prefetched (too many slugs); they still fetch on first
+open.
+
 #### No streaming
 
 `clippyjs`'s `speak()` is one-shot and animates text word-by-word itself, and the
@@ -494,4 +517,6 @@ only *upgrades* the lines when it succeeds.
 - ✅ Claude API back-end: pre-generated quip pools, file cache + TTL
   (`ClippyHandler` + `ClippyService`, `GET /api/clippy/quips/{scope}`).
 - ✅ Per-session frontend pool cache + no-repeat queue (`useClippyQuips.ts`).
+- ✅ Idle prefetch of top-level quip pools (`prefetch()` + `requestIdleCallback`).
+- ✅ Footer summon loading state (`summoning` flag → disabled + spinner until on screen).
 - ✅ Balloon: default theme kept; in-bubble button CSS + text width-fit (`ClippyMessage.vue`, `fitContentToButtons`).
