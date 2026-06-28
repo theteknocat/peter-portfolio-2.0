@@ -19,8 +19,11 @@ useSeo({
   path: '/articles',
 })
 
-const items = computed(
-  () => (data.value?.sections[0]?.items ?? []) as unknown as Article[]
+// Sorted newest-first by date — overrides manifest order for display.
+const items = computed(() =>
+  [...((data.value?.sections[0]?.items ?? []) as unknown as Article[])].sort(
+    (a, b) => (b.date ?? '').localeCompare(a.date ?? '')
+  )
 )
 </script>
 

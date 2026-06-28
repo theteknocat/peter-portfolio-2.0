@@ -12,7 +12,10 @@ import ArticleCard from '@/components/articles/ArticleCard.vue'
 
 const props = defineProps<{ section: ResolvedSection }>()
 
-const items = (props.section.items ?? []) as unknown as Article[]
+// Sorted newest-first by date — overrides manifest order for display.
+const items = [...((props.section.items ?? []) as unknown as Article[])].sort(
+  (a, b) => (b.date ?? '').localeCompare(a.date ?? '')
+)
 </script>
 
 <template>
