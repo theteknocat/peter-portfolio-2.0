@@ -6,6 +6,7 @@ current_dir=$(pwd)
 if [[ $current_dir == */.ddev ]]; then
   current_dir=${current_dir%/.ddev}
 fi
+current_dir=$(realpath "$current_dir")
 
 # Loop through all the arguments and replace any part of any argument that
 # matches current_dir with /var/www/html. This is necessary because the vscode
