@@ -69,7 +69,12 @@
   will-change: filter;
 }
 
-/* Hide the tile during modal — animation keeps running so nothing desyncs on restore. */
+/* Hide the tile while a modal is open. Compositing the animated tile behind the
+   page-recede + panel scale-in caused a visible open-animation judder (Firefox).
+   We HIDE rather than pause: the bg-scroll keyframe keeps running, so when the
+   image is restored on close it's already at the position the JS-driven streak /
+   glitch-spot overlays expect — pausing only this layer would desync them.
+   See docs/architecture.md § Background animation interaction. */
 body.modal-open .bg-layer {
   background-image: none;
 }

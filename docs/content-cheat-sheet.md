@@ -1,7 +1,7 @@
 # Content Cheat Sheet
 
 Quick reference for authoring flat-file content. For the full system design see
-`portfolio-rebuild-plan.md`; for field templates see `templates/`.
+`architecture.md`; for field templates see `templates/`.
 
 Content lives **outside the repo** (gitignored, synced to the server via rsync).
 It is fetched at runtime through the API — it is **not** in the web docroot.

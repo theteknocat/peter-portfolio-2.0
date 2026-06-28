@@ -132,8 +132,11 @@ main {
   overflow-x: clip;
 }
 
-/* Hide immediately when modal opens; restore only after the page-layer
-   return transition completes (0.4s + 0.2s delay = 0.6s). */
+/* Streaks/spots hide immediately when the modal opens and restore only after the
+   page-layer return transition completes (0.4s + 0.2s delay = 0.6s); the 0.65s
+   delay is tuned to that return — change one, revisit the other. The bg tile is
+   hidden separately (background.css) but its animation keeps running so it stays
+   in sync with these JS-driven overlays on restore. */
 .page-layer .bg-streak-overlay,
 .page-layer .bg-spot {
   transition: visibility 0s 0.65s;
