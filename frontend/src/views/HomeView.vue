@@ -114,6 +114,11 @@ onUnmounted(() => observer?.disconnect())
         <div class="home-left md:pb-4">
           <PageTitle class="home-title">{{ introTitle }}</PageTitle>
           <div class="home-intro-group">
+            <component
+              v-if="introSection"
+              :is="resolveSection('intro')"
+              :section="introSection"
+            />
             <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
               <a
                 v-for="item in navItems"
@@ -127,11 +132,6 @@ onUnmounted(() => observer?.disconnect())
                 <span class="text-sm">{{ item.label }}</span>
               </a>
             </nav>
-            <component
-              v-if="introSection"
-              :is="resolveSection('intro')"
-              :section="introSection"
-            />
           </div>
         </div>
         <div class="home-right">
@@ -181,7 +181,7 @@ onUnmounted(() => observer?.disconnect())
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem;
-  margin-block: 0.75rem 1.25rem;
+  margin-block: 0.75rem 0;
 }
 
 /* Active nav button: green like hover, minus the icon-glitch animation. */
