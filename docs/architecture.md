@@ -242,6 +242,23 @@ Design notes for work intentionally not built yet.
   separate file — e.g. `intro: "@my-project-intro"` would load
   `content/portfolio/my-project-intro.md` and substitute its contents. The current
   single `.md` body convention covers all known cases.
+- **Portfolio card key-image + hover reveal:** an optional `key_image` field (a
+  hand-cropped, hand-darkened image — *not* an auto-shrunk first screenshot, which
+  tested poorly: most real screenshots are bright, white-dominant, text-dense UI
+  that reads as grey noise once dimmed). When present, render it as a separate
+  chamfer-clipped child layer behind the card content (the two `.card-link`
+  pseudo-elements are already spent on the chamfer fill + border ring, so the
+  image needs its own element sharing the `shape-chamfer` polygon). Default state
+  shows the **title only** over a small gradient scrim anchored to the title;
+  summary + tags stay in layout (height reserved, no reflow) at `opacity: 0` and
+  reveal on `:hover, :focus-visible` with a scrim fading in alongside them to hold
+  WCAG AA contrast over the image. Gate the reveal behind `@media (hover: hover)`;
+  under `@media (hover: none)` (touch) fall back to today's always-visible layout
+  since there's no hover and the card's single `RouterLink` makes the first tap
+  navigate. Cards with no `key_image` keep the current plain dark card — no image
+  child, no hover behaviour. Optional `key_image_dim` per-item overlay opacity
+  does the brightness "normalization" at authoring time (pure CSS can't measure
+  image luminance, so there's no adaptive runtime path worth building).
 
 ### SEO depth
 
