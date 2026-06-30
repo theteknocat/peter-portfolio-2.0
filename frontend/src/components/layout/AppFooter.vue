@@ -46,7 +46,7 @@ const { dismissed, allowed, summoning, summon } = useClippy()
           </button>
         </template>
       </div>
-      <p class="copyright text-sm">
+      <p class="copyright text-sm m-0">
         Copyright &copy; {{ currentYear }} Peter Epp
       </p>
     </div>
@@ -80,7 +80,6 @@ footer {
 
 .copyright {
   color: var(--color-accent-lighter);
-  margin: 0;
 }
 
 .social-links {

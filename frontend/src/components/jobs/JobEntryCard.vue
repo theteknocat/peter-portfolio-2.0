@@ -14,7 +14,7 @@ defineProps<{
 <template>
   <div class="job-entry">
     <div class="job-header">
-      <h2 class="job-title">{{ item.title }}</h2>
+      <h2 class="job-title m-0">{{ item.title }}</h2>
       <span class="job-company">{{ item.company }}</span>
       <span class="job-dates">{{ formatJobDate(item.start) }} – {{ formatJobDate(item.end) }}</span>
     </div>
@@ -48,7 +48,6 @@ defineProps<{
   font-weight: normal;
   font-size: 1.25rem;
   color: var(--color-accent-light);
-  margin: 0;
 }
 
 .job-company {

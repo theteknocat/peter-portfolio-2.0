@@ -25,7 +25,7 @@ watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
     <p v-else-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <div class="modal-header">
-        <h2 class="modal-title">{{ data.title }}</h2>
+        <h2 class="modal-title m-0">{{ data.title }}</h2>
         <p v-if="data.date" class="modal-date">{{ formatDate(data.date) }}</p>
       </div>
       <p v-if="data.summary" class="modal-summary">{{ data.summary }}</p>
@@ -61,7 +61,6 @@ watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
   font-weight: normal;
   font-size: calc(1.37rem + 1.47vw);
   color: var(--color-accent-light);
-  margin: 0;
 }
 
 @media (width >= theme(--breakpoint-xl)) {

@@ -15,7 +15,7 @@ defineProps<{
 <template>
   <RouterLink :to="`/articles/${item.slug}`" class="card-link flex flex-col shape-chamfer shape-jitter">
     <div class="card-header">
-      <h2 class="card-title">{{ item.title }}</h2>
+      <h2 class="card-title m-0">{{ item.title }}</h2>
     </div>
     <p class="card-summary flex-1">{{ item.summary || '&nbsp;' }}</p>
     <p v-if="item.date" class="card-date">{{ formatDate(item.date) }}</p>
@@ -29,10 +29,6 @@ defineProps<{
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   margin-bottom: 0.5rem;
-}
-
-.card-header .card-title {
-  margin: 0;
 }
 
 .card-date {
