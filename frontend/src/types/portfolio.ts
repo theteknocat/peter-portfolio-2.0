@@ -10,6 +10,15 @@ export interface PortfolioImage {
   alt: string  // Required — screenshots must be described for accessibility.
 }
 
+/**
+ * Employer attribution. Presence marks the item as work done with an employer;
+ * absence reads as a personal project. `url` links to the employer's site.
+ */
+export interface Employer {
+  name: string
+  url?: string
+}
+
 export interface PortfolioItem {
   slug: string
   title: string
@@ -19,4 +28,5 @@ export interface PortfolioItem {
   featured?: boolean
   body?: string
   images?: PortfolioImage[]
+  employer?: Employer
 }
