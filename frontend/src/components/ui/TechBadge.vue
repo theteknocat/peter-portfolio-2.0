@@ -44,7 +44,7 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
 
 <template>
   <li
-    class="tech-badge"
+    class="tech-badge shape-para"
     :class="{ 'tech-badge--icon-only': collapse }"
     v-tooltip="collapse ? tag.label : ''"
     :tabindex="collapse ? 0 : undefined"
@@ -83,7 +83,7 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0.125rem 0.2rem 0.125rem 0.375rem;
+  padding: 0.125rem 0.2rem 0.125rem 0.75rem;
 }
 
 /* Both icon sets now sit inside a .tech-badge__icon span, so the SVG is always
@@ -100,17 +100,17 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
 }
 
 .tech-badge__label {
-  padding: 0.125rem 0.5rem 0.125rem 0.25rem;
+  padding: 0.125rem 0.875rem 0.125rem 0.25rem;
   line-height: 1;
 }
 
 /* Text-only badge — label is first child, restore full left padding */
 .tech-badge__label:first-child {
-  padding-inline-start: 0.5rem;
+  padding-inline-start: 0.875rem;
 }
 
 /* Icon-only badge — balanced padding around the lone icon (label is sr-only) */
 .tech-badge--icon-only .tech-badge__icon {
-  padding: 0.25rem 0.375rem;
+  padding: 0.25rem 0.75rem;
 }
 </style>

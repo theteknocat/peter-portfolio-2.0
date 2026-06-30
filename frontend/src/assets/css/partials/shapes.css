@@ -220,6 +220,42 @@
   --notch: --value([length]);
 }
 
+/* ─── Shape: parallelogram ────────────────────────────────────────────────── */
+
+/**
+ * Forward-leaning parallelogram: horizontal top/bottom, both ends angled
+ * like `/`. Sized for tags. Compose with para-[size] to override the slant
+ * (default: 8px).
+ */
+@utility shape-para {
+  @apply shape-base;
+
+  &::before {
+    clip-path: polygon(
+      var(--para, 8px) 0, 100% 0,
+      calc(100% - var(--para, 8px)) 100%, 0 100%
+    );
+  }
+
+  &::after {
+    clip-path: polygon(
+      var(--para, 8px) 0, 100% 0,
+      calc(100% - var(--para, 8px)) 100%, 0 100%,
+      1px calc(100% - 1px),
+      calc(100% - var(--para, 8px) - 1px) calc(100% - 1px),
+      calc(100% - 1px) 1px,
+      calc(var(--para, 8px) + 1px) 1px,
+      1px calc(100% - 1px),
+      0 100%
+    );
+  }
+}
+
+/** Sets the slant for shape-para. Usage: para-[12px] */
+@utility para-* {
+  --para: --value([length]);
+}
+
 /* ─── Animation: jitter ───────────────────────────────────────────────────── */
 
 /** Glitches pseudo-element shapes intermittently while hovered/focused.
