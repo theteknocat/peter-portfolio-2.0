@@ -100,7 +100,10 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
 }
 
 .tech-badge__label {
-  padding: 0.125rem 0.875rem 0.125rem 0.25rem;
+  /* Vertical padding matches .tech-badge__icon's total height (16px svg + 4px
+     padding = 20px) so text-only tags are the same height as icon tags even
+     when wrapped alone onto a row with no taller sibling to flex-stretch to. */
+  padding: 0.25rem 0.875rem 0.25rem 0.25rem;
   line-height: 1;
 }
 
