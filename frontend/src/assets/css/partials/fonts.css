@@ -53,10 +53,46 @@
 }
 
 /* share-tech-mono-regular - latin */
+/* inactive — uncomment + set --font-mono to use */
+/*
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
   font-family: 'Share Tech Mono';
   font-style: normal;
   font-weight: 400;
-  src: url('../../fonts/share-tech-mono-v16-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('../../fonts/share-tech-mono-v16-latin-regular.woff2') format('woff2');
 }
+*/
+
+/* space-mono-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/space-mono-v17-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* roboto-mono-300 - latin */
+/* inactive — uncomment + set --font-mono to use */
+/*
+@font-face {
+  font-display: swap;
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../../fonts/roboto-mono-v31-latin-300.woff2') format('woff2');
+}
+*/
+
+/* roboto-mono-regular - latin */
+/* inactive — uncomment + set --font-mono to use */
+/*
+@font-face {
+  font-display: swap;
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/roboto-mono-v31-latin-regular.woff2') format('woff2');
+}
+*/

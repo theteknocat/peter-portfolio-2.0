@@ -8,8 +8,9 @@ let hasAutoTyped = false
 <script setup lang="ts">
 /**
  * Intro terminal — the home page's introductory text, styled as a terminal.
- * On the first full page load (desktop only) it types the subtitle then the body
- * out character-by-character with a blinking cursor; clicking finishes instantly.
+ * On the first full page load (desktop only) it types the subtitle, then the
+ * body, then a Tron "END OF LINE" sign-off, out character-by-character with a
+ * blinking cursor; clicking finishes instantly.
  * Renders the subtitle + body from the 'pages/home-intro.yaml' content file.
  * Title and section nav live in HomeView, not here.
  */
@@ -25,12 +26,22 @@ const content = computed(() => props.section.content as {
 
 const displaySubtitle = ref('')
 const displayBody = ref('')
-// Which line the cursor sits on; 'done' = finished (no cursor, no pointer).
-const phase = ref<'subtitle' | 'body' | 'done'>('done')
+const displayTron = ref('')
+// Which line the cursor sits on; 'done' = finished typing (pointer cursor cleared).
+const phase = ref<'subtitle' | 'body' | 'tron' | 'done'>('done')
+const cursorVisible = ref(false)
 
 let skip = false
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+// Like delay(), but returns early if the user clicks to skip ahead.
+async function pause(ms: number): Promise<void> {
+  const start = Date.now()
+  while (!skip && Date.now() - start < ms) {
+    await delay(Math.min(50, ms))
+  }
+}
 
 // Mostly fast, with the occasional slightly longer beat to feel hand-typed.
 function typingDelay(): number {
@@ -62,17 +73,29 @@ onMounted(async () => {
 
   if (hasAutoTyped || !wideEnough || reduceMotion) {
     displaySubtitle.value = sub
-    displayBody.value = body
+    displayBody.value = '\n' + body
+    displayTron.value = 'END OF LINE'
     phase.value = 'done'
     return
   }
 
+  cursorVisible.value = true
   hasAutoTyped = true
+  await pause(800)
   phase.value = 'subtitle'
   await typeInto(displaySubtitle, sub)
   phase.value = 'body'
-  await typeInto(displayBody, body)
+  await typeInto(displayBody, '\n');
+  await pause(1000)
+  await typeInto(displayBody, body + '\n')
+
+  // Tron easter egg: MCP's "END OF LINE" sign-off, its own line/paragraph.
+  await pause(2000)
+  phase.value = 'tron'
+  await typeInto(displayTron, 'END OF LINE')
   phase.value = 'done'
+  await pause(3000)
+  cursorVisible.value = false
 })
 </script>
 
@@ -87,8 +110,11 @@ onMounted(async () => {
         <p v-if="content.subtitle" class="intro-subtitle">
           {{ displaySubtitle }}<span v-if="phase === 'subtitle'" class="cursor">_</span>
         </p>
-        <p v-if="content.body">
-          {{ displayBody }}<span v-if="phase === 'body'" class="cursor">_</span>
+        <p v-if="content.body" class="intro-body">
+          {{ displayBody }}<span v-if="phase === 'body' && cursorVisible" class="cursor">_</span>
+        </p>
+        <p v-if="phase === 'tron' || phase === 'done'" class="intro-tron">
+          {{ displayTron }}<span v-if="cursorVisible" class="cursor">_</span>
         </p>
       </template>
       <p v-else>Hero content not yet loaded.</p>
@@ -112,6 +138,28 @@ onMounted(async () => {
 
 .intro-scroll {
   padding: 1rem 1.25rem;
+}
+
+/* Trailing typed newline gives the blank-line gap before the body; centered
+   to read as a standalone heading rather than body copy. */
+.intro-subtitle {
+  margin: 0;
+  text-align: center;
+  white-space: pre-line;
+}
+
+/* Honour newlines authored in the YAML body (literal `|` block scalar) while
+   still wrapping long lines and collapsing incidental indentation whitespace. */
+.intro-body {
+  white-space: pre-line;
+  line-height: 1.3;
+}
+
+/* Sits flush under .intro-body — the gap comes from body's trailing typed
+   newline, not a margin here. */
+.intro-tron {
+  margin: 0;
+  text-align: center;
 }
 
 /* While auto-typing, signal the whole panel is clickable (click = finish). */
