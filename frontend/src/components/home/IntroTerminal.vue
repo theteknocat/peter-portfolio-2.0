@@ -14,7 +14,7 @@ let hasAutoTyped = false
  * Renders the subtitle + body from the 'pages/home-intro.yaml' content file.
  * Title and section nav live in HomeView, not here.
  */
-import { computed, onMounted, ref, type Ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue'
 import type { ResolvedSection } from '@/types/page'
 
 const props = defineProps<{ section: ResolvedSection }>()
@@ -23,6 +23,22 @@ const content = computed(() => props.section.content as {
   subtitle?: string
   body?: string
 } | null | undefined)
+
+// Scroll indicators: shown only when .intro-scroll actually overflows, and
+// only on the edge(s) there's still more to see.
+const scrollEl = ref<HTMLElement | null>(null)
+const canScrollUp = ref(false)
+const canScrollDown = ref(false)
+let resizeObserver: ResizeObserver | null = null
+let contentObserver: MutationObserver | null = null
+
+function updateScrollIndicators(): void {
+  const el = scrollEl.value
+  if (!el) return
+  const scrollable = el.scrollHeight > el.clientHeight + 1
+  canScrollUp.value = scrollable && el.scrollTop > 4
+  canScrollDown.value = scrollable && el.scrollTop < el.scrollHeight - el.clientHeight - 4
+}
 
 const displaySubtitle = ref('')
 const displayBody = ref('')
@@ -97,6 +113,25 @@ onMounted(async () => {
   await pause(3000)
   cursorVisible.value = false
 })
+
+onMounted(() => {
+  updateScrollIndicators()
+  const el = scrollEl.value
+  if (!el) return
+  // ResizeObserver catches the box itself resizing (e.g. viewport/header
+  // height changes). It does NOT fire when content grows inside a fixed-size
+  // box, so the typewriter's per-character text growth needs a separate
+  // MutationObserver on the text nodes.
+  resizeObserver = new ResizeObserver(updateScrollIndicators)
+  resizeObserver.observe(el)
+  contentObserver = new MutationObserver(updateScrollIndicators)
+  contentObserver.observe(el, { childList: true, subtree: true, characterData: true })
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+  contentObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -105,7 +140,7 @@ onMounted(async () => {
     :class="{ 'is-typing': phase !== 'done' }"
     @click="finishNow"
   >
-    <div class="intro-scroll">
+    <div ref="scrollEl" class="intro-scroll" @scroll="updateScrollIndicators">
       <template v-if="content">
         <p v-if="content.subtitle" class="intro-subtitle">
           {{ displaySubtitle }}<span v-if="phase === 'subtitle'" class="cursor">_</span>
@@ -119,6 +154,12 @@ onMounted(async () => {
       </template>
       <p v-else>Hero content not yet loaded.</p>
     </div>
+    <Transition name="scroll-indicator-fade">
+      <span v-if="canScrollUp" class="scroll-indicator scroll-indicator--up" aria-hidden="true" />
+    </Transition>
+    <Transition name="scroll-indicator-fade">
+      <span v-if="canScrollDown" class="scroll-indicator scroll-indicator--down" aria-hidden="true" />
+    </Transition>
   </section>
 </template>
 
@@ -193,5 +234,41 @@ onMounted(async () => {
     min-height: 0;
     overflow-y: auto;
   }
+}
+
+/* Wide, short chevrons that only appear when .intro-scroll actually overflows
+   (toggled in script), signalling more content in that direction. Sit above
+   the shape-chamfer border pseudo-elements (z-index: -1/-2) but ignore clicks
+   so the panel's click-to-skip handler still works underneath. */
+.scroll-indicator {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  width: 40%;
+  height: 0.35rem;
+  background: var(--color-primary-light);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.scroll-indicator--down {
+  bottom: -0.35rem;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.scroll-indicator--up {
+  top: -0.35rem;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.scroll-indicator-fade-enter-active,
+.scroll-indicator-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.scroll-indicator-fade-enter-from,
+.scroll-indicator-fade-leave-to {
+  opacity: 0;
 }
 </style>

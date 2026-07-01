@@ -213,7 +213,9 @@ onUnmounted(() => observer?.disconnect())
     font-size: 1.925rem;
   }
 
-  /* Sticky panel filling the gap between sticky header and footer.
+  /* Sticky panel filling the gap between sticky header and footer. Overflow
+     inside the terminal (not this panel) handles intro text taller than the
+     slot — see IntroTerminal's .intro-scroll.
      perspective: shared 3D context for the intro group's left-edge flip. */
   .home-left {
     position: sticky;
