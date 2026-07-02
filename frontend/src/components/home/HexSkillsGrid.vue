@@ -493,7 +493,8 @@ function startSpin(index: number) {
 }
 
 function holdSpin(index: number) {
-  const anim = getIconAnim(index)
+  if (!iconAnims.has(index)) return
+  const anim = iconAnims.get(index)!
   if (anim.phase === 'idle') return
   anim.omega = 0
   anim.phase = 'held'
@@ -857,7 +858,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
         <div class="hex-face">
           <div
             class="hex-icon-wrap"
-            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx ?? 0] ?? 0}deg)`, filter: `blur(${(iconBlurs[dragSourceIdx ?? 0] ?? 0).toFixed(2)}px)` }"
+            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx!] ?? 0}deg)`, filter: `blur(${(iconBlurs[dragSourceIdx!] ?? 0).toFixed(2)}px)` }"
           >
             <span
               v-if="dragSkill.siIcon"
