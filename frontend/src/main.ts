@@ -16,6 +16,15 @@ export const createApp = ViteSSG(
     // to the top.
     scrollBehavior(to, from) {
       if (to.meta.modal || from.meta.modal) return false
+      // scrollBehavior overrides the browser's native anchor scrolling entirely,
+      // so hash links must be handled explicitly — otherwise they'd fall through
+      // to the top: 0 default below. scrollIntoView() is used instead of
+      // returning { el } so that scroll-margin-top is respected; returning false
+      // then prevents Vue Router from also running its own window.scrollTo().
+      if (to.hash) {
+        document.querySelector(to.hash)?.scrollIntoView()
+        return false
+      }
       return { top: 0, behavior: 'instant' }
     },
   },
