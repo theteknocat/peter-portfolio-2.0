@@ -83,7 +83,7 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0.125rem 0.2rem 0.125rem 0.75rem;
+  padding: 0.35rem 0.2rem 0.35rem 0.75rem;
 }
 
 /* Both icon sets now sit inside a .tech-badge__icon span, so the SVG is always
@@ -103,7 +103,7 @@ const collapse = computed(() => !!props.iconOnly && hasIcon.value)
   /* Vertical padding matches .tech-badge__icon's total height (16px svg + 4px
      padding = 20px) so text-only tags are the same height as icon tags even
      when wrapped alone onto a row with no taller sibling to flex-stretch to. */
-  padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+  padding: 0.475rem 0.875rem 0.475rem 0.25rem;
   line-height: 1;
 }
 
