@@ -68,6 +68,7 @@ async function createTooltip(
 
   async function updatePosition(): Promise<void> {
     const { x, y, placement, middlewareData } = await computePosition(anchor, tooltipEl, {
+      strategy: 'fixed',
       placement: 'top',
       middleware: [
         offset(10),
