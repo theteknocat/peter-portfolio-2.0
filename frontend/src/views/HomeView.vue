@@ -139,6 +139,7 @@ onUnmounted(() => observer?.disconnect())
             v-for="section in bodySections"
             :key="section.type"
             :id="section.type"
+            class="home-content-section"
             :is="resolveSection(section.type)"
             :section="section"
           />
@@ -196,9 +197,12 @@ onUnmounted(() => observer?.disconnect())
   font-size: calc(1.3175rem + 0.81vw);
 }
 
-/* Keep section tops clear of the sticky header when scrolled to via hash. */
-.home-right > * {
+/* Keep section tops clear of the sticky header when scrolled to via hash.
+   Perspective matches .view-container so content-card flip animations have
+   a 3D context — the section <elements> are the direct parents of .content-card. */
+.home-right > .home-content-section {
   scroll-margin-top: var(--header-height);
+  perspective: 1200px;
 }
 
 /* Desktop: intro left, sections scroll right. */
