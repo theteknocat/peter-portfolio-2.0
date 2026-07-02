@@ -89,7 +89,7 @@ onMounted(async () => {
 
   if (hasAutoTyped || !wideEnough || reduceMotion) {
     displaySubtitle.value = sub
-    displayBody.value = '\n' + body
+    displayBody.value = '\n' + body + '\n\n'
     displayTron.value = 'END OF LINE'
     phase.value = 'done'
     return
@@ -103,7 +103,7 @@ onMounted(async () => {
   phase.value = 'body'
   await typeInto(displayBody, '\n');
   await pause(1000)
-  await typeInto(displayBody, body + '\n')
+  await typeInto(displayBody, body + '\n\n')
 
   // Tron easter egg: MCP's "END OF LINE" sign-off, its own line/paragraph.
   await pause(2000)
@@ -149,7 +149,7 @@ onUnmounted(() => {
           {{ displayBody }}<span v-if="phase === 'body' && cursorVisible" class="cursor">_</span>
         </p>
         <p v-if="phase === 'tron' || phase === 'done'" class="intro-tron">
-          {{ displayTron }}<span v-if="cursorVisible" class="cursor">_</span>
+          &nbsp;{{ displayTron }}<span v-if="cursorVisible" class="cursor">_</span><span v-else>&nbsp;</span>
         </p>
       </template>
       <p v-else>Hero content not yet loaded.</p>
@@ -192,6 +192,7 @@ onUnmounted(() => {
 /* Honour newlines authored in the YAML body (literal `|` block scalar) while
    still wrapping long lines and collapsing incidental indentation whitespace. */
 .intro-body {
+  margin: 0;
   white-space: pre-line;
   line-height: 1.3;
 }
