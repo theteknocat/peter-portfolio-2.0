@@ -633,6 +633,7 @@ let pendingDragCancelFn: (() => void) | null = null
 const blockContextMenu = (e: Event) => e.preventDefault()
 
 function startDrag(index: number, hexEl: HTMLElement, pointerId: number, clientX: number, clientY: number) {
+  resetSpin(index)
   if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
   victoryActive.value = false
   // Keep pointermove events flowing to us even when the pointer leaves the cell.
