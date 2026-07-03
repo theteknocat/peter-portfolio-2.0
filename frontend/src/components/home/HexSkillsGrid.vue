@@ -42,11 +42,19 @@ const SIGMA = computed(() => R.value * (110 / 60))
 const SCALE_MIN = 0.80  // scale of hexes furthest from mouse
 
 // ─── Row distribution ─────────────────────────────────────────────────────────
-// Wide containers (maxWidth ≥ 5): hex/Catan shape — grows from top, peaks at W,
-//   tapers back down, with any remainder in a short final row.
-// Narrow containers (maxWidth < 5): brick — alternating [W, W-1] rows.
-// Adjacent rows always differ by ≤ 1, so hex nesting holds throughout.
+// Wide containers (maxWidth ≥ 5): hex/diamond shape — scans W upward from 3 to
+//   find the tallest valid diamond (most symmetric layout first). Adjacent rows
+//   differ by ≤ 1, so hex nesting holds throughout.
+// Narrow containers (maxWidth < 5): brick — alternating [W, W-1] rows, with a
+//   tapered bottom ([k, k-1, …, 1]) when the remainder is a triangular number.
 
+// Builds a symmetric diamond with peak row width W. Starts from the peak and
+// works outward, adding paired rows of width W-1, W-2, … down to 2:
+//   - enough for both sides  → symmetric pair, both top and bottom get width w
+//   - enough for top only    → top gets w, bottom gets the remainder (asymmetric)
+//   - less than a full row   → remainder lands on the bottom half only
+// Any items still unplaced after w reaches 2 are appended as a single bottom row.
+// The result is [...top, W, ...bottom], reading narrow→wide→narrow top to bottom.
 function buildHexRows(n: number, W: number): number[] {
   const top: number[] = []
   const bottom: number[] = []
@@ -69,11 +77,35 @@ function buildHexRows(n: number, W: number): number[] {
   return [...top, W, ...bottom]
 }
 
+// Returns k if n is the k-th triangular number (n = k(k+1)/2), else null.
+// Derived by solving k² + k − 2n = 0 via the quadratic formula; Math.round
+// corrects for floating-point drift before the exact integer check.
+function triangularRoot(n: number): number | null {
+  const k = Math.round((-1 + Math.sqrt(1 + 8 * n)) / 2)
+  return k * (k + 1) / 2 === n ? k : null
+}
+
 function buildBrickRows(n: number, W: number): number[] {
   const rows: number[] = []
   let remaining = n
   let wide = false  // start with the shorter row (W-1) so the grid opens narrow
   while (remaining > 0) {
+    // Taper check: when a wide row can't be filled, try replacing the partial row
+    // with a descending tail [k, k-1, …, 1] if remaining is a triangular number.
+    // Guards:
+    //   wide      — only fires for a partial wide row; narrow rows are never partial
+    //               (W-1 ≤ remaining < W can't happen since W-1 < W).
+    //   k >= W-2  — the taper starts no more than 1 step below the last narrow row
+    //               (W-1), preventing a visual jump (e.g. 4 → 2 would be wrong).
+    //   k <= W-1  — taper doesn't exceed the narrow row width.
+    //   k >= 2    — avoids a degenerate taper of just [1] (that's still an orphan).
+    if (wide && remaining < W) {
+      const k = triangularRoot(remaining)
+      if (k !== null && k >= 2 && k >= W - 2 && k <= W - 1) {
+        for (let i = k; i >= 1; i--) rows.push(i)
+        break
+      }
+    }
     const w = wide ? W : W - 1
     rows.push(Math.min(w, remaining))
     remaining -= Math.min(w, remaining)
@@ -86,21 +118,38 @@ function computeRows(n: number, maxWidth: number): number[] {
   if (n === 0 || maxWidth < 1) return []
 
   if (maxWidth >= 5) {
-    // Hex mode: try W from maxWidth down, take first that gives ≥ 5 rows and no orphan
-    for (let W = maxWidth; W >= 5; W--) {
+    // Pass 1 — balanced diamond: top/bottom rows must be ≥ half the peak width.
+    // Scanning upward finds the tallest diamond that still meets that balance constraint.
+    // On wide containers this prefers a shorter/wider shape over a tall/pointy one.
+    for (let W = 3; W <= maxWidth; W++) {
       const rows = buildHexRows(n, W)
       const last = rows.length - 1
-      // Also reject if the overflow dump is wider than the row above it — that means
-      // buildHexRows pushed too many remaining items into one bottom row, producing a
-      // shape that flares out instead of tapering. Try a larger W instead.
-      if (rows.length >= 5 && rows[last] !== 1 && rows[last] <= rows[last - 1]) return rows
+      if (
+        rows.length >= 3 &&
+        rows[last] !== 1 &&
+        rows[last] <= rows[last - 1] &&
+        rows[0] * 2 >= W &&
+        rows[last] * 2 >= W
+      ) return rows
+    }
+    // Pass 2 — narrow diamond fallback: if no balanced diamond fits, accept the
+    // tallest valid diamond for the available width. Covers narrow containers where
+    // the peak W is too small to satisfy the balance constraint but a diamond is still
+    // achievable (e.g. n=34 with maxWidth=6 → [2,3,4,5,6,5,4,3,2]).
+    for (let W = 3; W <= maxWidth; W++) {
+      const rows = buildHexRows(n, W)
+      const last = rows.length - 1
+      if (rows.length >= 3 && rows[last] !== 1 && rows[last] <= rows[last - 1]) return rows
     }
   }
 
-  // Brick mode fallback: alternating W / W-1, avoid single-item last row
+  // Brick mode fallback: alternating W / W-1, avoid orphan last row.
+  // Tapered bottoms (ending ...2,1) are accepted — they're pointed, not orphaned.
   for (let W = maxWidth; W >= 2; W--) {
     const rows = buildBrickRows(n, W)
-    if (rows[rows.length - 1] !== 1) return rows
+    const last = rows[rows.length - 1]
+    const prev = rows[rows.length - 2]
+    if (last !== 1 || prev === 2) return rows
   }
 
   // No orphan-free layout found — accept W=2 with an orphan rather than one overflow row
