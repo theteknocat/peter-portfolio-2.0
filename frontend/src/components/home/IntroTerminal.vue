@@ -65,12 +65,13 @@ function typingDelay(): number {
 }
 
 async function typeInto(target: Ref<string>, text: string): Promise<void> {
-  for (let i = 0; i < text.length; i++) {
+  let i = 0
+  for (; i < text.length; i++) {
     if (skip) break
     target.value += text[i]
     await delay(typingDelay())
   }
-  if (skip) target.value = text // jump to full on click
+  if (skip) target.value += text.slice(i) // append remainder, don't overwrite prior typed content
 }
 
 function finishNow(): void {
