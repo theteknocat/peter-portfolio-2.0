@@ -436,7 +436,7 @@ function hexCellStyle(hex: HexItem) {
 // Unlike exponential, this holds near max speed for longer then drops sharply to zero.
 // Total coast distance from ω₀: 2/(3k)·ω₀^1.5. Coast time: 2√ω₀/k.
 
-const SPIN_ALPHA = 2400       // acceleration deg/s²
+const SPIN_ALPHA = 8640       // acceleration deg/s² (~250ms to SPIN_MAX)
 const SPIN_MAX = 2160         // max angular velocity deg/s (6 rotations/sec)
 const SPIN_DECAY = 10         // sqrt-drag coefficient k — smaller = less drag = longer coast; T = 2√ω/k
 const SPIN_BLUR_MAX = 3       // max blur px at SPIN_MAX omega
