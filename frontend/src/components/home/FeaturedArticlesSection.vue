@@ -21,10 +21,10 @@ const items = [...((props.section.items ?? []) as unknown as Article[])].sort(
 <template>
   <section class="home-featured-articles">
     <ContentCard>
-      <h2 class="relative flex items-center justify-start gap-2">
+      <h2 class="flex flex-wrap items-center justify-start gap-x-2 gap-y-0 mb-4">
         <Newspaper :size="24" />
         {{ (props.section.content?.title as string | undefined) ?? 'Recent Writing' }}
-        <div class="flex items-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
+        <div class="flex w-full sm:w-auto md:w-full lg:w-auto items-center sm:ml-auto md:ml-0 lg:ml-auto">
           <RouterLink to="/articles" class="btn shape-chamfer shape-jitter">
             <span class="text-sm">See all</span>
             <ChevronRight :size="16" />

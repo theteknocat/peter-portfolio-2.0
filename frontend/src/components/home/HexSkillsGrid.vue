@@ -119,11 +119,16 @@ interface HexItem {
 }
 
 // Local copy of skills — reordered by drag-and-drop
-const originalSkillsOrder = [...props.skills]
+const originalSkillsOrder = ref<Tag[]>([...props.skills])
 const localSkills = ref<Tag[]>([...props.skills])
 
+watch(() => props.skills, (newSkills) => {
+  originalSkillsOrder.value = [...newSkills]
+  localSkills.value = [...newSkills]
+})
+
 const isReordered = computed(() =>
-  localSkills.value.some((s, i) => s.label !== originalSkillsOrder[i]?.label)
+  localSkills.value.some((s, i) => s.label !== originalSkillsOrder.value[i]?.label)
 )
 
 let isResetting = false
@@ -131,7 +136,7 @@ let justDropped = false
 
 function resetOrder() {
   isResetting = true
-  localSkills.value = [...originalSkillsOrder]
+  localSkills.value = [...originalSkillsOrder.value]
   // Flag cleared after Vue flushes — watch fires synchronously on assignment above
   Promise.resolve().then(() => { isResetting = false })
 }

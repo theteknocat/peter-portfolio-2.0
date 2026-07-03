@@ -18,15 +18,40 @@ const content = computed(() => props.section.content as {
 } | null | undefined)
 
 const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
+
+type Tier = 'core' | 'extended' | 'all'
+const selectedTier = ref<Tier>('core')
+
+const tiers: { value: Tier; label: string }[] = [
+  { value: 'core', label: 'Core' },
+  { value: 'extended', label: 'Extended' },
+  { value: 'all', label: 'All' },
+]
+
+const filteredSkills = computed(() => {
+  const skills = content.value?.skills ?? []
+  if (selectedTier.value === 'all') return skills
+  if (selectedTier.value === 'extended') return skills.filter(s => s.tier === 'core' || s.tier === 'extended')
+  return skills.filter(s => s.tier === 'core')
+})
 </script>
 
 <template>
   <section class="home-skills">
     <ContentCard>
-      <h2 class="relative flex items-center justify-start gap-2">
+      <h2 class="flex flex-wrap items-center justify-start gap-x-2 gap-y-0">
         <Joystick :size="24" />
         {{ content?.title ?? 'Skills' }}
-        <div v-if="content?.skills?.length" class="skills-actions flex gap-2 items-center justify-center mt-2 md:mt-0 md:absolute md:top-1/2 md:right-0 md:-translate-y-1/2">
+        <div v-if="content?.skills?.length" class="skills-controls w-full flex flex-wrap gap-2 items-center justify-center lg:w-auto lg:ml-auto">
+          <button
+            v-for="tier in tiers"
+            :key="tier.value"
+            class="btn shape-chamfer shape-jitter"
+            :class="{ 'btn--active': selectedTier === tier.value }"
+            @click="selectedTier = tier.value"
+          >
+            <span class="text-sm">{{ tier.label }}</span>
+          </button>
           <button
             class="btn shape-chamfer shape-jitter"
             title="Shuffle skills"
@@ -34,7 +59,7 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
             @click="gridRef?.shuffleOrder()"
           >
             <Shuffle :size="18" />
-            <span class="text-sm pr-1">Shuffle</span>
+            <span class="text-sm">Shuffle</span>
           </button>
           <button
             :disabled="!gridRef?.isReordered"
@@ -44,13 +69,13 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
             @click="gridRef?.resetOrder()"
           >
             <RotateCcw :size="18" />
-            <span class="text-sm pr-1">Reset</span>
+            <span class="text-sm">Reset</span>
           </button>
         </div>
       </h2>
       <template v-if="content?.skills?.length">
         <p class="text-center text-sm mb-8">Try shuffling/re-ordering the skills then see if you can restore their original order.</p>
-        <HexSkillsGrid ref="gridRef" v-if="content?.skills?.length" :skills="content.skills" />
+        <HexSkillsGrid ref="gridRef" :skills="filteredSkills" />
       </template>
       <p v-else>Skills content not yet loaded.</p>
     </ContentCard>
@@ -60,5 +85,15 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 <style scoped>
 .home-skills {
   overflow: hidden;
+}
+
+.btn--active {
+  color: var(--color-primary-light);
+  --shape-border: var(--color-primary-light);
+}
+
+.skills-controls .btn:hover span,
+.skills-controls .btn:focus-visible span {
+  animation: nav-text-glitch 4s linear infinite;
 }
 </style>

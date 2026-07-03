@@ -2,6 +2,7 @@ export interface Tag {
   label: string
   si?: string     // Simple Icons slug (e.g. 'php', 'vuedotjs')
   lucide?: string // Lucide component name (e.g. 'Plug', 'Database')
+  tier?: 'core' | 'extended' | 'all'
 }
 
 /** A single screenshot in a portfolio item's carousel. */
