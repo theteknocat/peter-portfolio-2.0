@@ -114,7 +114,6 @@ interface HexItem {
   skill: Tag
   x: number        // centre x relative to grid centre
   y: number        // centre y relative to grid centre
-  index: number    // localSkills index — stable across drag, keys iconAnims/iconRotations
   siIcon: { svg: string; title: string } | null
   lucideIcon: Component | null
 }
@@ -191,7 +190,6 @@ const hexItems = computed<HexItem[]>(() => {
       items.push({
         skill,
         x, y,
-        index: items.length,
         siIcon: skill.si ? (siIcons[skill.si] ?? null) : null,
         lucideIcon: skill.lucide ? (lucideComponents[skill.lucide] ?? null) : null,
       })
@@ -400,21 +398,21 @@ interface IconAnim {
   settleElapsed: number
 }
 
-const iconAnims = new Map<number, IconAnim>()
-const iconRotations = reactive<Record<number, number>>({})
-const iconBlurs = reactive<Record<number, number>>({})
-const iconHeld = reactive<Record<number, boolean>>({})
+const iconAnims = new Map<string, IconAnim>()
+const iconRotations = reactive<Record<string, number>>({})
+const iconBlurs = reactive<Record<string, number>>({})
+const iconHeld = reactive<Record<string, boolean>>({})
 let spinRafId: number | null = null
 
-function getIconAnim(index: number): IconAnim {
-  if (!iconAnims.has(index)) {
-    iconAnims.set(index, {
+function getIconAnim(key: string): IconAnim {
+  if (!iconAnims.has(key)) {
+    iconAnims.set(key, {
       rotation: 0, omega: 0, phase: 'idle', lastTime: 0,
       settleFrom: 0, settleTarget: 0, settleDuration: 0.2, settleElapsed: 0,
     })
-    iconRotations[index] = 0
+    iconRotations[key] = 0
   }
-  return iconAnims.get(index)!
+  return iconAnims.get(key)!
 }
 
 // Quadratic ease-out: starts at max speed, decelerates to 0
@@ -425,7 +423,7 @@ function easeOut(t: number) {
 function spinTick(now: number) {
   let anyActive = false
 
-  iconAnims.forEach((anim, index) => {
+  iconAnims.forEach((anim, key) => {
     if (anim.phase === 'idle' || anim.phase === 'held') return
 
     const dt = anim.lastTime ? Math.min((now - anim.lastTime) / 1000, 0.05) : 0
@@ -477,41 +475,41 @@ function spinTick(now: number) {
       }
     }
 
-    iconRotations[index] = anim.rotation
-    iconBlurs[index] = (anim.omega / SPIN_MAX) * SPIN_BLUR_MAX
+    iconRotations[key] = anim.rotation
+    iconBlurs[key] = (anim.omega / SPIN_MAX) * SPIN_BLUR_MAX
   })
 
   spinRafId = anyActive ? requestAnimationFrame(spinTick) : null
 }
 
-function startSpin(index: number) {
+function startSpin(key: string) {
   if (prefersReducedMotion || isDragging.value || justDropped) return
-  const anim = getIconAnim(index)
+  const anim = getIconAnim(key)
   anim.phase = 'spinup'
   anim.lastTime = performance.now()
   if (spinRafId === null) spinRafId = requestAnimationFrame(spinTick)
 }
 
-function holdSpin(index: number) {
-  if (!iconAnims.has(index)) return
-  const anim = iconAnims.get(index)!
+function holdSpin(key: string) {
+  if (!iconAnims.has(key)) return
+  const anim = iconAnims.get(key)!
   if (anim.phase === 'idle') return
   anim.omega = 0
   anim.phase = 'held'
-  iconHeld[index] = true
+  iconHeld[key] = true
 }
 
-function resetSpin(index: number) {
-  iconAnims.delete(index)
-  iconRotations[index] = 0
-  iconBlurs[index] = 0
-  iconHeld[index] = false
+function resetSpin(key: string) {
+  iconAnims.delete(key)
+  iconRotations[key] = 0
+  iconBlurs[key] = 0
+  iconHeld[key] = false
 }
 
-function releaseSpin(index: number) {
-  const anim = getIconAnim(index)
+function releaseSpin(key: string) {
+  const anim = getIconAnim(key)
   if (anim.phase !== 'held') return
-  iconHeld[index] = false
+  iconHeld[key] = false
   anim.settleFrom = anim.rotation
   anim.settleTarget = Math.round(anim.rotation / 360) * 360
   anim.settleDuration = 0.25
@@ -520,10 +518,10 @@ function releaseSpin(index: number) {
   if (spinRafId === null) spinRafId = requestAnimationFrame(spinTick)
 }
 
-function stopSpin(index: number) {
+function stopSpin(key: string) {
   if (isDragging.value) return
-  const anim = getIconAnim(index)
-  if (anim.phase === 'held') { releaseSpin(index); return }
+  const anim = getIconAnim(key)
+  if (anim.phase === 'held') { releaseSpin(key); return }
   if (anim.phase !== 'spinup') return
 
   const remainder = anim.rotation % 360
@@ -549,11 +547,11 @@ function stopSpin(index: number) {
 // Touch has no hover, so a tap toggles the spin: an idle icon launches at full
 // speed and coasts down (the same fade a mouse-out gives), and a tap on an
 // already-spinning icon (frozen to 'held' by holdSpin on press) settles it to a stop.
-function tapSpin(index: number) {
+function tapSpin(key: string) {
   if (prefersReducedMotion) return
-  const anim = getIconAnim(index)
+  const anim = getIconAnim(key)
   if (anim.phase === 'held') {
-    releaseSpin(index)
+    releaseSpin(key)
     return
   }
   anim.omega = SPIN_MAX
@@ -633,8 +631,8 @@ let pendingDragCancelFn: (() => void) | null = null
 // once the gesture ends (cancel / onDragEnd / unmount).
 const blockContextMenu = (e: Event) => e.preventDefault()
 
-function startDrag(index: number, hexEl: HTMLElement, pointerId: number, clientX: number, clientY: number) {
-  resetSpin(index)
+function startDrag(key: string, index: number, hexEl: HTMLElement, pointerId: number, clientX: number, clientY: number) {
+  resetSpin(key)
   if (victoryTimer) { clearTimeout(victoryTimer); victoryTimer = null }
   victoryActive.value = false
   // Keep pointermove events flowing to us even when the pointer leaves the cell.
@@ -661,14 +659,14 @@ function startDrag(index: number, hexEl: HTMLElement, pointerId: number, clientX
 // threshold distinguishes tap from drag for both input types.
 const DRAG_THRESHOLD = 6
 
-function onHexPointerDown(index: number, event: PointerEvent) {
+function onHexPointerDown(key: string, index: number, event: PointerEvent) {
   if (event.button !== 0) return
   // Capture element and coords now — event.currentTarget is nulled after this handler returns.
   const hexEl = event.currentTarget as HTMLElement
   const { clientX, clientY, pointerId } = event
   const isTouch = event.pointerType === 'touch'
 
-  holdSpin(index)
+  holdSpin(key)
 
   // Suppress the long-press context menu for the whole touch gesture (removed in
   // cancel for a tap, in onDragEnd for a drag).
@@ -686,15 +684,15 @@ function onHexPointerDown(index: number, event: PointerEvent) {
   const onPendingMove = (e: PointerEvent) => {
     if (Math.hypot(e.clientX - clientX, e.clientY - clientY) <= DRAG_THRESHOLD) return
     teardownPending()
-    startDrag(index, hexEl, pointerId, clientX, clientY)
+    startDrag(key, index, hexEl, pointerId, clientX, clientY)
   }
   const cancel = () => {
     teardownPending()
     if (isTouch) {
       window.removeEventListener('contextmenu', blockContextMenu)
-      tapSpin(index)
+      tapSpin(key)
     } else {
-      resetSpin(index)
+      resetSpin(key)
     }
   }
   pendingDragCancelFn = cancel
@@ -738,13 +736,6 @@ function onDragEnd(event: PointerEvent) {
     skills.splice(tgt, 0, item)
     localSkills.value = skills
   }
-  // Clear all animation state — localSkills indices shift after reorder, so stale
-  // entries at old indices must not be inherited by items that land there.
-  iconAnims.clear()
-  if (spinRafId !== null) { cancelAnimationFrame(spinRafId); spinRafId = null }
-  Object.keys(iconRotations).forEach(k => { iconRotations[+k] = 0 })
-  Object.keys(iconBlurs).forEach(k => { iconBlurs[+k] = 0 })
-  Object.keys(iconHeld).forEach(k => { iconHeld[+k] = false })
   isDragging.value = false
   document.body.classList.remove('hex-dragging')
   dragSourceIdx.value = null
@@ -820,15 +811,15 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
         <div class="hex-border" />
         <div
           class="hex-face"
-          :style="iconHeld[hex.index] ? { cursor: 'grabbing' } : {}"
-          @mouseenter="startSpin(hex.index)"
-          @mouseleave="stopSpin(hex.index)"
-          @pointerdown="(e: PointerEvent) => onHexPointerDown(hex.index, e)"
+          :style="iconHeld[hex.skill.label] ? { cursor: 'grabbing' } : {}"
+          @mouseenter="startSpin(hex.skill.label)"
+          @mouseleave="stopSpin(hex.skill.label)"
+          @pointerdown="(e: PointerEvent) => onHexPointerDown(hex.skill.label, i, e)"
           @dragstart.prevent
           @contextmenu.prevent
-          @mouseup="releaseSpin(hex.index)"
+          @mouseup="releaseSpin(hex.skill.label)"
         >
-          <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.index] ?? 0}deg)`, filter: `blur(${(iconBlurs[hex.index] ?? 0).toFixed(2)}px)` }">
+          <div class="hex-icon-wrap" :style="{ transform: `rotateY(${iconRotations[hex.skill.label] ?? 0}deg)`, filter: `blur(${(iconBlurs[hex.skill.label] ?? 0).toFixed(2)}px)` }">
             <span
               v-if="hex.siIcon"
               class="hex-icon"
@@ -858,7 +849,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
         <div class="hex-face">
           <div
             class="hex-icon-wrap"
-            :style="{ transform: `rotateY(${iconRotations[dragSourceIdx!] ?? 0}deg)`, filter: `blur(${(iconBlurs[dragSourceIdx!] ?? 0).toFixed(2)}px)` }"
+            :style="{ transform: `rotateY(${iconRotations[dragSkill!.skill.label] ?? 0}deg)`, filter: `blur(${(iconBlurs[dragSkill!.skill.label] ?? 0).toFixed(2)}px)` }"
           >
             <span
               v-if="dragSkill.siIcon"
