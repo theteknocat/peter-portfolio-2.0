@@ -172,8 +172,10 @@ const originalSkillsOrder = ref<Tag[]>([...props.skills])
 const localSkills = ref<Tag[]>([...props.skills])
 
 watch(() => props.skills, (newSkills) => {
+  isResetting = true
   originalSkillsOrder.value = [...newSkills]
   localSkills.value = [...newSkills]
+  Promise.resolve().then(() => { isResetting = false })
 })
 
 const isReordered = computed(() =>
