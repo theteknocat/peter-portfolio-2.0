@@ -3,8 +3,8 @@
  * Skills section — interactive hex grid of skill icons from the skills content file.
  * Expects section.content from 'pages/skills.yaml'.
  */
-import { ref, computed } from 'vue'
-import { RotateCcw, Shuffle, Joystick } from '@lucide/vue'
+import { ref, computed, type Component } from 'vue'
+import { RotateCcw, Shuffle, Joystick, Star, Layers, Infinity } from '@lucide/vue'
 import type { ResolvedSection } from '@/types/page'
 import type { Tag } from '@/types/portfolio'
 import ContentCard from '@/components/ui/ContentCard.vue'
@@ -22,10 +22,10 @@ const gridRef = ref<InstanceType<typeof HexSkillsGrid> | null>(null)
 type Tier = 'core' | 'extended' | 'all'
 const selectedTier = ref<Tier>('core')
 
-const tiers: { value: Tier; label: string }[] = [
-  { value: 'core', label: 'Core' },
-  { value: 'extended', label: 'Extended' },
-  { value: 'all', label: 'All' },
+const tiers: { value: Tier; label: string; icon: Component }[] = [
+  { value: 'core', label: 'Core', icon: Star },
+  { value: 'extended', label: 'Extended', icon: Layers },
+  { value: 'all', label: 'All', icon: Infinity },
 ]
 
 const filteredSkills = computed(() => {
@@ -50,8 +50,10 @@ const filteredSkills = computed(() => {
             :class="{ 'btn--active': selectedTier === tier.value }"
             @click="selectedTier = tier.value"
           >
+            <component :is="tier.icon" :size="14" />
             <span class="text-sm">{{ tier.label }}</span>
           </button>
+          <span class="skills-divider" aria-hidden="true"></span>
           <button
             class="btn shape-chamfer shape-jitter"
             title="Shuffle skills"
@@ -95,5 +97,14 @@ const filteredSkills = computed(() => {
 .skills-controls .btn:hover span,
 .skills-controls .btn:focus-visible span {
   animation: nav-text-glitch 4s linear infinite;
+}
+
+.skills-divider {
+  display: inline-block;
+  width: 1px;
+  height: 1.25rem;
+  background: var(--color-accent);
+  opacity: 0.3;
+  align-self: center;
 }
 </style>
