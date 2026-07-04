@@ -20,25 +20,25 @@ Counts: **21 LEAD, 23 MAJOR, 21 minor, 12 none.**
 
 **LEAD (≥60% — strongest candidates), by Peter's commit count:**
 
-| Repo | Peter / total | Share |
-| --- | --- | --- |
-| `kellett-lighthouse-laravel` | 6631 / 6821 | 97% |
-| `resume-and-portfolio-drupal` | 1161 / 1161 | 100% |
-| `kci-base-site-drupal` | 1042 / 1432 | 72% |
-| `nwt-arts-2024-drupal` | 751 / 1035 | 72% |
-| `nsrt-nunavut-surface-rights-2023-drupal` | 589 / 888 | 66% |
-| `yg-webform-class1` | 433 / 445 | 97% |
-| `pihole-wtm` | 313 / 315 | 99% |
-| `kahsho-gotine-foundation-kgf-website-2024-drupal` | 203 / 228 | 89% |
-| `ga4-intelligence-tool` | 173 / 173 | 100% |
-| `job-scout` | 158 / 158 | 100% |
-| `kellett-servers` | 97 / 104 | 93% |
-| `server-notification-triage` | 82 / 82 | 100% |
-| `drupal-update-script` | 73 / 73 | 100% |
-| `kci-migrate` | 40 / 41 | 97% |
-| `drush-production-scripts` | 28 / 28 | 100% |
-| `plesk-nginx-bot-limiter` | 25 / 25 | 100% |
-| `peter-portfolio-2.0` | 11 / 11 | 100% |
+| Repo                                               | Peter / total | Share |
+| -------------------------------------------------- | ------------- | ----- |
+| `kellett-lighthouse-laravel`                       | 6631 / 6821   | 97%   |
+| `resume-and-portfolio-drupal`                      | 1161 / 1161   | 100%  |
+| `kci-base-site-drupal`                             | 1042 / 1432   | 72%   |
+| `nwt-arts-2024-drupal`                             | 751 / 1035    | 72%   |
+| `nsrt-nunavut-surface-rights-2023-drupal`          | 589 / 888     | 66%   |
+| `yg-webform-class1`                                | 433 / 445     | 97%   |
+| `pihole-wtm`                                       | 313 / 315     | 99%   |
+| `kahsho-gotine-foundation-kgf-website-2024-drupal` | 203 / 228     | 89%   |
+| `ga4-intelligence-tool`                            | 173 / 173     | 100%  |
+| `job-scout`                                        | 158 / 158     | 100%  |
+| `kellett-servers`                                  | 97 / 104      | 93%   |
+| `server-notification-triage`                       | 82 / 82       | 100%  |
+| `drupal-update-script`                             | 73 / 73       | 100%  |
+| `kci-migrate`                                      | 40 / 41       | 97%   |
+| `drush-production-scripts`                         | 28 / 28       | 100%  |
+| `plesk-nginx-bot-limiter`                          | 25 / 25       | 100%  |
+| `peter-portfolio-2.0`                              | 11 / 11       | 100%  |
 
 (plus low-commit LEADs: `deline-nginx-conf`, `ddev-cleanup`,
 `hamlet-of-fort-liard-legacy`, `demo-repository`.)
@@ -220,6 +220,7 @@ plus 1 each on Drupal core, Admin Toolbar, Apache Solr, Barrio Bootstrap 5,
 Webform, reCAPTCHA, PHPMailer SMTP, and ~14 others.
 
 **Maintained projects:**
+
 - *Drupal Automatic Updater* — `/project/drupal_automatic_updater` (full
   project, not a sandbox). A **shell script** for running Drupal updates — not
   an installable module, so has no install stats. Low portfolio weight but
