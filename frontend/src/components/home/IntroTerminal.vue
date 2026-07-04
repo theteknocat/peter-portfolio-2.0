@@ -11,7 +11,7 @@ let hasAutoTyped = false
  * On the first full page load (desktop only) it types the subtitle, then the
  * body, then a Tron "END OF LINE" sign-off, out character-by-character with a
  * blinking cursor; clicking finishes instantly.
- * Renders the subtitle + body from the 'pages/home-intro.yaml' content file.
+ * Renders the subtitle + body from the 'sections/home/home-intro.yaml' content file.
  * Title and section nav live in HomeView, not here.
  */
 import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue'

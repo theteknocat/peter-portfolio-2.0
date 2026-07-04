@@ -52,18 +52,4 @@ class ContentService
 
         return $data;
     }
-
-    /**
-     * Load a page-specific content item from the 'pages' subdirectory.
-     *
-     * @param string $slug
-     *   The page content slug (filename without extension).
-     *
-     * @return array<string, mixed>|null
-     *   The parsed content data, or null if not found.
-     */
-    public function getPageItem(string $slug): ?array
-    {
-        return $this->getItem('pages', $slug);
-    }
 }

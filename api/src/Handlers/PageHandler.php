@@ -66,7 +66,7 @@ class PageHandler
 
         $sections = [];
         foreach ($layout['sections'] ?? [] as $section) {
-            $sections[] = $this->resolveSection($section);
+            $sections[] = $this->resolveSection($section, $page);
         }
 
         $response->getBody()->write(
@@ -85,16 +85,18 @@ class PageHandler
      *
      * @param array<string, mixed> $section
      *   A raw section definition from the page layout YAML.
+     * @param string $page
+     *   The page name, used to locate section content under 'sections/{page}'.
      *
      * @return array<string, mixed>
      *   The resolved section ready for JSON output.
      */
-    private function resolveSection(array $section): array
+    private function resolveSection(array $section, string $page): array
     {
         $resolved = ['type' => $section['type']];
 
         if (isset($section['source'])) {
-            $resolved['content'] = $this->contentService->getPageItem((string) $section['source']);
+            $resolved['content'] = $this->contentService->getItem("sections/{$page}", (string) $section['source']);
         }
 
         if (isset($section['manifest'])) {

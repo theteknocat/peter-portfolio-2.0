@@ -12,7 +12,7 @@ It is fetched at runtime through the API — it is **not** in the web docroot.
 
 ```text
 content/
-├── pages/            One YAML per page section (home-intro.yaml, skills.yaml)
+├── sections/{page}/  One YAML per section on that page (sections/home/home-intro.yaml, sections/home/skills.yaml)
 ├── manifests/        Ordered slug lists per type (portfolio.yaml, articles.yaml, jobs.yaml)
 ├── portfolio/        {slug}.yaml + {slug}.md per item
 ├── articles/         {slug}.yaml + {slug}.md per item

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Skills section — interactive hex grid of skill icons from the skills content file.
- * Expects section.content from 'pages/skills.yaml'.
+ * Expects section.content from 'sections/home/skills.yaml'.
  */
 import { ref, computed, type Component } from 'vue'
 import { RotateCcw, Shuffle, Joystick, Star, Layers, Infinity } from '@lucide/vue'
