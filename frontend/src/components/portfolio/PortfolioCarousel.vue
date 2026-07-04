@@ -6,12 +6,12 @@
  * for free. Prev/Next buttons and dot indicators drive it programmatically.
  * No carousel library.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
-import type { PortfolioImage } from '@/types/portfolio'
+import type { PortfolioImage, PortfolioSlideEntry } from '@/types/portfolio'
 
 const props = defineProps<{
-  images: PortfolioImage[]
+  images: PortfolioSlideEntry[]
   slug: string
 }>()
 
@@ -20,6 +20,19 @@ const track = ref<HTMLElement | null>(null)
 
 /** Index of the slide currently snapped into view. */
 const active = ref(0)
+
+interface NormalizedSlide {
+  images: PortfolioImage[]
+  caption?: string
+}
+
+/** Flattens a slide entry (single image or group) to a common render shape. */
+function normalizeSlide(entry: PortfolioSlideEntry): NormalizedSlide {
+  if ('images' in entry) return { images: entry.images, caption: entry.caption }
+  return { images: [entry], caption: entry.caption === true ? entry.alt : entry.caption }
+}
+
+const slides = computed(() => props.images.map(normalizeSlide))
 
 /** Build the served URL for a screenshot from its bare filename. */
 function imageUrl(src: string): string {
@@ -31,11 +44,11 @@ function scrollToIndex(i: number): void {
   const el = track.value
   if (!el) return
   if (i < 0) {
-    i = props.images.length;
-  } else if (i > (props.images.length - 1)) {
+    i = slides.value.length;
+  } else if (i > (slides.value.length - 1)) {
     i = 0;
   }
-  const clamped = Math.max(0, Math.min(i, props.images.length - 1))
+  const clamped = Math.max(0, Math.min(i, slides.value.length - 1))
   el.scrollTo({ left: clamped * el.clientWidth, behavior: 'smooth' })
 }
 
@@ -50,12 +63,15 @@ function onScroll(): void {
 <template>
   <div class="carousel">
     <div ref="track" class="carousel-track" @scroll="onScroll">
-      <div v-for="(img, i) in images" :key="i" class="carousel-slide">
-        <img :src="imageUrl(img.src)" :alt="img.alt" loading="lazy" />
+      <div v-for="(slide, i) in slides" :key="i" class="carousel-slide">
+        <div class="carousel-slide-images">
+          <img v-for="(img, gi) in slide.images" :key="gi" :src="imageUrl(img.src)" :alt="img.alt" loading="lazy" />
+        </div>
+        <p v-if="slide.caption" class="carousel-caption">{{ slide.caption }}</p>
       </div>
     </div>
 
-    <template v-if="images.length > 1">
+    <template v-if="slides.length > 1">
       <button
         class="btn btn-icon border-jitter carousel-nav carousel-nav--prev"
         aria-label="Previous screenshot"
@@ -73,7 +89,7 @@ function onScroll(): void {
 
       <div class="carousel-dots">
         <button
-          v-for="(img, i) in images"
+          v-for="(slide, i) in slides"
           :key="i"
           class="carousel-dot border-jitter"
           :class="{ 'carousel-dot--active': i === active }"
@@ -113,6 +129,7 @@ function onScroll(): void {
 }
 
 .carousel-slide {
+  position: relative;
   flex: 0 0 100%;
   scroll-snap-align: center;
   display: flex;
@@ -121,10 +138,32 @@ function onScroll(): void {
   height: clamp(16rem, 50vh, 32rem);
 }
 
-.carousel-slide img {
+.carousel-slide-images {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-slide-images img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+.carousel-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgb(0 0 0 / 0.65);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  text-align: center;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
 }
 
 /* Circular look + hover come from .btn / .btn-icon. Position and a dark disc
