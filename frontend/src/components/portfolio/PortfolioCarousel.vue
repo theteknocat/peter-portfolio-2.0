@@ -138,8 +138,11 @@ function onScroll(): void {
   height: clamp(16rem, 50vh, 32rem);
 }
 
+/* Mobile default: stacked — side-by-side shrinks grouped images to illegible
+   slivers on narrow viewports, so each image gets full width instead. */
 .carousel-slide-images {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -149,21 +152,45 @@ function onScroll(): void {
 
 .carousel-slide-images img {
   max-width: 100%;
-  max-height: 100%;
+  max-height: none;
+  width: auto;
+  flex: 1 1 0;
+  min-height: 0;
   object-fit: contain;
 }
 
+@media (width >= theme(--breakpoint-md)) {
+  .carousel-slide-images {
+    flex-direction: row;
+  }
+
+  .carousel-slide-images img {
+    max-height: 100%;
+    width: auto;
+    flex: 0 1 auto;
+  }
+}
+
+/* Hidden by default (mobile) — variable caption height on small screens would
+   shift slide content and desync the dot indicators' fixed position. */
 .carousel-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgb(0 0 0 / 0.65);
-  backdrop-filter: blur(10px);
-  color: #fff;
-  text-align: center;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  display: none;
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  .carousel-caption {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgb(0 0 0 / 0.65);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    text-align: center;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
 }
 
 /* Circular look + hover come from .btn / .btn-icon. Position and a dark disc
