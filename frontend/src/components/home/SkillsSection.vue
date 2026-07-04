@@ -76,7 +76,7 @@ const filteredSkills = computed(() => {
         </div>
       </h2>
       <template v-if="content?.skills?.length">
-        <p class="text-center text-sm mb-8">Try shuffling/re-ordering the skills then see if you can restore their original order.</p>
+        <p class="text-center text-sm mb-8">Try shuffling/re-ordering my skills then see if you can restore their original order.</p>
         <HexSkillsGrid ref="gridRef" :skills="filteredSkills" />
       </template>
       <p v-else>Skills content not yet loaded.</p>
