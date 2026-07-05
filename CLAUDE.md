@@ -177,6 +177,20 @@ images:
 
 ---
 
+## Experience Stats (Home Page)
+
+`content/sections/home/experience-stats.yaml` has a `stats` array (numeric badges,
+e.g. "32 Issue credits on drupal.org", "2 Open source projects on GitHub"). These
+are static values, no live API calls. To refresh them, just ask Claude — no script
+to maintain:
+
+- **GitHub count** — `gh repo list --json isPrivate,isFork,isArchived --jq '[.[] | select(.isPrivate==false and .isFork==false and .isArchived==false)] | length'` against the relevant account.
+- **drupal.org counts** — check the drupal.org profile page (issue credits, projects contributed to) directly.
+
+Then edit the YAML values by hand.
+
+---
+
 ## Icon Conventions
 
 - Simple Icons SVGs (injected via `v-html`) include a `<title>` element that browsers render
