@@ -48,7 +48,7 @@ Flat-file content (YAML/Markdown) — no database.
 │   │   │   ├── home/
 │   │   │   └── clippy/
 │   │   ├── composables/  Reusable fetch logic (useContent, useManifest, usePageConfig)
-│   │   ├── types/        TypeScript interfaces (portfolio.ts, article.ts, job.ts, page.ts)
+│   │   ├── types/        TypeScript interfaces (portfolio.ts, article.ts, experience.ts, page.ts)
 │   │   ├── views/        Route-level page components
 │   │   ├── router/       index.ts
 │   │   ├── App.vue

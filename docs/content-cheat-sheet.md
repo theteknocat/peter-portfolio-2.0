@@ -13,10 +13,10 @@ It is fetched at runtime through the API — it is **not** in the web docroot.
 ```text
 content/
 ├── sections/{page}/  One YAML per section on that page (sections/home/home-intro.yaml, sections/home/skills.yaml)
-├── manifests/        Ordered slug lists per type (portfolio.yaml, articles.yaml, jobs.yaml)
+├── manifests/        Ordered slug lists per type (portfolio.yaml, articles.yaml, experience.yaml)
 ├── portfolio/        {slug}.yaml + {slug}.md per item
 ├── articles/         {slug}.yaml + {slug}.md per item
-└── jobs/             {slug}.yaml per item (no body)
+└── experience/       {slug}.yaml per item (no body)
 ```
 
 ## Page layouts & sections
@@ -95,7 +95,7 @@ Each portfolio item / article is a **pair sharing one slug**:
 | `{slug}.yaml` | Metadata — title, summary, tags, `featured`, date                  |
 | `{slug}.md`   | The Markdown body (starts at `##` — the title comes from the YAML) |
 
-Jobs are YAML-only (no `.md` body).
+Experience entries are YAML-only (no `.md` body).
 
 To add an item: create both files, then add the slug to the matching
 `manifests/{type}.yaml`. **A slug not in the manifest won't appear in lists.**
@@ -114,12 +114,12 @@ home-page/featured surfaces.
 
 ## Frontmatter fields
 
-See `templates/portfolio-item.yaml`, `templates/article.yaml`, `templates/job.yaml`
+See `templates/portfolio-item.yaml`, `templates/article.yaml`, `templates/experience.yaml`
 for the copy-paste starting points. Key fields:
 
 - **Portfolio:** `title`, `summary`, `tags[]`, `featured`, `images[]` (optional)
 - **Article:** `title`, `summary`, `date: "YYYY-MM-DD"`, `featured`
-- **Job:** `title`, `company`, `start: "YYYY-MM"`, `end: "YYYY-MM" | present`, `summary`, `skills[]`
+- **Experience:** `title`, `company`, `start: "YYYY-MM"`, `end: "YYYY-MM" | present`, `period`, `summary`, `skills[]`
 
 ### Tags / skills
 

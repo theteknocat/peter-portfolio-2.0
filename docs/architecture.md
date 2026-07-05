@@ -11,7 +11,7 @@ deliberately retains the fuller explanations and rationale for future reference.
 
 The site is built and functionally complete:
 
-- **Frontend SPA** — all four pages (home, portfolio, articles, job history)
+- **Frontend SPA** — all four pages (home, portfolio, articles, experience)
   render live content from the API. Portfolio and article detail views work as
   routed modal overlays. The full cyberpunk art-deco visual system is in place,
   including the animated background tile, glitch-spot overlay, and
@@ -81,7 +81,7 @@ page layout → names a manifest + params (limit, filter)
 
 **Field schemas are not duplicated here** — they change, and the source of truth
 is the TypeScript interfaces in `frontend/src/types/` (`portfolio.ts`, `article.ts`,
-`job.ts`, `page.ts`) plus the authoring templates in `docs/templates/` and
+`experience.ts`, `page.ts`) plus the authoring templates in `docs/templates/` and
 `docs/content-cheat-sheet.md`. As of this writing a portfolio item uses
 `title` / `summary` / `tags` (each `{ label, si?, lucide? }`) / `url` / `featured`
 / `images` (each `{ src, alt }`) / `body`.
@@ -100,7 +100,7 @@ GET /api/page/{page}
   already fetched and embedded. One request per page view.
 
 GET /api/content/{type}/{slug}
-  A single content item by type and slug (portfolio | article | job).
+  A single content item by type and slug (portfolio | article | experience).
   Used by the modal/detail views.
 
 GET /api/clippy/quips/{scope}

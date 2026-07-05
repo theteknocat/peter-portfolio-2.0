@@ -109,7 +109,7 @@ Articles:
    AI. Brace yourself."
   [Let's see]  [Maybe later]
 
-Job History:
+Experience:
   "It looks like you're checking if Peter is employable. He is."
   [Back to portfolio]  [Contact him]
 ```
@@ -322,7 +322,7 @@ installed `clippyjs` source. Captured here so they don't have to be re-derived.
 
 A `watch` on `route.path` drives the agent. The path is reduced to a **scope** —
 `scopeOf(path)` strips the leading `/` and maps `''` to `'home'`, so the top-level
-scopes are `home`, `portfolio`, `articles`, `job-history`, and item routes become
+scopes are `home`, `portfolio`, `articles`, `experience`, and item routes become
 `{type}/{slug}` (e.g. `portfolio/job-scout`).
 
 The watcher **skips modal-close transitions** — when `prev` was an item scope
