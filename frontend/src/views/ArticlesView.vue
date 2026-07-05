@@ -3,13 +3,13 @@
  * Articles list page — fetches the articles page layout and renders
  * each item as a clickable card linking to the modal detail route.
  */
-import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
-import type { Article } from '@/types/article'
+import { useSectionComponents } from '@/composables/useSectionComponents'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
-import ArticleCard from '@/components/articles/ArticleCard.vue'
+import TextSection from '@/components/sections/TextSection.vue'
+import ArticleListSection from '@/components/articles/ArticleListSection.vue'
 
 const { data, loading, error } = usePageData('articles')
 
@@ -19,12 +19,10 @@ useSeo({
   path: '/articles',
 })
 
-// Sorted newest-first by date — overrides manifest order for display.
-const items = computed(() =>
-  [...((data.value?.sections[0]?.items ?? []) as unknown as Article[])].sort(
-    (a, b) => (b.date ?? '').localeCompare(a.date ?? '')
-  )
-)
+const { resolveSection } = useSectionComponents({
+  text: TextSection,
+  'article-list': ArticleListSection,
+})
 </script>
 
 <template>
@@ -33,9 +31,14 @@ const items = computed(() =>
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <ArticleCard v-for="item in items" :key="item.slug" :item="item" />
-      </div>
+      <template v-else>
+        <component
+          v-for="section in data?.sections ?? []"
+          :key="(section.content?.slug as string | undefined) ?? section.template"
+          :is="resolveSection(section.template)"
+          :section="section"
+        />
+      </template>
     </ContentCard>
   </div>
 </template>

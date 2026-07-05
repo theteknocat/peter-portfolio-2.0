@@ -66,7 +66,10 @@ class PageHandler
 
         $sections = [];
         foreach ($layout['sections'] ?? [] as $section) {
-            $sections[] = $this->resolveSection($section, $page);
+            $resolved = $this->resolveSection((string) $section, $page);
+            if ($resolved !== null) {
+                $sections[] = $resolved;
+            }
         }
 
         $response->getBody()->write(
@@ -79,34 +82,43 @@ class PageHandler
     /**
      * Resolve a single layout section into its fully-expanded form.
      *
-     * Sections with a 'manifest' key are expanded to an 'items' array by
-     * fetching each referenced content item. Sections with a 'source' key
-     * are expanded to a single 'content' object.
+     * Every section is loaded by its 'source' from 'sections/{page}/{source}'.
+     * The loaded content defines everything about the section, including which
+     * frontend component renders it ('template') and, for list-driven sections,
+     * a 'manifest' key (optionally 'filter'/'limit') that gets expanded into an
+     * 'items' array. Sections are optional content — a layout may reference a
+     * source that has no content file yet (e.g. an unwritten intro), in which
+     * case this returns null and the section is omitted entirely.
      *
-     * @param array<string, mixed> $section
-     *   A raw section definition from the page layout YAML.
+     * @param string $source
+     *   The section's source slug — each layout section is a bare string.
      * @param string $page
      *   The page name, used to locate section content under 'sections/{page}'.
      *
-     * @return array<string, mixed>
-     *   The resolved section ready for JSON output.
+     * @return array<string, mixed>|null
+     *   The resolved section ready for JSON output, or null if the source has
+     *   no content file.
      */
-    private function resolveSection(array $section, string $page): array
+    private function resolveSection(string $source, string $page): ?array
     {
-        $resolved = ['type' => $section['type']];
-
-        if (isset($section['source'])) {
-            $resolved['content'] = $this->contentService->getItem("sections/{$page}", (string) $section['source']);
+        $content = $this->contentService->getItem("sections/{$page}", $source);
+        if ($content === null) {
+            return null;
         }
 
-        if (isset($section['manifest'])) {
-            $limit = isset($section['limit']) ? (int) $section['limit'] : null;
-            $filter = isset($section['filter']) ? (string) $section['filter'] : null;
-            $entries = $this->manifestService->getItems($section['manifest'], $limit, $filter);
+        $resolved = [
+            'template' => $content['template'] ?? null,
+            'content' => $content,
+        ];
+
+        if (isset($content['manifest'])) {
+            $limit = isset($content['limit']) ? (int) $content['limit'] : null;
+            $filter = isset($content['filter']) ? (string) $content['filter'] : null;
+            $entries = $this->manifestService->getItems((string) $content['manifest'], $limit, $filter);
 
             $items = [];
             foreach ($entries as $entry) {
-                $item = $this->contentService->getItem((string) $section['manifest'], (string) $entry['slug']);
+                $item = $this->contentService->getItem((string) $content['manifest'], (string) $entry['slug']);
                 if ($item === null) {
                     continue;
                 }

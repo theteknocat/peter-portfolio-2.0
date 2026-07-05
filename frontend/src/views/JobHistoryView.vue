@@ -3,13 +3,13 @@
  * Job history page — fetches the job-history page layout and renders
  * each job entry inline (no modal).
  */
-import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
-import type { Job } from '@/types/job'
+import { useSectionComponents } from '@/composables/useSectionComponents'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
-import JobEntryCard from '@/components/jobs/JobEntryCard.vue'
+import TextSection from '@/components/sections/TextSection.vue'
+import JobListSection from '@/components/jobs/JobListSection.vue'
 
 const { data, loading, error } = usePageData('job-history')
 
@@ -19,9 +19,10 @@ useSeo({
   path: '/job-history',
 })
 
-const items = computed(
-  () => (data.value?.sections[0]?.items ?? []) as unknown as Job[]
-)
+const { resolveSection } = useSectionComponents({
+  text: TextSection,
+  'job-list': JobListSection,
+})
 </script>
 
 <template>
@@ -30,9 +31,14 @@ const items = computed(
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>
-      <div v-else class="job-list">
-        <JobEntryCard v-for="item in items" :key="item.slug" :item="item" />
-      </div>
+      <template v-else>
+        <component
+          v-for="section in data?.sections ?? []"
+          :key="(section.content?.slug as string | undefined) ?? section.template"
+          :is="resolveSection(section.template)"
+          :section="section"
+        />
+      </template>
     </ContentCard>
   </div>
 </template>

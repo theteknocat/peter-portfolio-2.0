@@ -6,7 +6,8 @@
  */
 
 export interface ResolvedSection {
-  type: string
+  /** Which frontend component renders this section (e.g. 'featured-portfolio', 'text'). */
+  template: string
   /** Present on source sections — a single resolved content item, or null if the file is missing. */
   content?: Record<string, unknown> | null
   /**

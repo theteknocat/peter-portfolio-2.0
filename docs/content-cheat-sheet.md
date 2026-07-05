@@ -19,6 +19,73 @@ content/
 └── jobs/             {slug}.yaml per item (no body)
 ```
 
+## Page layouts & sections
+
+Each page has a layout YAML **checked into the repo** at `api/layouts/{page}.yaml`
+— a bare ordered list of section source names:
+
+```yaml
+sections:
+  - intro
+  - list
+```
+
+Each name maps to `content/sections/{page}/{source}.yaml` (+ optional sibling
+`.md`). That file defines everything about the section: which frontend
+component renders it (`template`), and either plain fields (a static section)
+or a `manifest` (a list-driven section).
+
+**Reordering, adding, or removing sections is a content-only change** — as
+long as the `template` already has a matching frontend component, editing the
+layout + section files needs no rebuild or deploy of the app itself, just an
+rsync of `content/`.
+
+### Static section example
+
+`content/sections/portfolio/intro.yaml`:
+
+```yaml
+template: text
+title: Selected Work        # optional
+```
+
+`content/sections/portfolio/intro.md`:
+
+```markdown
+A selection of projects I've built or contributed to, spanning full-stack web
+apps, Drupal sites, and personal experiments.
+```
+
+### List-driven section example
+
+`content/sections/portfolio/list.yaml`:
+
+```yaml
+template: portfolio-list
+manifest: portfolio
+```
+
+Add `filter:` / `limit:` to narrow it, e.g. home's featured-portfolio section:
+
+```yaml
+template: featured-portfolio
+title: Featured Work
+manifest: portfolio
+filter: featured
+limit: 3
+```
+
+### Optional sections
+
+A layout can reference a source with no content file yet — it's simply
+omitted from the page, no error. This is how you toggle an intro on/off
+without touching the layout: add `intro.yaml`/`.md` to turn it on, delete
+both to turn it off.
+
+The generic `text` template also renders nothing at all if the section file
+exists but has neither `title` nor a sibling `.md` body — same effect as
+omitting the file.
+
 ## The two-file pattern
 
 Each portfolio item / article is a **pair sharing one slug**:

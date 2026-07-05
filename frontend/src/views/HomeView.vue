@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Home page — fetches the resolved page layout from the API and renders each
- * section dynamically by mapping section.type to the appropriate component.
+ * section dynamically by mapping section.template to the appropriate component.
  */
 import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { Briefcase, Newspaper, Joystick } from '@lucide/vue'
@@ -29,23 +29,23 @@ const sectionComponents: Record<string, Component> = {
   'skills': SkillsSection,
 }
 
-function resolveSection(type: string): Component | undefined {
-  const component = sectionComponents[type]
+function resolveSection(template: string): Component | undefined {
+  const component = sectionComponents[template]
   if (!component && import.meta.env.DEV) {
-    console.warn(`[HomeView] No component registered for section type: "${type}"`)
+    console.warn(`[HomeView] No component registered for section template: "${template}"`)
   }
   return component
 }
 
 // Intro lives in the sticky left column; everything else scrolls on the right.
-const introSection = computed(() => data.value?.sections.find(s => s.type === 'intro'))
-const bodySections = computed(() => data.value?.sections.filter(s => s.type !== 'intro') ?? [])
+const introSection = computed(() => data.value?.sections.find(s => s.template === 'intro'))
+const bodySections = computed(() => data.value?.sections.filter(s => s.template !== 'intro') ?? [])
 
 const introTitle = computed(
   () => (introSection.value?.content?.title as string | undefined) ?? 'Peter Epp',
 )
 
-// Icons per section type — labels come from section.content.title.
+// Icons per section template — labels come from section.content.title.
 // Sections without a registered icon or without a content title get no nav button.
 const navIcons: Record<string, Component> = {
   'featured-portfolio': Briefcase,
@@ -55,8 +55,8 @@ const navIcons: Record<string, Component> = {
 
 const navItems = computed(() =>
   bodySections.value
-    .filter(s => s.type in navIcons && s.content?.title)
-    .map(s => ({ type: s.type, icon: navIcons[s.type], label: s.content!.title as string })),
+    .filter(s => s.template in navIcons && s.content?.title)
+    .map(s => ({ template: s.template, icon: navIcons[s.template], label: s.content!.title as string })),
 )
 
 // Active section tracking: highlight the nav button for whichever right-column
@@ -86,7 +86,7 @@ function setupObserver() {
     { threshold: [0, 0.25, 0.5, 0.75, 1] },
   )
   for (const item of navItems.value) {
-    const el = document.getElementById(item.type)
+    const el = document.getElementById(item.template)
     if (el) observer.observe(el)
   }
 }
@@ -122,11 +122,11 @@ onUnmounted(() => observer?.disconnect())
             <nav v-if="navItems.length" class="section-nav" aria-label="Page sections">
               <a
                 v-for="item in navItems"
-                :key="item.type"
-                :href="`#${item.type}`"
+                :key="item.template"
+                :href="`#${item.template}`"
                 class="btn shape-chamfer shape-jitter"
-                :class="{ active: activeSection === item.type }"
-                :aria-current="activeSection === item.type ? 'true' : undefined"
+                :class="{ active: activeSection === item.template }"
+                :aria-current="activeSection === item.template ? 'true' : undefined"
               >
                 <component :is="item.icon" :size="18" />
                 <span class="text-sm">{{ item.label }}</span>
@@ -137,10 +137,10 @@ onUnmounted(() => observer?.disconnect())
         <div class="home-right">
           <component
             v-for="section in bodySections"
-            :key="section.type"
-            :id="section.type"
+            :key="section.template"
+            :id="section.template"
             class="home-content-section"
-            :is="resolveSection(section.type)"
+            :is="resolveSection(section.template)"
             :section="section"
           />
         </div>

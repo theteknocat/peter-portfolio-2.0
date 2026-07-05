@@ -3,13 +3,13 @@
  * Portfolio list page — fetches the portfolio page layout and renders
  * each item as a clickable card linking to the modal detail route.
  */
-import { computed } from 'vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
-import type { PortfolioItem } from '@/types/portfolio'
+import { useSectionComponents } from '@/composables/useSectionComponents'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
-import PortfolioCard from '@/components/portfolio/PortfolioCard.vue'
+import TextSection from '@/components/sections/TextSection.vue'
+import PortfolioListSection from '@/components/portfolio/PortfolioListSection.vue'
 
 const { data, loading, error } = usePageData('portfolio')
 
@@ -19,11 +19,10 @@ useSeo({
   path: '/portfolio',
 })
 
-// The portfolio page has a single 'portfolio-list' section.
-// Pull items directly rather than using a dynamic component map.
-const items = computed(
-  () => (data.value?.sections[0]?.items ?? []) as unknown as PortfolioItem[]
-)
+const { resolveSection } = useSectionComponents({
+  text: TextSection,
+  'portfolio-list': PortfolioListSection,
+})
 </script>
 
 <template>
@@ -32,9 +31,14 @@ const items = computed(
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <PortfolioCard v-for="item in items" :key="item.slug" :item="item" />
-      </div>
+      <template v-else>
+        <component
+          v-for="section in data?.sections ?? []"
+          :key="(section.content?.slug as string | undefined) ?? section.template"
+          :is="resolveSection(section.template)"
+          :section="section"
+        />
+      </template>
     </ContentCard>
   </div>
 </template>
