@@ -194,20 +194,74 @@ interesting). The score decides which earn a write-up.
 
 ---
 
-## Open-source / Drupal community — home page stats section
+## Experience Stats — home page section
 
-**Decision (2026-06-26):** Rather than a portfolio item, surface drupal.org
-contributions as a **stats dashboard section on the home page** — something
-like "17 years in the Drupal community / 32 issue credits / 2 maintained
-projects / contributed to Drupal core."
+**Decision (2026-07-04):** Broadened from a pure Drupal-contributions stats
+block into an **"Experience Stats" section** — numeric badges plus a short
+milestone timeline, home page only. Goal: signal "programming a long time,
+web dev is just the career outcome" without publishing the full backstory.
 
-**Live vs static:** drupal.org has a public JSON API (`/api-d7/`). The user
-profile endpoint (`/api-d7/user/539422.json`) works without auth and returns
-structured data. Issue credit counts are only shown on the profile HTML page
-(the new-platform contribution-records API requires auth) — so a mixed
-approach works: pull maintained-project metadata via API, keep issue counts
-static (update manually when warranted). Or go fully static for simplicity.
-**Set aside — design + implementation deferred.**
+**Numeric badges** — drupal.org contributions only, since that's what's on
+the record:
+
+- 17 years in the Drupal community
+- 32 issue credits
+- 24 contrib projects contributed to
+
+Dropped from the badge list: the two "maintained projects" (*Drupal Automatic
+Updater* — D7-era shell script, no longer maintained; *Entity Field Privacy*
+— sandbox only, no real uptake). Neither is worth a number. A visitor who
+wants the detail can follow through to the drupal.org profile link.
+
+**Timeline** — 3–4 short milestone chips (period + one-line label, no prose),
+covering long-before-web coding through to now. Draft milestones from
+Peter's own account:
+
+- Self-taught, Atari ST GFA Basic (into the late 1990s) — tracked down a
+  magazine's Basic game author over Gopher/Usenet, got mailed a copy of GFA
+  Basic
+- Weaver & Devore, Yellowknife (2003–2008) — built an e-commerce site that
+  took off selling Canada Goose parkas to Europe — still running today (now
+  on WordPress, run by others) — helped land the current job
+- Kellett Communications, Yellowknife (2008–present), Drupal
+- Now — full-stack web engineer
+
+**Live vs static:** fully static content file. The earlier live-API idea
+(pulling maintained-project metadata from drupal.org's `/api-d7/` endpoint)
+is moot now that maintained projects are dropped from the badges — nothing
+left worth fetching live. Issue credits/years update rarely enough to just
+hand-edit.
+
+### Content shape (sketch)
+
+Home-only section, no manifest — a new `experience-stats` template with two
+inline arrays. `content/sections/home/experience-stats.yaml`:
+
+```yaml
+template: experience-stats
+title: Experience               # optional, matches other sections' pattern
+stats:
+  - value: "17+"
+    label: Years in the Drupal community
+  - value: "32"
+    label: Issue credits on drupal.org
+  - value: "24"
+    label: Contrib projects contributed to
+timeline:
+  - period: "1990s"
+    label: "Self-taught — Atari ST, GFA Basic"
+  - period: "2003–2008"
+    label: "Weaver & Devore — built an e-commerce site still running today"
+  - period: "2008–present"
+    label: "Kellett Communications, Drupal"
+  - period: "Now"
+    label: "Full-stack web engineer"
+```
+
+No sibling `.md` — everything needed is short, structured data, not prose.
+`stats[]` and `timeline[]` are both optional at the component level (same
+"render nothing if absent" convention as `TextSection`), so either half can
+be dropped without touching the layout.
 
 ### drupal.org — confirmed findings (2026-06-26)
 
@@ -218,14 +272,6 @@ Username: **`teknocat`** — profile `https://www.drupal.org/u/teknocat`
 Gin Admin Theme (4), Course (3), Spam Master (3), Lightning Scheduler (2),
 plus 1 each on Drupal core, Admin Toolbar, Apache Solr, Barrio Bootstrap 5,
 Webform, reCAPTCHA, PHPMailer SMTP, and ~14 others.
-
-**Maintained projects:**
-
-- *Drupal Automatic Updater* — `/project/drupal_automatic_updater` (full
-  project, not a sandbox). A **shell script** for running Drupal updates — not
-  an installable module, so has no install stats. Low portfolio weight but
-  includable.
-- *Entity Field Privacy* — sandbox only (`/sandbox/teknocat/2076153`).
 
 **Other:** contributed Drupal patches, contributed to Drupal issue queues,
 1 person lists teknocat as a mentor.

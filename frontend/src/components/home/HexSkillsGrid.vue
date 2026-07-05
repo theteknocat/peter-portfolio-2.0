@@ -952,10 +952,7 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
 }
 
 .hex-border,
-.hex-face
- {
-  position: absolute;
-  inset: 0;
+.hex-face {
   will-change: transform;
 }
 
@@ -993,26 +990,6 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
   z-index: -2;
 }
 
-/*
- * Ring outline — traces outer hex CW then bridges to inner hex and traces it CCW.
- * The nonzero winding rule fills only the ring between the two paths, not the centre.
- * Inner vertices are at ≈93% of R from centre (≈4px inset before the scale).
- * scale(0.95) sets the gap between adjacent hexes.
- */
-.hex-border {
-  transform: scale(0.95);
-  background: var(--color-primary);
-  transition: background 6s ease-out 200ms;
-  clip-path: polygon(
-    50%    0%,    100%   25%,   100%   75%,
-    50%    100%,  0%     75%,   0%     25%,
-    2px    calc(25% + 1px),
-    2px    calc(75% - 1px), 50% calc(100% - 2px), calc(100% - 2px)  calc(75% - 1px),
-    calc(100% - 2px)  calc(25% + 1px), 50% 2px, 2px calc(25% + 1px),
-    0%     25%
-  );
-}
-
 .hex-label::after {
   background: var(--color-primary);
   clip-path: polygon(
@@ -1029,18 +1006,9 @@ defineExpose({ isReordered, resetOrder, shuffleOrder })
   );
 }
 
-/* Solid fill hex sits inside the border ring */
 .hex-face {
-  transform: scale(0.95);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: rgba(0, 45, 22, 0.274);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary-light);
   perspective: 100px;
   cursor: grab;
-  transition: background 6s ease-out 200ms;
 }
 
 .hex-label::before {

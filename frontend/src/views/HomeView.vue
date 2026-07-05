@@ -12,6 +12,7 @@ import IntroTerminal from '@/components/home/IntroTerminal.vue'
 import FeaturedPortfolioSection from '@/components/home/FeaturedPortfolioSection.vue'
 import FeaturedArticlesSection from '@/components/home/FeaturedArticlesSection.vue'
 import SkillsSection from '@/components/home/SkillsSection.vue'
+import ExperienceStatsSection from '@/components/home/ExperienceStatsSection.vue'
 
 const { data, loading, error } = usePageData('home')
 
@@ -24,6 +25,7 @@ useSeo({
 
 const sectionComponents: Record<string, Component> = {
   'intro': IntroTerminal,
+  'experience-stats': ExperienceStatsSection,
   'featured-portfolio': FeaturedPortfolioSection,
   'featured-articles': FeaturedArticlesSection,
   'skills': SkillsSection,
