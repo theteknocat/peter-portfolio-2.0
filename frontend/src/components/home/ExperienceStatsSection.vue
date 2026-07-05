@@ -40,7 +40,7 @@ const timeline = computed(() => content.value?.timeline ?? [])
         <Trophy :size="24" />
         {{ content.title }}
         <div class="flex w-full sm:w-auto md:w-full lg:w-auto items-center sm:ml-auto md:ml-0 lg:ml-auto">
-          <RouterLink to="/job-history" class="btn shape-chamfer shape-jitter">
+          <RouterLink to="/experience" class="btn shape-chamfer shape-jitter">
             <span class="text-sm">See all</span>
             <ChevronRight :size="16" />
           </RouterLink>

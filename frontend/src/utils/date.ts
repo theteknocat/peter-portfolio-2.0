@@ -1,7 +1,7 @@
 type DateFormat = 'short' | 'long' | 'month-year' | 'iso'
 
 /**
- * Format a job date string for display.
+ * Format an experience entry date string for display.
  *
  * Handles three formats from content YAML: `"present"` → `"Present"`,
  * `"YYYY"` → `"2003"`, `"YYYY-MM"` → `"Apr 2021"`. Uses the local Date
@@ -10,7 +10,7 @@ type DateFormat = 'short' | 'long' | 'month-year' | 'iso'
  *
  * @param value - Partial ISO date string or the literal `"present"`.
  */
-export function formatJobDate(value: string): string {
+export function formatExperienceDate(value: string): string {
   if (value.toLowerCase() === 'present') return 'Present'
   if (/^\d{4}$/.test(value)) return value
 

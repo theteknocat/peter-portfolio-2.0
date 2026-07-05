@@ -8,7 +8,7 @@ namespace App\Services;
  * Generates and caches Clippy's per-scope quip pools.
  *
  * Each "scope" is a place on the site Clippy can comment on: a top-level
- * section (home, portfolio, articles, job-history) or an individual content
+ * section (home, portfolio, articles, experience) or an individual content
  * item ({type}/{slug}, e.g. portfolio/some-project). For each scope we ask the
  * Anthropic API for ~10 in-character one-liners, then cache them as a flat JSON
  * file with a TTL so the pool is shared across all visitors and the API is hit
@@ -24,7 +24,7 @@ class ClippyService
     /**
      * Top-level sections that are valid scopes on their own.
      */
-    private const SECTIONS = ['home', 'portfolio', 'articles', 'job-history'];
+    private const SECTIONS = ['home', 'portfolio', 'articles', 'experience'];
 
     /**
      * Content types that may appear in an item scope ({type}/{slug}).
@@ -359,7 +359,7 @@ class ClippyService
             'home' => "the home page of Peter Epp's software developer portfolio: an intro to Peter, his latest articles, an interactive skills game, and a few highlighted projects",
             'portfolio' => "the portfolio listing — the software projects Peter has built",
             'articles' => "the articles listing — Peter's writing, much of it about AI",
-            'job-history' => "Peter's job history / résumé page",
+            'experience' => "Peter's experience / résumé page",
         ];
 
         if (isset($sections[$scope])) {

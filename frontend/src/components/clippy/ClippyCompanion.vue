@@ -99,7 +99,7 @@ const LINES: Record<string, string[]> = {
     "It looks like you're after opinions about AI. Peter has several. I am one of them.",
     "Words! It looks like you're about to read on purpose. How retro. I approve.",
   ],
-  'job-history': [
+  experience: [
     "It looks like you're checking whether Peter is employable. He is. I'd stake my entire existence on it.",
     "Ah, the résumé portion. It looks like you're doing due diligence. I already vouched for him.",
   ],

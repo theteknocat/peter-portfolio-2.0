@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * Job history page — fetches the job-history page layout and renders
- * each job entry inline (no modal).
+ * Experience page — fetches the experience page layout and renders the
+ * experience timeline inline (no modal).
  */
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
@@ -9,25 +9,25 @@ import { useSectionComponents } from '@/composables/useSectionComponents'
 import PageTitle from '@/components/ui/PageTitle.vue'
 import ContentCard from '@/components/ui/ContentCard.vue'
 import TextSection from '@/components/sections/TextSection.vue'
-import JobListSection from '@/components/jobs/JobListSection.vue'
+import ExperienceTimelineSection from '@/components/experience/ExperienceTimelineSection.vue'
 
-const { data, loading, error } = usePageData('job-history')
+const { data, loading, error } = usePageData('experience')
 
 useSeo({
-  title: 'Job History — Peter Epp',
-  description: 'Professional work history of Peter Epp.',
-  path: '/job-history',
+  title: 'Experience — Peter Epp',
+  description: 'Professional experience of Peter Epp.',
+  path: '/experience',
 })
 
 const { resolveSection } = useSectionComponents({
   text: TextSection,
-  'job-list': JobListSection,
+  'experience-timeline': ExperienceTimelineSection,
 })
 </script>
 
 <template>
   <div class="view-container">
-    <PageTitle>Job History</PageTitle>
+    <PageTitle>Experience</PageTitle>
     <ContentCard>
       <p v-if="loading">Loading…</p>
       <p v-else-if="error">Error: {{ error }}</p>

@@ -44,7 +44,7 @@ export const ACTIONS: Record<string, ClippyAction[]> = {
     {
       kind: 'nav',
       label: 'Is he hireable?',
-      to: '/job-history',
+      to: '/experience',
     },
     {
       kind: 'gag',
@@ -64,7 +64,7 @@ export const ACTIONS: Record<string, ClippyAction[]> = {
       gag: 'summarize',
     },
   ],
-  'job-history': [
+  experience: [
     {
       kind: 'nav',
       label: 'See the proof',

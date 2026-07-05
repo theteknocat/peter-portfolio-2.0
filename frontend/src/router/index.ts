@@ -33,8 +33,8 @@ export const routes: RouteRecordRaw[] = [
     meta: { modal: true },
   },
   {
-    path: '/job-history',
-    component: () => import('@/views/JobHistoryView.vue'),
+    path: '/experience',
+    component: () => import('@/views/ExperienceView.vue'),
     meta: { transition: 'page' },
   },
   {

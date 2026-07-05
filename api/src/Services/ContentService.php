@@ -26,7 +26,7 @@ class ContentService
      * Load a content item by type and slug.
      *
      * @param string $type
-     *   The content type subdirectory (e.g. 'portfolio', 'articles', 'jobs').
+     *   The content type subdirectory (e.g. 'portfolio', 'articles', 'experience').
      * @param string $slug
      *   The content item slug (filename without extension).
      *

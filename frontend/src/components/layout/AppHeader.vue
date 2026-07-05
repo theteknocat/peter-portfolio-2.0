@@ -66,7 +66,7 @@ onUnmounted(() => mq?.removeEventListener('change', onMqChange))
           </button>
           <RouterLink to="/portfolio" class="nav-link link-poly link-poly--slash shape-jitter">Portfolio</RouterLink>
           <RouterLink to="/articles" class="nav-link link-poly link-poly--slash shape-jitter">Articles</RouterLink>
-          <RouterLink to="/job-history" class="nav-link link-poly link-poly--slash shape-jitter">Job History</RouterLink>
+          <RouterLink to="/experience" class="nav-link link-poly link-poly--slash shape-jitter">Experience</RouterLink>
         </nav>
       </Teleport>
     </div>
