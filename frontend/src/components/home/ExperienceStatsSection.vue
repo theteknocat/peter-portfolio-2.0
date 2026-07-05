@@ -139,7 +139,7 @@ ol {
    last-in-row picks up where its kept ::after stub ends and drops to the li's bottom,
    then spans the whole row back to column 1. First-in-row-next drops from that same
    point through the gap down to where its own kept ::before stub begins. */
-@media (theme(--breakpoint-md) <= width < theme(--breakpoint-lg)) {
+@media (width >= theme(--breakpoint-md)) and (width < theme(--breakpoint-lg)) {
   .timeline-item {
     --cols: 2;
   }
