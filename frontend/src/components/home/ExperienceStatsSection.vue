@@ -6,7 +6,8 @@
  * 'sections/home/experience-stats.yaml'.
  */
 import { computed } from 'vue'
-import { Trophy } from '@lucide/vue'
+import { Trophy, ChevronRight } from '@lucide/vue'
+import { RouterLink } from 'vue-router'
 import type { ResolvedSection } from '@/types/page'
 import ContentCard from '@/components/ui/ContentCard.vue'
 
@@ -35,42 +36,50 @@ const timeline = computed(() => content.value?.timeline ?? [])
 <template>
   <section v-if="stats.length || timeline.length" class="home-experience-stats">
     <ContentCard>
-      <h2 v-if="content?.title" class="flex items-center gap-2 mb-4">
+      <h2 v-if="content?.title" class="flex flex-wrap items-center justify-start gap-x-2 gap-y-0 mb-4">
         <Trophy :size="24" />
         {{ content.title }}
-      </h2>
-
-      <div v-if="stats.length" class="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center mb-8">
-        <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center gap-2 text-center">
-          <div class="relative w-20 sm:w-24 aspect-[0.866]">
-            <div class="hex-border" />
-            <div class="hex-face">
-              <span class="text-xl sm:text-2xl font-bold">{{ stat.value }}</span>
-            </div>
-          </div>
-          <span class="text-sm max-w-36">{{ stat.label }}</span>
+        <div class="flex w-full sm:w-auto md:w-full lg:w-auto items-center sm:ml-auto md:ml-0 lg:ml-auto">
+          <RouterLink to="/job-history" class="btn shape-chamfer shape-jitter">
+            <span class="text-sm">See all</span>
+            <ChevronRight :size="16" />
+          </RouterLink>
         </div>
-      </div>
-
+      </h2>
       <div v-if="timeline.length" class="flex flex-col items-center">
         <ol v-if="timeline.length" class="grid grid-cols-1 md:grid-cols-2 md:w-full lg:grid-cols-4">
           <li
             v-for="entry in timeline"
             :key="entry.period"
-            class="timeline-item relative flex items-stretch gap-4 md:block md:gap-0"
+            class="timeline-item relative flex md:flex-col items-stretch md:justify-start gap-4 md:gap-0"
           >
             <div class="timeline-item-inner relative flex items-center justify-center py-4 md:px-4 md:py-0">
               <div class="timeline-item-hex relative z-10 aspect-[0.866]">
                 <div class="hex-border" />
                 <div class="hex-face">
-                  <span class="text-xs font-bold text-center leading-tight">{{ entry.period }}</span>
+                  <span class="text-xs font-bold text-center leading-tight px-2">{{ entry.period }}</span>
                 </div>
               </div>
             </div>
-            <div class="self-center text-sm md:text-xs text-left md:text-center max-w-48 md:px-4 md:pt-2">{{ entry.label }}</div>
+            <div class="timeline-item-label self-center text-sm md:text-xs text-left md:text-center max-w-48 md:px-4 md:pt-2">{{ entry.label }}</div>
           </li>
         </ol>
       </div>
+
+      <template v-if="stats.length">
+        <h3 class="text-center mb-4">Open Source Stats</h3>
+        <div v-if="stats.length" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+          <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center gap-2 text-center">
+            <div class="relative w-20 sm:w-24 aspect-[0.866]">
+              <div class="hex-border" />
+              <div class="hex-face">
+                <span class="text-xl sm:text-2xl font-bold">{{ stat.value }}</span>
+              </div>
+            </div>
+            <span class="text-sm max-w-36">{{ stat.label }}</span>
+          </div>
+        </div>
+      </template>
     </ContentCard>
   </section>
 </template>
@@ -86,7 +95,7 @@ ol {
 }
 .timeline-item {
   margin: 0;
-  --hex-w: 3.5rem;
+  --hex-w: 4.5rem;
   --hex-h: calc(var(--hex-w) / 0.866);
 }
 .timeline-item-hex {

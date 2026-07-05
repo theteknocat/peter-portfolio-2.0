@@ -4,7 +4,7 @@
  * section dynamically by mapping section.template to the appropriate component.
  */
 import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
-import { Briefcase, Newspaper, Joystick } from '@lucide/vue'
+import { Briefcase, Newspaper, Joystick, Trophy } from '@lucide/vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
 import PageTitle from '@/components/ui/PageTitle.vue'
@@ -50,6 +50,7 @@ const introTitle = computed(
 // Icons per section template — labels come from section.content.title.
 // Sections without a registered icon or without a content title get no nav button.
 const navIcons: Record<string, Component> = {
+  'experience-stats':   Trophy,
   'featured-portfolio': Briefcase,
   'featured-articles':  Newspaper,
   'skills':             Joystick,
