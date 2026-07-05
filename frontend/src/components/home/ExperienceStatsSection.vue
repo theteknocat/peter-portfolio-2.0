@@ -53,7 +53,7 @@ const timeline = computed(() => content.value?.timeline ?? [])
       </div>
 
       <div v-if="timeline.length" class="flex flex-col items-center">
-        <ol v-if="timeline.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <ol v-if="timeline.length" class="grid grid-cols-1 md:grid-cols-2 md:w-full lg:grid-cols-4">
           <li
             v-for="entry in timeline"
             :key="entry.period"
