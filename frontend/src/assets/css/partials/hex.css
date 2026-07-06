@@ -38,3 +38,18 @@
   color: var(--color-primary-light);
   transition: background 6s ease-out 200ms;
 }
+
+/* Shared responsive sizing for hex badges (experience stats + timelines).
+   .hex-size-responsive holds the vars so anything depending on --hex-h
+   (e.g. connector lines) can inherit it; .hex-sized applies the width to
+   the hex div itself. */
+.hex-size-responsive {
+  --hex-w: 4.5rem;
+  --hex-h: calc(var(--hex-w) / 0.866);
+  @media (width >= theme(--breakpoint-lg)) {
+    --hex-w: 5.5rem;
+  }
+}
+.hex-sized {
+  width: var(--hex-w);
+}

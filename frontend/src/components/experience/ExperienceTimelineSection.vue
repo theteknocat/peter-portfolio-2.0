@@ -18,10 +18,10 @@ const title = computed(() => props.section.content?.title as string | undefined)
 <template>
   <div>
     <h2 v-if="title">{{ title }}</h2>
-    <ol class="grid grid-cols-1">
+    <ol class="grid grid-cols-1 hex-size-responsive">
       <li v-for="item in items" :key="item.slug" class="timeline-item relative flex items-stretch gap-4">
         <div class="timeline-item-inner relative flex items-center justify-center py-4">
-          <div class="timeline-item-hex relative z-10 aspect-[0.866]">
+          <div class="timeline-item-hex hex-sized relative z-10 aspect-[0.866]">
             <div class="hex-border" />
             <div class="hex-face">
               <span class="text-xs font-bold text-center leading-tight px-2">{{ item.period }}</span>
@@ -37,11 +37,8 @@ const title = computed(() => props.section.content?.title as string | undefined)
 <style scoped>
 .timeline-item {
   margin: 0;
-  --hex-w: 4.5rem;
-  --hex-h: calc(var(--hex-w) / 0.866);
 }
 .timeline-item-hex {
-  width: var(--hex-w);
   flex-shrink: 0;
 }
 /* Connecting line through the hex's own width, self-contained per item. */

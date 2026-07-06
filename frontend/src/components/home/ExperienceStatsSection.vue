@@ -34,7 +34,7 @@ const timeline = computed(() => content.value?.timeline ?? [])
 </script>
 
 <template>
-  <section v-if="stats.length || timeline.length" class="home-experience-stats">
+  <section v-if="stats.length || timeline.length" class="home-experience-stats hex-size-responsive">
     <ContentCard>
       <h2 v-if="content?.title" class="flex flex-wrap items-center justify-start gap-x-2 gap-y-0 mb-4">
         <Trophy :size="24" />
@@ -54,7 +54,7 @@ const timeline = computed(() => content.value?.timeline ?? [])
             class="timeline-item relative flex md:flex-col items-stretch md:justify-start gap-4 md:gap-0"
           >
             <div class="timeline-item-inner relative flex items-center justify-center py-4 md:px-4 md:py-0">
-              <div class="timeline-item-hex relative z-10 aspect-[0.866]">
+              <div class="timeline-item-hex hex-sized relative z-10 aspect-[0.866]">
                 <div class="hex-border" />
                 <div class="hex-face">
                   <span class="text-xs font-bold text-center leading-tight px-2">{{ entry.period }}</span>
@@ -70,13 +70,13 @@ const timeline = computed(() => content.value?.timeline ?? [])
         <h3 class="text-center mb-4">Open Source Stats</h3>
         <div v-if="stats.length" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
           <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center gap-2 text-center">
-            <div class="relative w-20 sm:w-24 aspect-[0.866]">
+            <div class="hex-sized relative aspect-[0.866]">
               <div class="hex-border" />
               <div class="hex-face">
                 <span class="text-xl sm:text-2xl font-bold">{{ stat.value }}</span>
               </div>
             </div>
-            <span class="text-sm max-w-36">{{ stat.label }}</span>
+            <span class=" text-sm md:text-xs max-w-36">{{ stat.label }}</span>
           </div>
         </div>
       </template>
@@ -95,11 +95,6 @@ ol {
 }
 .timeline-item {
   margin: 0;
-  --hex-w: 4.5rem;
-  --hex-h: calc(var(--hex-w) / 0.866);
-}
-.timeline-item-hex {
-  width: var(--hex-w);
 }
 /* Connecting line through each badge's own width — self-contained per item so it
    stays correct when the row wraps (no line spans across a wrap boundary). */
