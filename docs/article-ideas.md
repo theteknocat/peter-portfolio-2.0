@@ -135,8 +135,15 @@ AI-native, low-barrier-to-entry site builders (and against WordPress's own
 decline), while doubling down on the enterprise/custom-build segment where
 it has always actually competed. This ties directly to Peter's day job at
 Kellett Communications (a Drupal shop) and his current hands-on work with
-the Drupal AI module building a chatbot for the LWB site
-([content/portfolio/mvlwb.md] — cross-reference).
+the Drupal AI module building a chatbot for the Mackenzie Valley Land and
+Water Board site (see the `mvlwb` portfolio entry) — a live,
+client-requested example of exactly the "AI agents on top of custom Drupal
+architecture" pattern this article argues is where Drupal's real advantage
+sits: RAG search over site content via locally-run Ollama embeddings, plus
+a custom `RegistrySearchTool` agent tool that queries the registry's entity
+data directly (deterministic, not vector similarity, so it can't
+hallucinate results) — built with the Drupal AI module's agents framework
+and the Anthropic API for reasoning.
 
 ### The WordPress market-share story is more nuanced than "Drupal is winning"
 
@@ -188,17 +195,20 @@ production as of March 2026) is the umbrella; relevant submodules:
   Reported 40-60% reductions in content-processing time for teams using it.
 - **AI Assistants API + Chatbot** — backend for building configurable
   chat-based assistants (what reasoning strategy, what data they can access),
-  frontend-agnostic. This is the piece directly relevant to the LWB chatbot
-  work.
+  frontend-agnostic.
 - **AI CKEditor** — inline AI (rewrite/translate/summarize/polish) in
   CKEditor 5, so AI assistance is part of everyday editing, not a separate
   tool.
 - Connects to 48+ providers (OpenAI, Anthropic, Gemini, Mistral, self-hosted
   via Ollama) — not locked to one vendor.
-- Separately, an **AI Agents module** exists for text-to-action agents that
-  can directly manipulate Drupal config/content — part of Dries Buytaert's
-  broader 2026 AI roadmap, which frames Drupal as a "governed control layer"
-  for agentic AI workflows rather than just a content store.
+- The **agents framework** within the AI module (what the MVLWB chatbot is
+  built on) lets an agent choose between multiple tools per query — in that
+  case, a RAG search tool for general content and a custom deterministic
+  registry-query tool — rather than being locked to a single retrieval
+  strategy. That's the same shape as Dries Buytaert's broader 2026 AI
+  roadmap, which frames Drupal as a "governed control layer" for agentic AI
+  workflows rather than just a content store: the CMS defines what an agent
+  is allowed to touch and how, instead of an AI product bolted on top.
 
 ### Where custom-built Drupal remains the right call
 
