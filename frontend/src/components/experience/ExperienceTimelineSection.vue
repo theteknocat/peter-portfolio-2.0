@@ -19,7 +19,7 @@ const title = computed(() => props.section.content?.title as string | undefined)
   <div>
     <h2 v-if="title">{{ title }}</h2>
     <ol class="grid grid-cols-1 hex-size-responsive">
-      <li v-for="item in items" :key="item.slug" class="timeline-item relative flex items-stretch gap-4">
+      <li v-for="item in items" :key="item.slug" class="timeline-item relative flex items-stretch">
         <div class="timeline-item-inner relative flex items-center justify-center py-4">
           <div class="timeline-item-hex hex-sized relative z-10 aspect-[0.866]">
             <div class="hex-border" />
@@ -37,9 +37,23 @@ const title = computed(() => props.section.content?.title as string | undefined)
 <style scoped>
 .timeline-item {
   margin: 0;
+  --hex-gap: 1rem;
+  gap: var(--hex-gap);
 }
 .timeline-item-hex {
   flex-shrink: 0;
+}
+/* Horizontal tick from the hex's right edge through the gap, meeting the
+   card's left border at the hex's vertical center. */
+.timeline-item-hex::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  translate: 0 -50%;
+  width: var(--hex-gap);
+  height: 2px;
+  background: var(--color-primary);
 }
 /* Connecting line through the hex's own width, self-contained per item. */
 .timeline-item:not(:first-child) .timeline-item-inner::before,

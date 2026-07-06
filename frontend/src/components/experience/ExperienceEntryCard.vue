@@ -27,8 +27,10 @@ defineProps<{
 
 <style scoped>
 .experience-entry {
-  padding: 1.25rem 0;
+  margin: 1.25rem 0;
+  padding-left: 1rem;
   border-bottom: 1px solid var(--color-border);
+  border-left: 2px solid var(--color-primary);
 }
 
 .experience-entry:last-child {
