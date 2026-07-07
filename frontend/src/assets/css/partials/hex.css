@@ -18,7 +18,7 @@
 
 .hex-border {
   background: var(--color-primary);
-  transition: background 6s ease-out 200ms;
+  transition: background 700ms ease-in 200ms;
   clip-path: polygon(
     50%    0%,    100%   25%,   100%   75%,
     50%    100%,  0%     75%,   0%     25%,
@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-primary-light);
-  transition: background 6s ease-out 200ms;
+  transition: background 700ms ease-in 200ms;
 }
 
 /* Shared responsive sizing for hex badges (experience stats + timelines).
