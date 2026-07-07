@@ -47,13 +47,13 @@ const timeline = computed(() => content.value?.timeline ?? [])
         </div>
       </h2>
       <div v-if="timeline.length" class="flex flex-col items-center">
-        <ol v-if="timeline.length" class="grid grid-cols-1 md:grid-cols-2 md:w-full lg:grid-cols-4">
+        <ol v-if="timeline.length" class="grid grid-cols-1 sm:grid-cols-2 sm:w-full lg:grid-cols-4">
           <li
             v-for="entry in timeline"
             :key="entry.period"
-            class="timeline-item relative flex md:flex-col items-stretch md:justify-start gap-4 md:gap-0"
+            class="timeline-item relative flex sm:flex-col items-stretch sm:justify-start gap-4 sm:gap-0"
           >
-            <div class="timeline-item-inner relative flex items-center justify-center py-4 md:px-4 md:py-0">
+            <div class="timeline-item-inner relative flex items-center justify-center py-4 sm:px-4 sm:py-0">
               <div class="timeline-item-hex hex-sized relative z-10 aspect-[0.866]">
                 <div class="hex-border" />
                 <div class="hex-face">
@@ -61,14 +61,14 @@ const timeline = computed(() => content.value?.timeline ?? [])
                 </div>
               </div>
             </div>
-            <div class="timeline-item-label self-center text-sm md:text-xs text-left md:text-center max-w-48 md:px-4 md:pt-2">{{ entry.label }}</div>
+            <div class="timeline-item-label self-center text-sm md:text-xs text-left sm:text-center max-w-48 sm:px-4 sm:pt-2">{{ entry.label }}</div>
           </li>
         </ol>
       </div>
 
       <template v-if="stats.length">
         <h3 class="text-center mb-4">Open Source Stats</h3>
-        <div v-if="stats.length" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+        <div v-if="stats.length" class="grid grid-cols-2 lg:grid-cols-4 gap-y-6 justify-items-center">
           <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center gap-2 text-center">
             <div class="hex-sized relative aspect-[0.866]">
               <div class="hex-border" />
@@ -89,7 +89,7 @@ const timeline = computed(() => content.value?.timeline ?? [])
 
 ol {
   --row-gap: 1.5rem;
-  @media (width >= theme(--breakpoint-md)) {
+  @media (width >= theme(--breakpoint-sm)) {
     row-gap: var(--row-gap);
   }
 }
@@ -108,7 +108,7 @@ ol {
   width: 2px;
   background: var(--color-primary);
   z-index: 0;
-  @media (width >= theme(--breakpoint-md)) {
+  @media (width >= theme(--breakpoint-sm)) {
     left: auto;
     top: 50%;
     translate: 0 -50%;
@@ -119,7 +119,7 @@ ol {
 
 .timeline-item:not(:first-child) .timeline-item-inner::before {
   top: 0;
-  @media (width >= theme(--breakpoint-md)) {
+  @media (width >= theme(--breakpoint-sm)) {
     top: 50%;
     left: 0;
     right: auto;
@@ -128,7 +128,7 @@ ol {
 
 .timeline-item:not(:last-child) .timeline-item-inner::after {
   bottom: 0;
-  @media (width >= theme(--breakpoint-md)) {
+  @media (width >= theme(--breakpoint-sm)) {
     bottom: auto;
     left: auto;
     right: 0;
@@ -143,7 +143,7 @@ ol {
    last-in-row picks up where its kept ::after stub ends and drops to the li's bottom,
    then spans the whole row back to column 1. First-in-row-next drops from that same
    point through the gap down to where its own kept ::before stub begins. */
-@media (width >= theme(--breakpoint-md)) and (width < theme(--breakpoint-lg)) {
+@media (width >= theme(--breakpoint-sm)) and (width < theme(--breakpoint-lg)) {
   .timeline-item {
     --cols: 2;
   }
