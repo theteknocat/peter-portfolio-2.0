@@ -212,7 +212,7 @@ onUnmounted(() => observer?.disconnect())
 @media (width >= theme(--breakpoint-md)) {
   .home-grid {
     display: grid;
-    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, clamp(18rem, 37.5vw, 22rem)) minmax(0, 1fr);
     align-items: start;
   }
 
