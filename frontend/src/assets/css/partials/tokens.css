@@ -10,6 +10,8 @@
   --color-accent-light:   #ffeeab;
   --color-accent-lighter: #ffdf6b;
 
+  --color-heading:        #4dbf88;
+
   --color-bg-dark:        #020203;
   --color-bg-glass:       rgba(21, 21, 29, 0.725);
 
@@ -18,7 +20,7 @@
   --color-border:         rgb(136, 125, 108);
   --color-border-accent:  var(--color-accent-light);
 
-  --color-link:           var(--color-accent);
+  --color-link:           #d9b34c;
   --color-link-hover:     var(--color-primary-light);
 }
 

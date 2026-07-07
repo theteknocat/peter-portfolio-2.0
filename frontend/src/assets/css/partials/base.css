@@ -29,7 +29,7 @@ body.modal-open {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: var(--color-primary-light);
+  color: var(--color-heading);
   font-weight: normal;
   line-height: 1.2;
 }
