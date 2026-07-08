@@ -80,4 +80,8 @@ hr {
   opacity: 1;
 }
 
+::selection {
+  background: rgb(from var(--color-primary-light) r g b / 0.25);
+}
+
 }
