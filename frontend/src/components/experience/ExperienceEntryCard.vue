@@ -5,6 +5,7 @@
 import type { ExperienceEntry } from '@/types/experience'
 import { formatExperienceDate } from '@/utils/date'
 import TechBadge from '@/components/ui/TechBadge.vue'
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer.vue'
 
 defineProps<{
   item: ExperienceEntry
@@ -18,7 +19,7 @@ defineProps<{
       <span class="experience-company">{{ item.company }}</span>
       <span class="experience-dates">{{ formatExperienceDate(item.start) }} – {{ formatExperienceDate(item.end) }}</span>
     </div>
-    <p v-if="item.summary" class="experience-summary">{{ item.summary }}</p>
+    <MarkdownRenderer v-if="item.summary" :content="item.summary" class="experience-summary" />
     <ul v-if="item.skills?.length" class="tag-list">
       <TechBadge v-for="skill in item.skills" :key="skill.label" :tag="skill" />
     </ul>
