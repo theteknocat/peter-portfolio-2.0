@@ -12,7 +12,7 @@ import { computed, type Component } from 'vue'
 import type { Tag } from '@/types/portfolio'
 import { siIcons } from '@/utils/techIcons'
 import { stripTitle } from '@/utils/svg'
-import { Plug, RefreshCw, Smartphone, Database, Terminal, Server } from '@lucide/vue'
+import { Plug, RefreshCw, Smartphone, Database, Terminal, Server, Network, Users, GitPullRequest, Sparkles, Handshake, Headset, ShoppingCart, Megaphone } from '@lucide/vue'
 
 const props = defineProps<{ tag: Tag; iconOnly?: boolean }>()
 
@@ -25,6 +25,14 @@ const lucideComponents: Record<string, Component> = {
   Database,
   Terminal,
   Server,
+  Network,
+  Users,
+  GitPullRequest,
+  Sparkles,
+  Handshake,
+  Headset,
+  ShoppingCart,
+  Megaphone,
 }
 
 const siIcon = computed(() =>
