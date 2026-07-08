@@ -40,9 +40,24 @@ function updateScrollIndicators(): void {
   canScrollDown.value = scrollable && el.scrollTop < el.scrollHeight - el.clientHeight - 4
 }
 
+const TRON_TEXT = 'END OF LINE'
+const NBSP = '\u00A0'
+
 const displaySubtitle = ref('')
 const displayBody = ref('')
 const displayTron = ref('')
+
+// Non-breaking-space padding reserving the untyped remainder's width, so the
+// centered line's width -- and therefore its horizontal center -- stays fixed
+// from the first character. NBSP (unlike a regular space) survives
+// white-space collapsing, so it holds real layout width as a placeholder.
+const subtitlePad = computed(() =>
+  NBSP.repeat(Math.max(0, (content.value?.subtitle ?? '').length - displaySubtitle.value.length))
+)
+const tronPad = computed(() =>
+  NBSP.repeat(Math.max(0, TRON_TEXT.length - displayTron.value.length))
+)
+
 // Which line the cursor sits on; 'done' = finished typing (pointer cursor cleared).
 const phase = ref<'subtitle' | 'body' | 'tron' | 'done'>('done')
 const cursorVisible = ref(false)
@@ -91,7 +106,7 @@ onMounted(async () => {
   if (hasAutoTyped || !wideEnough || reduceMotion) {
     displaySubtitle.value = sub
     displayBody.value = '\n' + body + '\n\n'
-    displayTron.value = 'END OF LINE'
+    displayTron.value = TRON_TEXT
     phase.value = 'done'
     return
   }
@@ -109,7 +124,7 @@ onMounted(async () => {
   // Tron easter egg: MCP's "END OF LINE" sign-off, its own line/paragraph.
   await pause(2000)
   phase.value = 'tron'
-  await typeInto(displayTron, 'END OF LINE')
+  await typeInto(displayTron, TRON_TEXT)
   phase.value = 'done'
   await pause(3000)
   cursorVisible.value = false
@@ -144,13 +159,13 @@ onUnmounted(() => {
     <div ref="scrollEl" class="intro-scroll" @scroll="updateScrollIndicators">
       <template v-if="content">
         <p v-if="content.subtitle" class="intro-subtitle">
-          {{ displaySubtitle }}<span v-if="phase === 'subtitle'" class="cursor">_</span>
+          &nbsp;{{ displaySubtitle }}<span v-if="phase === 'subtitle'" class="cursor">_</span><span v-else>&nbsp;</span>{{ subtitlePad }}
         </p>
         <p v-if="content.body" class="intro-body">
           {{ displayBody }}<span v-if="phase === 'body' && cursorVisible" class="cursor">_</span>
         </p>
         <p v-if="phase === 'tron' || phase === 'done'" class="intro-tron">
-          &nbsp;{{ displayTron }}<span v-if="cursorVisible" class="cursor">_</span><span v-else>&nbsp;</span>
+          &nbsp;{{ displayTron }}<span v-if="cursorVisible" class="cursor">_</span><span v-else>&nbsp;</span>{{ tronPad }}
         </p>
       </template>
       <p v-else>Hero content not yet loaded.</p>
