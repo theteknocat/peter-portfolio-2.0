@@ -37,6 +37,7 @@ import {
   siGoogleanalytics,
   siOllama,
   siFastapi,
+  siAtari,
 } from 'simple-icons'
 
 export interface SiIcon {
@@ -74,4 +75,5 @@ export const siIcons: Record<string, SiIcon> = {
   googleanalytics: siGoogleanalytics,
   ollama: siOllama,
   fastapi: siFastapi,
+  atari: siAtari,
 }
