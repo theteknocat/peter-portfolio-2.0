@@ -52,8 +52,8 @@
   }
 }
 
-.btn:hover,
-.btn:focus-visible {
+.btn:not(:disabled):hover,
+.btn:not(:disabled):focus-visible {
   outline: none;
   color: var(--color-primary-light);
   border-color: var(--color-primary-light);
@@ -72,8 +72,8 @@
   border-radius: 50%;
 }
 
-.btn-icon:hover,
-.btn-icon:focus-visible {
+.btn-icon:not(:disabled):hover,
+.btn-icon:not(:disabled):focus-visible {
   border-color: var(--color-primary-light);
 }
 

@@ -263,18 +263,18 @@
  *  Compose with any shape utility. Runs continuously while hover is held. */
 @layer components {
   .shape-jitter {
-    &:hover::before,
-    &:focus-visible::before,
-    &:hover::after,
-    &:focus-visible::after {
+    &:not(:disabled):hover::before,
+    &:not(:disabled):focus-visible::before,
+    &:not(:disabled):hover::after,
+    &:not(:disabled):focus-visible::after {
       animation: shape-glitch 5s linear infinite;
     }
   }
 
   /** Same glitch on the element itself — for shapes bordered with a real CSS
    *  border (.btn-icon circle, carousel diamonds), not a clip-path pseudo. */
-  .border-jitter:hover,
-  .border-jitter:focus-visible {
+  .border-jitter:not(:disabled):hover,
+  .border-jitter:not(:disabled):focus-visible {
     animation: shape-glitch 5s linear infinite;
   }
 }
