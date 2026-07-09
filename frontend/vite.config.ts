@@ -17,16 +17,23 @@ function htmlRoutes(dir: string, base = ''): string[] {
   })
 }
 
+// ponytail: env var lets `ddev deploy-frontend` build into a separate dir
+// without touching the local dev dist/
+const outDir = process.env.VITE_OUT_DIR || 'dist'
+
 export default defineConfig({
+  build: {
+    outDir,
+  },
   ssgOptions: {
     onFinished() {
-      const urls = htmlRoutes('dist').sort()
+      const urls = htmlRoutes(outDir).sort()
       const xml =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
         urls.map((u) => `  <url><loc>${SITE_URL}${u}</loc></url>`).join('\n') +
         '\n</urlset>\n'
-      writeFileSync('dist/sitemap.xml', xml)
+      writeFileSync(`${outDir}/sitemap.xml`, xml)
     },
   },
   plugins: [

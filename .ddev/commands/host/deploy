@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+## Description: Build and deploy both frontend and content to the server
+## Usage: deploy
+## Example: "ddev deploy"
+set -euo pipefail
+
+"$(dirname "$0")/deploy-frontend"
+"$(dirname "$0")/deploy-content"

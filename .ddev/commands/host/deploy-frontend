@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+## Description: Build the frontend for production and rsync it to the server
+## Usage: deploy-frontend
+## Example: "ddev deploy-frontend"
+set -euo pipefail
+
+cd "$(dirname "$0")/../../.."
+
+ddev exec --dir /var/www/html/frontend "export VITE_OUT_DIR=dist-prod; npx vue-tsc && npx vite-ssg build"
+
+cd frontend
+
+rsync -az --delete \
+  --rsync-path="sudo -u webuser rsync" \
+  dist-prod/ peter:/var/www/vhosts/portfolio-site/dist/
+
+echo "Frontend deployed."

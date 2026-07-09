@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+## Description: Rsync the content directory to the server
+## Usage: deploy-content
+## Example: "ddev deploy-content"
+set -euo pipefail
+
+cd "$(dirname "$0")/../../.."
+
+rsync -az --delete \
+  --rsync-path="sudo -u webuser rsync" \
+  content/ peter:/var/www/vhosts/portfolio-site/content/
+
+echo "Content deployed."
