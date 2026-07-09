@@ -200,15 +200,18 @@ Then edit the YAML values by hand.
 
 ---
 
-## API Endpoints (not yet implemented)
+## API Endpoints
 
 ```text
 GET /api/page/{page}
-GET /api/manifest/{name}?limit=3&filter=featured
 GET /api/content/{type}/{slug}
+GET /api/clippy/quips/{scope}
 ```
 
-Content path configured via `CONTENT_PATH` env var in `api/.env`.
+Manifests (e.g. featured portfolio items) are resolved internally by `PageHandler`/`ManifestService`,
+not exposed as their own endpoint.
+
+Content path is hardcoded in `api/src/dependencies.php` (`__DIR__ . '/../../content'`), not an env var.
 
 ---
 
