@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.0.0...v1.1.0) (2026-07-09)
+
+
+### Features
+
+* deployment commands and conf for prod build of frontend ([86dcb5b](https://github.com/theteknocat/peter-portfolio-2.0/commit/86dcb5bd2219a9bc64869c4da7f60c1ef192cb55))
+
 ## [1.0.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v0.1.0...v1.0.0) (2026-07-09)
 
 
