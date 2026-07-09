@@ -6,6 +6,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import LoadingScreen from '@/components/layout/LoadingScreen.vue'
 import ModalOverlay from '@/components/layout/ModalOverlay.vue'
 import ClippyCompanion from '@/components/clippy/ClippyCompanion.vue'
+import FocusPointer from '@/components/ui/FocusPointer.vue'
 import { useBackgroundGlitch } from '@/composables/useBackgroundGlitch'
 import { useBackgroundStreaks } from '@/composables/useBackgroundStreaks'
 import { setNonModalPath } from '@/composables/useModalNavigation'
@@ -106,6 +107,7 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
   <ModalOverlay />
   <LoadingScreen />
   <ClippyCompanion />
+  <FocusPointer />
 </template>
 
 <style scoped>
