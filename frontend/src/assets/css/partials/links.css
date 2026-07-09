@@ -43,9 +43,6 @@ a:not(.btn, .link-poly, .card-link, .clippy-btn) {
     mask-size: contain;
     mask-repeat: no-repeat;
     mask-position: center;
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
     pointer-events: none;
     transition: transform 0.3s ease;
   }
@@ -53,14 +50,12 @@ a:not(.btn, .link-poly, .card-link, .clippy-btn) {
   &::before {
     left: 0;
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14'%3E%3Cpolygon points='8,0 2,7 8,14 6,14 0,7 6,0' fill='black'/%3E%3C/svg%3E");
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14'%3E%3Cpolygon points='8,0 2,7 8,14 6,14 0,7 6,0' fill='black'/%3E%3C/svg%3E");
     transform: translateY(-50%) translateX(-140%);
   }
 
   &::after {
     right: 0;
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14'%3E%3Cpolygon points='0,0 6,7 0,14 2,14 8,7 2,0' fill='black'/%3E%3C/svg%3E");
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14'%3E%3Cpolygon points='0,0 6,7 0,14 2,14 8,7 2,0' fill='black'/%3E%3C/svg%3E");
     transform: translateY(-50%) translateX(140%);
   }
 

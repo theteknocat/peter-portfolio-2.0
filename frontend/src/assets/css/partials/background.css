@@ -46,8 +46,6 @@
      (useBackgroundGlitch.ts) using SVG turbulence shapes. */
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
   transform: scale(0);
   transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.4s ease-in;
   pointer-events: none;

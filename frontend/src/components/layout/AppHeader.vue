@@ -108,7 +108,6 @@ header::before {
 header.scrolled {
   background-color: rgba(0, 45, 22, 0.5);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 }
 
@@ -255,7 +254,6 @@ nav {
     padding: 1rem;
     background-color: rgba(0, 45, 22, 0.5);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-left: 1px solid var(--color-accent);
     transform: translateX(100%);
   }
