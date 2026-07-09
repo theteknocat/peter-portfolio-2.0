@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.0...v1.1.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **frontend:** remove manual vendor prefixes causing header blur to drop in prod ([02749ae](https://github.com/theteknocat/peter-portfolio-2.0/commit/02749ae411ec0ea1d7711db063468094c888ceb8))
+
 ## [1.1.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.0.0...v1.1.0) (2026-07-09)
 
 
