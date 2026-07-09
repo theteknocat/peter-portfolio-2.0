@@ -1,0 +1,30 @@
+name: Sync Production Branch
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge 1.x-dev into main
+        run: |
+          if git ls-remote --heads origin main | grep -q main; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git fetch origin main
+            git checkout main
+            git merge origin/1.x-dev --no-edit -m "chore: sync production with release ${{ github.event.release.tag_name }}"
+            git push origin main
+          else
+            echo "main branch does not exist, skipping sync"
+          fi
