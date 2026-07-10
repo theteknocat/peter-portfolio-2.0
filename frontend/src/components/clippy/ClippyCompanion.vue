@@ -52,6 +52,11 @@ interface Agent {
     _content: HTMLElement
     _active: boolean
     _hold: boolean
+    // True once the balloon is fully hidden. show() no-ops while it's true;
+    // only the non-fast hide() path sets it (after CLOSE_BALLOON_DELAY), so
+    // our own fast-path close in closeBubble() has to set it directly (see
+    // there for why that matters).
+    _hidden: boolean
     close(): void
     hide(fast?: boolean): void
     // Cancels the balloon's pending timers (word loop + the delayed _finishHideBalloon
@@ -202,9 +207,6 @@ async function speakForScope(scope: string): Promise<void> {
   say(a, quip, scope, true) // concurrent: bubble shows alongside the gesture
 }
 
-// Chance a quip arrives with action buttons rather than just auto-closing.
-const BUTTON_CHANCE = 0.5
-
 // Gag buttons: each maps to an animation and a canned punchline. Pure bits, no
 // navigation — the joke is that the "help" does nothing useful.
 const GAGS: Record<string, { play: string; line: string }> = {
@@ -227,15 +229,13 @@ const GAGS: Record<string, { play: string; line: string }> = {
 }
 
 /**
- * Speak a quip, sometimes attaching the scope's action buttons. With buttons we
- * hold the bubble open (so they stay clickable); without, it auto-closes after
- * a reading delay.
+ * Speak a quip and attach the scope's action buttons, holding the bubble open
+ * so they stay clickable (no auto-close reading delay applies).
  */
 function say(a: Agent, quip: string, scope: string, concurrent = false): void {
-  const acts = Math.random() < BUTTON_CHANCE ? actionsFor(scope) : []
+  const acts = actionsFor(scope)
   currentActions.value = acts
   const hold = acts.length > 0
-  if (!hold) a._balloon.CLOSE_BALLOON_DELAY = readingDelay(quip)
   a._balloon._content.style.maxWidth = '200px' // reset; a prior button bubble may have widened it
   if (concurrent) {
     // Speak straight on the balloon so it shows alongside the gesture (Agent.speak
@@ -298,6 +298,12 @@ function closeBubble(): void {
   a._balloon.close() // release the hold → fires the queue completion, unsticking it
   a._balloon._hold = false // close() leaves _hold set; clear it so the next quip isn't skipped
   a._balloon.hide(true) // collapse the bubble immediately
+  // hide(true) is the fast path — it skips setting _hidden (only the delayed
+  // non-fast hide does, via _finishHideBalloon). Without it, Agent._finishDrag()
+  // — which fires on every click *and* drag, since a click is a zero-distance
+  // drag — unconditionally calls balloon.show() next time, popping the stale,
+  // button-less bubble back up. speak() resets this to false on the next quip.
+  a._balloon._hidden = true
 }
 
 /** A gag button was clicked: close the held bubble, play the bit, deliver the punchline. */
