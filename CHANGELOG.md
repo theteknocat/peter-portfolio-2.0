@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.3...v1.1.4) (2026-07-10)
+
+
+### Bug Fixes
+
+* **frontend:** sync Clippy bubble dismissal and add loading spinner to close button ([18ab6cf](https://github.com/theteknocat/peter-portfolio-2.0/commit/18ab6cf8c90d84eeabaf6d562678f673a9c05991))
+* shared disabled button style ([47d4188](https://github.com/theteknocat/peter-portfolio-2.0/commit/47d4188787d6b3e3d2665c7d0ae33dea6d099756))
+
 ## [1.1.3](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.2...v1.1.3) (2026-07-10)
 
 
