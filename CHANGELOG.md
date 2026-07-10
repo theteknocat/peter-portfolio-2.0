@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.1...v1.1.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* **frontend:** keep Clippy's balloon buttons synced with its bubble state ([b21ad0c](https://github.com/theteknocat/peter-portfolio-2.0/commit/b21ad0c4cd47f4d4667b0d132a55e154be1de066))
+
 ## [1.1.1](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.0...v1.1.1) (2026-07-09)
 
 
