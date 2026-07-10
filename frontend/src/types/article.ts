@@ -4,6 +4,5 @@ export interface Article {
   date?: string
   summary?: string
   tags?: string[]
-  featured?: boolean
   body?: string
 }

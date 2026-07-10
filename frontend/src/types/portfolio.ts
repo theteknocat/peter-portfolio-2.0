@@ -36,7 +36,6 @@ export interface PortfolioItem {
   summary?: string
   tags?: Tag[]
   url?: string
-  featured?: boolean
   body?: string
   images?: PortfolioSlideEntry[]
   employer?: Employer
