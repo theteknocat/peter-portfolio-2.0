@@ -8,7 +8,7 @@
 //   brings him back via shared state in useClippy().
 import { nextTick, onMounted, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { X } from '@lucide/vue'
+import { LoaderCircle, X } from '@lucide/vue'
 import { routes } from '@/router'
 import { useClippy } from '@/composables/useClippy'
 import { useClippyQuips } from '@/composables/useClippyQuips'
@@ -82,9 +82,12 @@ const agent = shallowRef<Agent | null>(null)
 const agentEl = shallowRef<HTMLElement | null>(null)
 // The balloon's outer <div>, exposed so we can teleport action buttons into it.
 const balloonEl = shallowRef<HTMLElement | null>(null)
-// Buttons for the bubble currently on screen (empty = a plain, auto-closing
-// quip). Set per-quip; only some quips get buttons (see BUTTON_CHANCE).
+// Buttons for the bubble currently on screen. Set per-quip from actionsFor(scope);
+// empty only if the scope has no buttons defined.
 const currentActions = shallowRef<ClippyAction[]>([])
+// True while a quip pool fetch is in flight (uncached scope) — swaps the
+// dismiss button for a disabled spinner so a slow load doesn't look frozen.
+const isLoadingQuip = shallowRef(false)
 
 const FIRST_SHOW_DELAY_MS = 2500
 
@@ -196,7 +199,9 @@ async function speakForScope(scope: string): Promise<void> {
   // than stacking/interrupting (clippyjs has no clean mid-write abort; skipping
   // is the simpler, accepted tradeoff). Button clicks close it explicitly.
   if (a._balloon._active || a._balloon._hold) return
+  isLoadingQuip.value = true
   const quip = await quipFor(scope)
+  isLoadingQuip.value = false
   if (!quip || !agent.value || !active.value) return // no line, or navigated away mid-fetch
   a.stop() // cancel any still-running quip so they don't stack on fast nav
   a._balloon.pause() // stop()'s non-fast hide scheduled a delayed _finishHideBalloon; cancel
@@ -348,7 +353,9 @@ async function reveal(): Promise<void> {
   active.value = true
   summoning.value = false // he's on screen now — release the footer summon button
   const scope = scopeOf(route.path)
+  isLoadingQuip.value = true
   const quip = await quipFor(scope)
+  isLoadingQuip.value = false
   if (!quip || !agent.value || !active.value) return // dismissed mid-fetch
   // Reduced motion has no entrance animation to wait for, so speak concurrently:
   // the bubble shows + repositions with him, and held (button) bubbles get fitted
@@ -358,9 +365,9 @@ async function reveal(): Promise<void> {
 
 /** Hide him without disposing, so a later summon can re-show instantly. */
 function conceal(): void {
+  closeBubble() // collapse the bubble immediately, in sync with the buttons vanishing
   agent.value?.hide()
   active.value = false
-  currentActions.value = [] // unmount the teleported buttons with him
 }
 
 /** First-ever appearance: load the library lazily after a deliberate beat. */
@@ -474,8 +481,9 @@ onUnmounted(() => agent.value?.dispose())
   <!-- The agent itself renders into <body>; only the dismiss button is ours.
        Teleported into clippyjs's element so it follows the widget. -->
   <Teleport v-if="agentEl && active" :to="agentEl">
-    <button class="clippy-dismiss" aria-label="Dismiss Clippy" @click="onDismiss">
-      <X :size="16" />
+    <button class="clippy-dismiss" :disabled="isLoadingQuip" aria-label="Dismiss Clippy" @click="onDismiss">
+      <LoaderCircle v-if="isLoadingQuip" class="clippy-dismiss-spinner" :size="16" />
+      <X v-else :size="16" />
     </button>
   </Teleport>
 
@@ -515,5 +523,18 @@ onUnmounted(() => agent.value?.dispose())
 .clippy-dismiss:focus-visible {
   color: var(--color-primary-light);
   border-color: var(--color-primary-light);
+}
+
+.clippy-dismiss:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.clippy-dismiss-spinner {
+  animation: clippy-dismiss-spin 1s linear infinite;
+}
+
+@keyframes clippy-dismiss-spin {
+  to { transform: rotate(360deg); }
 }
 </style>
