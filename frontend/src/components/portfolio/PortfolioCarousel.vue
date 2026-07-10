@@ -413,11 +413,6 @@ function onScroll(): void {
   background: rgb(0 0 0 / 0.7);
 }
 
-.carousel-nav:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
 /* Vertical paging within a slide's image group (mobile only — desktop shows
    the whole group at once side by side). Grouped outside the carousel's
    right edge, overflowing into the modal's existing side padding per
