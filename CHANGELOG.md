@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.2...v1.1.3) (2026-07-10)
+
+
+### Bug Fixes
+
+* remove confusing per-item "featured" field ([e358d0c](https://github.com/theteknocat/peter-portfolio-2.0/commit/e358d0c7b867b5866aebe9216f65027c2106fc68))
+
 ## [1.1.2](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.1...v1.1.2) (2026-07-10)
 
 
