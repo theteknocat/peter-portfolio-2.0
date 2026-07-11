@@ -10,7 +10,7 @@ ddev exec --dir /var/www/html/frontend "export VITE_OUT_DIR=dist-prod; npx vue-t
 
 cd frontend
 
-rsync -az --delete \
+rsync -az --delete --info=progress2 \
   --rsync-path="sudo -u webuser rsync" \
   dist-prod/ peter:/var/www/vhosts/portfolio-site/dist/
 

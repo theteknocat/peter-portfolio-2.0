@@ -6,7 +6,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
 
-rsync -az --delete \
+rsync -az --delete --info=progress2 \
   --rsync-path="sudo -u webuser rsync" \
   content/ peter:/var/www/vhosts/portfolio-site/content/
 
