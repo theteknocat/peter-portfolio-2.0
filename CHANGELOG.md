@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.2.0...v1.3.0) (2026-07-11)
+
+
+### Features
+
+* **frontend:** prerender detail routes with real content via async setup ([5114f64](https://github.com/theteknocat/peter-portfolio-2.0/commit/5114f649e16f92c96be071d6acb3145a890f23e0))
+
+
+### Bug Fixes
+
+* update deploy wrapper to deploy content before frontend code ([4faa472](https://github.com/theteknocat/peter-portfolio-2.0/commit/4faa47253bc07520089b27fe16c4451ad496b0fc))
+
 ## [1.2.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.4...v1.2.0) (2026-07-11)
 
 
