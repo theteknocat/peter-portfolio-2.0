@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.4...v1.2.0) (2026-07-11)
+
+
+### Features
+
+* **backend:** add published status to manifest entries ([9a67160](https://github.com/theteknocat/peter-portfolio-2.0/commit/9a6716040e0d1f076881a8d091f276f051879951))
+
 ## [1.1.4](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.1.3...v1.1.4) (2026-07-10)
 
 
