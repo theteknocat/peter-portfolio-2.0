@@ -4,5 +4,5 @@
 ## Example: "ddev deploy"
 set -euo pipefail
 
-"$(dirname "$0")/deploy-frontend"
 "$(dirname "$0")/deploy-content"
+"$(dirname "$0")/deploy-frontend"
