@@ -93,7 +93,9 @@ function backgroundComponent(comp: object | null, isModal: boolean): object | nu
             <!-- page-slot is a plain full-width wrapper so position:absolute on
                  .page-leave-active doesn't disrupt .view-container's centering -->
             <div class="page-slot" :key="pageKey">
-              <component :is="backgroundComponent(Component, !!route.meta.modal)" />
+              <Suspense>
+                <component :is="backgroundComponent(Component, !!route.meta.modal)" />
+              </Suspense>
             </div>
           </Transition>
         </RouterView>

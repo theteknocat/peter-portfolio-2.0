@@ -3,7 +3,7 @@
  * Article detail — rendered in the modal outlet.
  * Fetches the full article (including markdown body) by slug from the API.
  */
-import { watch, inject } from 'vue'
+import { inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useContent } from '@/composables/useContent'
 import type { Article } from '@/types/article'
@@ -13,16 +13,14 @@ import { formatDate } from '@/utils/date'
 const route = useRoute()
 const slug = route.params.slug as string
 
-const { data, loading, error } = useContent<Article>('articles', slug)
+const { data, error } = await useContent<Article>('articles', slug)
 
-const signalModalReady = inject<() => void>('signalModalReady', () => {})
-watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
+inject<() => void>('signalModalReady', () => {})()
 </script>
 
 <template>
   <div class="modal-content">
-    <p v-if="loading">Loading…</p>
-    <p v-else-if="error">Error: {{ error }}</p>
+    <p v-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <div class="modal-header">
         <h2 class="modal-title m-0">{{ data.title }}</h2>

@@ -11,7 +11,7 @@ import ContentCard from '@/components/ui/ContentCard.vue'
 import TextSection from '@/components/sections/TextSection.vue'
 import ExperienceTimelineSection from '@/components/experience/ExperienceTimelineSection.vue'
 
-const { data, loading, error } = usePageData('experience')
+const { data, error } = await usePageData('experience')
 
 useSeo({
   title: 'Experience — Peter Epp',
@@ -29,8 +29,7 @@ const { resolveSection } = useSectionComponents({
   <div class="view-container">
     <PageTitle>Experience</PageTitle>
     <ContentCard>
-      <p v-if="loading">Loading…</p>
-      <p v-else-if="error">Error: {{ error }}</p>
+      <p v-if="error">Error: {{ error }}</p>
       <template v-else>
         <component
           v-for="section in data?.sections ?? []"

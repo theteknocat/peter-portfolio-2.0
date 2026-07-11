@@ -14,7 +14,7 @@ import FeaturedArticlesSection from '@/components/home/FeaturedArticlesSection.v
 import SkillsSection from '@/components/home/SkillsSection.vue'
 import ExperienceStatsSection from '@/components/home/ExperienceStatsSection.vue'
 
-const { data, loading, error } = usePageData('home')
+const { data, error } = await usePageData('home')
 
 useSeo({
   title: 'Peter Epp — Full-Stack Web Developer',
@@ -69,6 +69,7 @@ let observer: IntersectionObserver | null = null
 const ratios = new Map<string, number>()
 
 function setupObserver() {
+  if (typeof IntersectionObserver === 'undefined') return // no IntersectionObserver during SSG prerender
   observer?.disconnect()
   ratios.clear()
   observer = new IntersectionObserver(
@@ -110,8 +111,7 @@ onUnmounted(() => observer?.disconnect())
 
 <template>
   <div class="view-container pb-0">
-    <p v-if="loading">Loading…</p>
-    <p v-else-if="error">Error: {{ error }}</p>
+    <p v-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <div class="home-grid">
         <div class="home-left md:pb-4">

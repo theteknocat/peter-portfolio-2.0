@@ -107,7 +107,9 @@ function onModalBeforeLeave(el: Element): void {
           <button v-if="contentReady" class="btn btn-icon border-jitter modal-close" aria-label="Close" @click="close">
             <X :size="18" />
           </button>
-          <RouterView name="modal" :key="(route.params.slug as string)" />
+          <Suspense>
+            <RouterView name="modal" :key="(route.params.slug as string)" />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@
  * Portfolio item detail — rendered in the modal outlet.
  * Fetches the full item (including markdown body) by slug from the API.
  */
-import { watch, inject, computed } from 'vue'
+import { inject, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useContent } from '@/composables/useContent'
 import type { PortfolioItem } from '@/types/portfolio'
@@ -15,10 +15,9 @@ import { ExternalLink, Building2 } from '@lucide/vue'
 const route = useRoute()
 const slug = route.params.slug as string
 
-const { data, loading, error } = useContent<PortfolioItem>('portfolio', slug)
+const { data, error } = await useContent<PortfolioItem>('portfolio', slug)
 
-const signalModalReady = inject<() => void>('signalModalReady', () => {})
-watch(loading, (isLoading) => { if (!isLoading) signalModalReady() })
+inject<() => void>('signalModalReady', () => {})()
 
 const linkLabel = computed(() => {
   const url = data.value?.url
@@ -36,8 +35,7 @@ const linkLabel = computed(() => {
 
 <template>
   <div class="modal-content">
-    <p v-if="loading">Loading…</p>
-    <p v-else-if="error">Error: {{ error }}</p>
+    <p v-if="error">Error: {{ error }}</p>
     <template v-else-if="data">
       <div class="flex flex-wrap items-center justify-between gap-x-4 mb-6">
         <h2 class="modal-title m-0">{{ data.title }}</h2>

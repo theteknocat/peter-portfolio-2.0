@@ -1,33 +1,29 @@
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
 /**
  * Fetches a single content item from `/api/content/{type}/{slug}`.
  *
  * The generic `T` parameter lets callers type the returned data ref to their
  * specific content type (e.g. `useContent<PortfolioItem>('portfolio', slug)`).
- * This is the same `ref + onMounted + fetch` pattern as `usePageData`, but for
- * individual item routes rather than full page layouts.
+ * Awaited during `setup()` (async setup, requires a `<Suspense>` ancestor) so
+ * the data is present in prerendered SSG output, not just client-side.
  *
  * @param type - The content type directory name (e.g. `'portfolio'`, `'articles'`).
  * @param slug - The item slug matching the YAML filename without extension.
- * @returns Reactive refs for the item data, loading state, and any error message.
+ * @returns Reactive refs for the item data and any error message.
  */
-export function useContent<T>(type: string, slug: string) {
+export async function useContent<T>(type: string, slug: string) {
   const data = ref<T | null>(null)
-  const loading = ref(true)
   const error = ref<string | null>(null)
 
-  onMounted(async () => {
-    try {
-      const response = await fetch(`/api/content/${type}/${slug}`)
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      data.value = await response.json() as T
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Unknown error'
-    } finally {
-      loading.value = false
-    }
-  })
+  try {
+    const base = import.meta.env.SSR ? 'http://localhost' : ''
+    const response = await fetch(`${base}/api/content/${type}/${slug}`)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    data.value = await response.json() as T
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Unknown error'
+  }
 
-  return { data, loading, error }
+  return { data, error }
 }
