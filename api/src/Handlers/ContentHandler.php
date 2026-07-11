@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Handlers;
 
 use App\Services\ContentService;
+use App\Services\ManifestService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Exception\HttpNotFoundException;
@@ -21,9 +22,14 @@ class ContentHandler
     /**
      * @param ContentService $contentService
      *   Reads individual content items from the content directory.
+     * @param ManifestService $manifestService
+     *   Checks the published status of manifest entries. The 'type' route
+     *   argument doubles as the manifest name (e.g. 'portfolio', 'articles').
      */
-    public function __construct(private readonly ContentService $contentService)
-    {
+    public function __construct(
+        private readonly ContentService $contentService,
+        private readonly ManifestService $manifestService,
+    ) {
     }
 
     /**
@@ -49,7 +55,7 @@ class ContentHandler
     ): ResponseInterface {
         $item = $this->contentService->getItem($args['type'], $args['slug']);
 
-        if ($item === null) {
+        if ($item === null || !$this->manifestService->isPublished($args['type'], $args['slug'])) {
             throw new HttpNotFoundException(
                 $request,
                 "Content '{$args['type']}/{$args['slug']}' not found."
