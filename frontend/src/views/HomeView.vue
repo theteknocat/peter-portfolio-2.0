@@ -3,7 +3,7 @@
  * Home page — fetches the resolved page layout from the API and renders each
  * section dynamically by mapping section.template to the appropriate component.
  */
-import { type Component, computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { type Component, computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { Briefcase, Newspaper, Joystick, Trophy } from '@lucide/vue'
 import { usePageData } from '@/composables/usePageData'
 import { useSeo } from '@/composables/useSeo'
@@ -95,16 +95,19 @@ function setupObserver() {
   }
 }
 
-// Sections render async (after page data loads), so wire the observer once the
-// nav items exist and the DOM has flushed.
-watch(
-  navItems,
-  async () => {
-    await nextTick()
-    if (navItems.value.length) setupObserver()
-  },
-  { immediate: true },
-)
+// Page data is awaited in setup, so navItems is already populated by the time
+// this component mounts — wire the observer once the DOM has flushed.
+//
+// Also re-run the hash scroll here: router.isReady() (which fires
+// scrollBehavior in main.ts) resolves before app.mount(), and this component's
+// async setup sits inside a <Suspense> boundary — so on a hard load with a
+// hash in the URL, scrollBehavior's querySelector runs before the section
+// content exists and silently finds nothing.
+onMounted(async () => {
+  await nextTick()
+  if (navItems.value.length) setupObserver()
+  if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView()
+})
 
 onUnmounted(() => observer?.disconnect())
 </script>
