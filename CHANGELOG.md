@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.3.0...v1.3.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **home:** restore active section highlight and hash scroll on load ([df75b41](https://github.com/theteknocat/peter-portfolio-2.0/commit/df75b418077fa9739da1729fa18b0bba3769bf33))
+
 ## [1.3.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.2.0...v1.3.0) (2026-07-11)
 
 
