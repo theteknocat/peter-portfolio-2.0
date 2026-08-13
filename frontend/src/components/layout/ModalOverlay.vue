@@ -103,7 +103,7 @@ function onModalBeforeLeave(el: Element): void {
         </div>
       </Transition>
       <div ref="modalWrapper" class="modal-wrapper" :class="{ 'panel-visible': panelVisible }" role="dialog" aria-modal="true" tabindex="-1">
-        <div class="modal-container">
+        <div class="modal-container py-8 px-4 md:px-10 md:py-10">
           <button v-if="contentReady" class="btn btn-icon border-jitter modal-close" aria-label="Close" @click="close">
             <X :size="18" />
           </button>
@@ -174,7 +174,6 @@ function onModalBeforeLeave(el: Element): void {
 
 .modal-container {
   flex: 1;
-  padding: 2.5rem;
   --shape-fill: rgba(21, 21, 29, 0.92);
   --shape-border: var(--color-accent);
   @apply shape-cove cove-r-[17px];
