@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.3.1...v1.3.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* better responsive padding for modal container ([80a27c7](https://github.com/theteknocat/peter-portfolio-2.0/commit/80a27c7b019845bb7f4b6cdb28b17403cf3b1d91))
+
 ## [1.3.1](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.3.0...v1.3.1) (2026-07-14)
 
 
