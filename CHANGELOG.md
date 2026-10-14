@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.3.2...v1.4.0) (2026-10-14)
+
+
+### Features
+
+* **frontend:** add self-hosted Umami analytics tracker ([ae28f10](https://github.com/theteknocat/peter-portfolio-2.0/commit/ae28f106350edbb89be973445d10014c8d1b80e7))
+* **frontend:** track Clippy and skills-grid interactions in Umami ([bc9a04f](https://github.com/theteknocat/peter-portfolio-2.0/commit/bc9a04f24a359d3be9f12b242fd3c5a61dbb45a1))
+
 ## [1.3.2](https://github.com/theteknocat/peter-portfolio-2.0/compare/v1.3.1...v1.3.2) (2026-08-13)
 
 
