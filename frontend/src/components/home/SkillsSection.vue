@@ -48,6 +48,8 @@ const filteredSkills = computed(() => {
             :key="tier.value"
             class="btn shape-chamfer shape-jitter"
             :class="{ 'btn--active': selectedTier === tier.value }"
+            data-umami-event="skills-tier"
+            :data-umami-event-tier="tier.value"
             @click="selectedTier = tier.value"
           >
             <component :is="tier.icon" :size="14" />
@@ -58,6 +60,7 @@ const filteredSkills = computed(() => {
             class="btn shape-chamfer shape-jitter"
             title="Shuffle skills"
             aria-label="Shuffle skill order"
+            data-umami-event="skills-shuffle"
             @click="gridRef?.shuffleOrder()"
           >
             <Shuffle :size="18" />
@@ -68,6 +71,7 @@ const filteredSkills = computed(() => {
             class="btn shape-chamfer shape-jitter"
             title="Reset order"
             aria-label="Reset skill order"
+            data-umami-event="skills-reset"
             @click="gridRef?.resetOrder()"
           >
             <RotateCcw :size="18" />

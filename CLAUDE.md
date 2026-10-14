@@ -75,14 +75,35 @@ ddev describe                                           # Show URLs and service 
 
 ddev composer install                                   # Install PHP dependencies (runs from api/)
 ddev exec --dir /var/www/html/frontend npm install      # Install JS dependencies
-ddev exec --dir /var/www/html/frontend npm run dev      # Start Vite dev server
 ddev exec --dir /var/www/html/frontend npm run build    # Production build
 ```
+
+**Vite starts automatically with `ddev start`** (`web_extra_daemons` in `.ddev/config.yaml`),
+so don't run `npm run dev` by hand. It transpiles only — it does **not** type-check; `vue-tsc`
+runs only in `npm run build` / `ddev deploy`. **Type-check as you go:** after finishing a set of
+`.ts`/`.vue` changes, run `ddev exec --dir /var/www/html/frontend npx vue-tsc --noEmit`
+(fast, no build output; exit 0 + no output = pass). Don't run production builds or
+`ddev deploy` unprompted. For local testing, Playwright MCP is set up — use it against the dev URL
+(and close the browser after).
 
 **URLs (when running):**
 
 - API: <https://peter-portfolio.ddev.site>
 - Vite dev server: <https://peter-portfolio.ddev.site:5173>
+
+---
+
+## Analytics (Umami)
+
+Self-hosted Umami at `https://stats.peter-epp.dev` (server-side config lives outside this repo).
+The tracker `<script>` is in `frontend/index.html` with `data-domains="peter-epp.dev,www.peter-epp.dev"`,
+so local dev hits are ignored — events can only be verified on the live site after deploy.
+Page navigation is tracked automatically; don't call `umami.track()` for pageviews.
+
+- Plain clicks: `data-umami-event="name"` (+ `data-umami-event-<prop>` for properties) in the template.
+- Script-driven events (drag, game state): `trackEvent()` from `@/utils/analytics` (SSR/ad-block safe).
+- Current events: `clippy-dismiss`, `clippy-summon`, `skills-tier` (prop `tier`), `skills-shuffle`,
+  `skills-reset`, `skills-drag`, `skills-solved` (manual puzzle completion only, not Reset).
 
 ---
 

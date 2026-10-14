@@ -39,7 +39,7 @@ const { dismissed, allowed, summoning, summon } = useClippy()
              while summoning so it doesn't vanish during his reveal delay. -->
         <template v-if="allowed && (dismissed || summoning)">
           <span class="footer-divider" aria-hidden="true" />
-          <button type="button" class="summon-clippy social-link link-poly link-poly--slash shape-jitter" :disabled="summoning" @click="summon">
+          <button type="button" class="summon-clippy social-link link-poly link-poly--slash shape-jitter" :disabled="summoning" data-umami-event="clippy-summon" @click="summon">
             <LoaderCircle v-if="summoning" class="summon-spinner" :size="18" />
             <Paperclip v-else class="summon-icon" :size="18" />
             <span>{{ summoning ? 'Summoning…' : 'Need a hand?' }}</span>

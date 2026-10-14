@@ -481,7 +481,7 @@ onUnmounted(() => agent.value?.dispose())
   <!-- The agent itself renders into <body>; only the dismiss button is ours.
        Teleported into clippyjs's element so it follows the widget. -->
   <Teleport v-if="agentEl && active" :to="agentEl">
-    <button class="clippy-dismiss" :disabled="isLoadingQuip" aria-label="Dismiss Clippy" @click="onDismiss">
+    <button class="clippy-dismiss" :disabled="isLoadingQuip" aria-label="Dismiss Clippy" data-umami-event="clippy-dismiss" @click="onDismiss">
       <LoaderCircle v-if="isLoadingQuip" class="clippy-dismiss-spinner" :size="16" />
       <X v-else :size="16" />
     </button>

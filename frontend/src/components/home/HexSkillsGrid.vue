@@ -11,6 +11,7 @@ import { computed, onMounted, reactive, ref, watch, onUnmounted, type Component 
 import type { Tag } from '@/types/portfolio'
 import { siIcons } from '@/utils/techIcons'
 import { stripTitle } from '@/utils/svg'
+import { trackEvent } from '@/utils/analytics'
 import { Plug, RefreshCw, Smartphone, Database, Terminal, Server } from '@lucide/vue'
 
 const props = defineProps<{ skills: Tag[] }>()
@@ -206,6 +207,7 @@ let victoryTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(isReordered, (nowReordered, wasReordered) => {
   if (wasReordered && !nowReordered && !isResetting) {
+    trackEvent('skills-solved')
     if (victoryTimer) clearTimeout(victoryTimer)
     mousePos.value = null   // freeze tilt/scale to neutral for the duration
     victoryActive.value = true
@@ -791,6 +793,7 @@ function onDragEnd(event: PointerEvent) {
     const [item] = skills.splice(src, 1)
     skills.splice(tgt, 0, item)
     localSkills.value = skills
+    trackEvent('skills-drag')
   }
   isDragging.value = false
   document.body.classList.remove('hex-dragging')
